@@ -1,6 +1,6 @@
 
-Control.FromSum
-===============
+Text.Pretty.Simple
+==================
 
 [![Build Status](https://secure.travis-ci.org/cdepillabout/pretty-simple.svg)](http://travis-ci.org/cdepillabout/pretty-simple)
 [![Hackage](https://img.shields.io/hackage/v/pretty-simple.svg)](https://hackage.haskell.org/package/pretty-simple)
