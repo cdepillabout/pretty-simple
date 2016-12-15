@@ -16,6 +16,9 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Text.Pretty.Simple
+                     , Text.Pretty.Simple.Internal.Expr
+                     , Text.Pretty.Simple.Internal.Parser
+                     , Text.Pretty.Simple.Internal.Printer
   build-depends:       base >= 4.6 && < 5
                      , lens
                      , mono-traversable

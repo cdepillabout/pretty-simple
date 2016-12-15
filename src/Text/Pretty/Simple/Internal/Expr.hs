@@ -7,7 +7,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 {-|
-Module      : Text.Pretty.Simple
+Module      : Text.Pretty.Simple.Expr
 Copyright   : (c) Dennis Gosnell, 2016
 License     : BSD-style (see LICENSE file)
 Maintainer  : cdep.illabout@gmail.com
@@ -15,7 +15,7 @@ Stability   : experimental
 Portability : POSIX
 
 -}
-module Text.Pretty.Simple
+module Text.Pretty.Simple.Internal.Expr
   where
 
 #if __GLASGOW_HASKELL__ < 710
@@ -24,17 +24,17 @@ module Text.Pretty.Simple
 import Control.Applicative
 #endif
 
-import Control.Monad.IO.Class (MonadIO, liftIO)
+import Data.Data (Data)
+import Data.Typeable (Typeable)
+import GHC.Generics (Generic)
 
-import Text.Pretty.Simple.Internal.Parser (expressionParse)
-import Text.Pretty.Simple.Internal.Printer (expressionPrint)
+newtype CommaSeparated a = CommaSeparated { unCommaSeparated :: [a] }
+  deriving (Data, Eq, Generic, Show, Typeable)
 
-prettyString :: String -> String
-prettyString string =
-  either (const string) expressionPrint $ expressionParse string
-
-pShow :: Show a => a -> String
-pShow = prettyString . show
-
-pPrint :: (MonadIO m, Show a) => a -> m ()
-pPrint = liftIO . putStrLn . pShow
+data Expr
+  = Brackets !(CommaSeparated [Expr])
+  | Braces !(CommaSeparated [Expr])
+  | Parens !(CommaSeparated [Expr])
+  | StringLit !String
+  | Other !String
+  deriving (Data, Eq, Generic, Show, Typeable)
