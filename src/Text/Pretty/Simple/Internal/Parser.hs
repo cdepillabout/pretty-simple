@@ -28,11 +28,18 @@ import Control.Applicative ((<|>))
 import Data.Functor.Identity (Identity)
 import Text.Parsec
        (Parsec, ParseError, lookAhead, many, noneOf, optionMaybe,
-        runParser, try)
+        parserFail, runParser, try)
 import Text.Parsec.Language (haskellDef)
 import qualified Text.Parsec.Token as Token
 
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
+
+-- $setup
+-- >>> import Data.Either (isLeft)
+-- >>> :{
+-- let test :: Parser a -> String -> Either ParseError a
+--     test parser = runParser parser () "(no source)"
+-- :}
 
 type Parser = Parsec String ()
 
@@ -70,22 +77,10 @@ parser = expr
 
 -- | This is definitely hacky.
 expr :: Parser [Expr]
-expr = do
-  res <- expr'
-  maybeNext <- optionMaybe (try (lookAhead expr'))
-  case res of
-    Other "" -> pure []
-    _ ->
-      case maybeNext of
-        Nothing -> pure [res]
-        Just (Other "") -> pure [res]
-        _ -> do
-          next <- expr
-          pure $ res : next
+expr = many expr'
 
 expr' :: Parser Expr
-expr' =
-  recursiveExpr <|> nonRecursiveExpr
+expr' = recursiveExpr <|> nonRecursiveExpr
 
 bracketsExpr :: Parser Expr
 bracketsExpr = Brackets <$> recursiveSurroundingExpr brackets
@@ -105,6 +100,13 @@ recursiveExpr :: Parser Expr
 recursiveExpr = do
   bracketsExpr <|> parensExpr <|> bracesExpr
 
+-- | Parse a string literal.
+--
+-- >>> test stringLiteralExpr "\"hello\""
+-- Right (StringLit "hello")
+--
+-- >>> isLeft $ test stringLiteralExpr " \"hello\""
+-- True
 stringLiteralExpr :: Parser Expr
 stringLiteralExpr = StringLit <$> stringLiteral
 
@@ -112,8 +114,35 @@ nonRecursiveExpr :: Parser Expr
 nonRecursiveExpr = do
   stringLiteralExpr <|> anyOtherText
 
+-- | Parse anything that doesn't get parsed by the parsers above.
+--
+-- >>> test anyOtherText " Foo "
+-- Right (Other " Foo ")
+--
+-- Parse empty strings.
+--
+-- >>> test anyOtherText " "
+-- Right (Other " ")
+--
+-- Stop parsing if we hit @\[@, @\]@, @\(@, @\)@, @\{@, @\}@, @\"@, or @,@.
+--
+-- >>> test anyOtherText "hello["
+-- Right (Other "hello")
+--
+-- Don\'t parse the empty string.
+--
+-- >>> isLeft $ test anyOtherText ""
+-- True
+-- >>> isLeft $ test anyOtherText ","
+-- True
 anyOtherText :: Parser Expr
-anyOtherText = Other <$> many (Text.Parsec.noneOf "[](){},\"")
+anyOtherText = do
+  res <- many (Text.Parsec.noneOf "[](){},\"")
+  case res of
+    "" ->
+      parserFail
+        "Trying to apply anyOtherText to an empty string.  This doesn't work."
+    _ -> pure $ Other res
 
 testString1, testString2 :: String
 testString1 = "Just [TextInput {textInputClass = Just (Class {unClass = \"class\"}), textInputId = Just (Id {unId = \"id\"}), textInputName = Just (Name {unName = \"name\"}), textInputValue = Just (Value {unValue = \"value\"}), textInputPlaceholder = Just (Placeholder {unPlaceholder = \"placeholder\"})}, TextInput {textInputClass = Just (Class {unClass = \"class\"}), textInputId = Just (Id {unId = \"id\"}), textInputName = Just (Name {unName = \"name\"}), textInputValue = Just (Value {unValue = \"value\"}), textInputPlaceholder = Just (Placeholder {unPlaceholder = \"placeholder\"})}]"

@@ -26,23 +26,46 @@ import Control.Applicative
 
 import Control.Lens (Lens', (%=), (<>=), (.=), (+=), lens, use, view)
 import Control.Lens.TH (makeLenses)
+import Control.Monad (when)
 import Control.Monad.State (MonadState, execState)
+import Data.Data (Data)
 import Data.Foldable (traverse_)
 import Data.MonoTraversable (headEx)
 import Data.Semigroup ((<>))
 import Data.Sequences (intersperse, tailEx)
+import Data.Typeable (Typeable)
+import GHC.Generics (Generic)
 
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
 
+-- $setup
+-- >>> import Control.Monad.State (State)
+-- >>> :{
+-- let test :: PrinterState -> State PrinterState a -> PrinterState
+--     test initState state = execState state initState
+--     testInit :: State PrinterState a -> PrinterState
+--     testInit = test initPrinterState
+-- :}
+
 data PrinterState = PrinterState
-  { _currCharOnLine :: Int
+  { _currLine :: Int
+  , _currCharOnLine :: Int
   , _indentStack :: [Int]
   , _printerString :: String
-  }
+  } deriving (Eq, Data, Generic, Show, Typeable)
 makeLenses ''PrinterState
 
+printerState :: Int -> Int -> [Int] -> String -> PrinterState
+printerState currLineNum currCharNum stack string =
+  PrinterState
+  { _currLine = currLineNum
+  , _currCharOnLine = currCharNum
+  , _indentStack = stack
+  , _printerString = string
+  }
+
 initPrinterState :: PrinterState
-initPrinterState = PrinterState 0 [0] ""
+initPrinterState = printerState 0 0 [0] ""
 
 _headEx :: Lens' [Int] Int
 _headEx = lens headEx f
@@ -105,7 +128,46 @@ putString string = do
   currCharOnLine += length string
   printerString <>= string
 
-putSurroundExpr :: MonadState PrinterState m => String -> String -> CommaSeparated [Expr] -> m ()
+-- | Print a surrounding expression (like @\[\]@ or @\{\}@ or @\(\)@).
+--
+-- If the 'CommaSeparated' expressions are empty, just print the start and end
+-- markers.
+--
+-- >>> testInit $ putSurroundExpr "[" "]" (CommaSeparated [])
+-- PrinterState {_currLine = 0, _currCharOnLine = 2, _indentStack = [0], _printerString = "[]"}
+--
+-- >>> let state = printerState 1 5 [5,0] "\nhello"
+-- >>> test state $ putSurroundExpr "(" ")" (CommaSeparated [[]])
+-- PrinterState {_currLine = 1, _currCharOnLine = 7, _indentStack = [5,0], _printerString = "\nhello()"}
+--
+-- If there is only one expression, then just print it it all on one line, with
+-- spaces around the expressions.
+--
+-- >>> testInit $ putSurroundExpr "{" "}" (CommaSeparated [[Other "hello", Other "bye"]])
+-- PrinterState {_currLine = 0, _currCharOnLine = 12, _indentStack = [0], _printerString = "{ hellobye }"}
+--
+-- If there are multiple expressions, and this is indent level 0, then print
+-- out normally and put each expression on a different line with a comma.
+-- No indentation happens.
+--
+-- >>> comma = [[Other "hello"], [Other "bye"]]
+-- >>> testInit $ putSurroundExpr "[" "]" (CommaSeparated comma)
+-- PrinterState {_currLine = 2, _currCharOnLine = 1, _indentStack = [0], _printerString = "[ hello\n, bye\n]"}
+
+-- If there are multiple expressions, and this is not the first thing on the
+-- line, then first go to a new line, indent, then continue to print out
+-- normally like above.
+--
+-- >>> comma = [[Other "foo"], [Other "bar"]]
+-- >>> state = printerState 5 [0] "hello"
+-- >>> test $ putSurroundExpr "{" "}" (CommaSeparated comma)
+-- PrinterState {_currLine = 3, _currCharOnLine = 4, _indentStack = [0], _printerString = "hello\n   [ foo\n   , bar\n   ]"}
+putSurroundExpr
+  :: MonadState PrinterState m
+  => String -- ^ starting character (@\[@ or @\{@ or @\(@)
+  -> String -- ^ ending character (@\]@ or @\}@ or @\)@)
+  -> CommaSeparated [Expr] -- ^ comma separated inner expression.
+  -> m ()
 putSurroundExpr startMarker endMarker (CommaSeparated []) =
   putString $ startMarker <> endMarker
 putSurroundExpr startMarker endMarker (CommaSeparated [[]]) =
@@ -115,8 +177,10 @@ putSurroundExpr startMarker endMarker (CommaSeparated [exprs]) = do
   traverse_ putExpression exprs
   putString $ " " <> endMarker
 putSurroundExpr startMarker endMarker commaSeparated = do
-  newLineAndDoIndent
-  putString "  "
+  charOnLine <- use currCharOnLine
+  when (charOnLine /= 0) $ do
+    newLineAndDoIndent
+    putString "   "
   putOpeningSymbol startMarker
   putCommaSep commaSeparated
   newLineAndDoIndent
@@ -134,6 +198,7 @@ newLine
 newLine = do
   printerString <>= "\n"
   currCharOnLine .= 0
+  currLine += 1
 
 newLineAndDoIndent
   :: MonadState PrinterState m
