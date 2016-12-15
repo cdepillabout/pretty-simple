@@ -63,16 +63,40 @@ pString string =
 --
 -- Slightly more complicated lists:
 --
--- >>> pPrint $ [ Foo [ (), () ] "hello" ]
+-- >>> pPrint $ [ Foo [ (),    () ] "hello" ]
 -- [ Foo
---    [ ()
---    , ()
---    ] "hello" ]
+--     [ ()
+--     , ()
+--     ] "hello"
+-- ]
 --
 -- >>> pPrint $ [ Foo [ "bar", "baz" ] "hello", Foo [] "bye" ]
 -- [ Foo
---    [ "bar"
---    , "baz"
---    ]"hello"
--- , Foo []"bye"
+--     [ "bar"
+--     , "baz"
+--     ] "hello"
+-- , Foo [] "bye"
 -- ]
+--
+-- Record:
+--
+-- >>> :{
+-- data Bar b = Bar
+--   { barInt :: Int
+--   , barA :: b
+--   , barList :: [Foo Double]
+--   } deriving Show
+-- :}
+--
+-- >>> pPrint $ Bar 1 [10, 11] [Foo 1.1 "", Foo 2.2 "hello"]
+-- Bar
+--     { barInt = 1
+--     , barA =
+--         [ 10
+--         , 11
+--         ]
+--     , barList =
+--         [ Foo 1.1 ""
+--         , Foo 2.2 "hello"
+--         ]
+--     }

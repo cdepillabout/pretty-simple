@@ -27,8 +27,8 @@ import Control.Applicative
 import Control.Applicative ((<|>))
 import Data.Functor.Identity (Identity)
 import Text.Parsec
-       (Parsec, ParseError, lookAhead, many, noneOf, optionMaybe,
-        parserFail, runParser, try)
+       (Parsec, ParseError, between, char, lookAhead, many, noneOf,
+        optionMaybe, parserFail, runParser, try)
 import Text.Parsec.Language (haskellDef)
 import qualified Text.Parsec.Token as Token
 
@@ -54,13 +54,13 @@ stringLiteral :: Parser String
 stringLiteral = Token.stringLiteral lexer
 
 brackets :: Parser a -> Parser a
-brackets = Token.brackets lexer
+brackets = between (char '[') (char ']')
 
 braces :: Parser a -> Parser a
-braces = Token.braces lexer
+braces = between (char '{') (char '}')
 
 parens :: Parser a -> Parser a
-parens = Token.parens lexer
+parens = between (char '(') (char ')')
 
 commaSep :: Parser a -> Parser [a]
 commaSep = Token.commaSep lexer
@@ -72,16 +72,18 @@ lexeme = Token.lexeme lexer
 -- Parser --
 ------------
 
-parser :: Parser [Expr]
-parser = expr
-
--- | This is definitely hacky.
 expr :: Parser [Expr]
 expr = many expr'
 
 expr' :: Parser Expr
 expr' = recursiveExpr <|> nonRecursiveExpr
 
+-- | Parse brackets around a list of expressions.
+--
+-- >>> test bracketsExpr "[hello\"what\", foo]"
+-- Right (Brackets (CommaSeparated {unCommaSeparated = [[Other "hello",StringLit "what"],[Other "foo"]]}))
+-- >>> test bracketsExpr "[[] ]"
+-- Right (Brackets (CommaSeparated {unCommaSeparated = [[Brackets (CommaSeparated {unCommaSeparated = []}),Other " "]]}))
 bracketsExpr :: Parser Expr
 bracketsExpr = Brackets <$> recursiveSurroundingExpr brackets
 
@@ -94,7 +96,11 @@ parensExpr = Parens <$> recursiveSurroundingExpr parens
 recursiveSurroundingExpr :: (forall a. Parser a -> Parser a)
                          -> Parser (CommaSeparated [Expr])
 recursiveSurroundingExpr surround = do
-  CommaSeparated <$> surround (commaSep expr)
+  res <- surround (commaSep expr)
+  case res of
+      [[]] -> pure $ CommaSeparated []
+      [] -> pure $ CommaSeparated []
+      _ -> pure $ CommaSeparated res
 
 recursiveExpr :: Parser Expr
 recursiveExpr = do
@@ -149,4 +155,4 @@ testString1 = "Just [TextInput {textInputClass = Just (Class {unClass = \"class\
 testString2 = "some stuff (hello [\"dia\\x40iahello\", why wh, bye] ) (bye)"
 
 expressionParse :: String -> Either ParseError [Expr]
-expressionParse = runParser parser () "(no source)"
+expressionParse = runParser expr () "(no source)"

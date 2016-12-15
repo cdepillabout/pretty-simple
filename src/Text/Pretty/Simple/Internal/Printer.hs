@@ -34,6 +34,7 @@ import Data.MonoTraversable (headEx)
 import Data.Semigroup ((<>))
 import Data.Sequences (intersperse, tailEx)
 import Data.Typeable (Typeable)
+import Debug.Trace (traceM)
 import GHC.Generics (Generic)
 
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
@@ -99,9 +100,8 @@ putOpeningSymbol symbol = do
 putClosingSymbol :: MonadState PrinterState m => String -> m ()
 putClosingSymbol symbol = do
   popIndent
-  let symbolWithSpace = symbol
-  currCharOnLine += length symbolWithSpace
-  printerString <>= symbolWithSpace
+  currCharOnLine += length symbol
+  printerString <>= symbol
 
 putComma
   :: MonadState PrinterState m
@@ -161,7 +161,7 @@ putString string = do
 -- >>> comma = [[Other "foo"], [Other "bar"]]
 -- >>> state = printerState 5 [0] "hello"
 -- >>> test $ putSurroundExpr "{" "}" (CommaSeparated comma)
--- PrinterState {_currLine = 3, _currCharOnLine = 4, _indentStack = [0], _printerString = "hello\n   [ foo\n   , bar\n   ]"}
+-- PrinterState {_currLine = 3, _currCharOnLine = 4, _indentStack = [0], _printerString = "hello\n    [ foo\n    , bar\n    ]"}
 putSurroundExpr
   :: MonadState PrinterState m
   => String -- ^ starting character (@\[@ or @\{@ or @\(@)
@@ -174,13 +174,19 @@ putSurroundExpr startMarker endMarker (CommaSeparated [[]]) =
   putString $ startMarker <> endMarker
 putSurroundExpr startMarker endMarker (CommaSeparated [exprs]) = do
   putString $ startMarker <> " "
+  startingLineNum <- use currLine
   traverse_ putExpression exprs
-  putString $ " " <> endMarker
+  endingLineNum <- use currLine
+  if endingLineNum > startingLineNum
+    then do
+      newLineAndDoIndent
+      putString endMarker
+    else putString $ " " <> endMarker
 putSurroundExpr startMarker endMarker commaSeparated = do
   charOnLine <- use currCharOnLine
   when (charOnLine /= 0) $ do
     newLineAndDoIndent
-    putString "   "
+    putString "    "
   putOpeningSymbol startMarker
   putCommaSep commaSeparated
   newLineAndDoIndent
