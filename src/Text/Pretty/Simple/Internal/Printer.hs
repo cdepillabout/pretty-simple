@@ -24,7 +24,8 @@ module Text.Pretty.Simple.Internal.Printer
 import Control.Applicative
 #endif
 
-import Control.Lens (Lens', (%=), (<>=), (.=), (+=), lens, use, view)
+import Control.Lens
+       (Lens', (%=), (<>=), (.=), (+=), (-=), lens, use, view)
 import Control.Lens.TH (makeLenses)
 import Control.Monad (when)
 import Control.Monad.State (MonadState, execState)
@@ -51,21 +52,23 @@ data PrinterState = PrinterState
   { _currLine :: Int
   , _currCharOnLine :: Int
   , _indentStack :: [Int]
+  , _nestLevel :: Int
   , _printerString :: String
   } deriving (Eq, Data, Generic, Show, Typeable)
 makeLenses ''PrinterState
 
-printerState :: Int -> Int -> [Int] -> String -> PrinterState
-printerState currLineNum currCharNum stack string =
+printerState :: Int -> Int -> [Int] -> Int -> String -> PrinterState
+printerState currLineNum currCharNum stack nestNum string =
   PrinterState
   { _currLine = currLineNum
   , _currCharOnLine = currCharNum
   , _indentStack = stack
+  , _nestLevel = nestNum
   , _printerString = string
   }
 
 initPrinterState :: PrinterState
-initPrinterState = printerState 0 0 [0] ""
+initPrinterState = printerState 0 0 [0] 0 ""
 
 _headEx :: Lens' [Int] Int
 _headEx = lens headEx f
@@ -133,17 +136,17 @@ putString string = do
 -- markers.
 --
 -- >>> testInit $ putSurroundExpr "[" "]" (CommaSeparated [])
--- PrinterState {_currLine = 0, _currCharOnLine = 2, _indentStack = [0], _printerString = "[]"}
+-- PrinterState {_currLine = 0, _currCharOnLine = 2, _indentStack = [0], _nestLevel = 0, _printerString = "[]"}
 --
--- >>> let state = printerState 1 5 [5,0] "\nhello"
+-- >>> let state = printerState 1 5 [5,0] 10 "\nhello"
 -- >>> test state $ putSurroundExpr "(" ")" (CommaSeparated [[]])
--- PrinterState {_currLine = 1, _currCharOnLine = 7, _indentStack = [5,0], _printerString = "\nhello()"}
+-- PrinterState {_currLine = 1, _currCharOnLine = 7, _indentStack = [5,0], _nestLevel = 10, _printerString = "\nhello()"}
 --
 -- If there is only one expression, then just print it it all on one line, with
 -- spaces around the expressions.
 --
 -- >>> testInit $ putSurroundExpr "{" "}" (CommaSeparated [[Other "hello", Other "bye"]])
--- PrinterState {_currLine = 0, _currCharOnLine = 12, _indentStack = [0], _printerString = "{ hellobye }"}
+-- PrinterState {_currLine = 0, _currCharOnLine = 12, _indentStack = [0], _nestLevel = 0, _printerString = "{ hellobye }"}
 --
 -- If there are multiple expressions, and this is indent level 0, then print
 -- out normally and put each expression on a different line with a comma.
@@ -151,16 +154,16 @@ putString string = do
 --
 -- >>> let comma = [[Other "hello"], [Other "bye"]]
 -- >>> testInit $ putSurroundExpr "[" "]" (CommaSeparated comma)
--- PrinterState {_currLine = 2, _currCharOnLine = 1, _indentStack = [0], _printerString = "[ hello\n, bye\n]"}
+-- PrinterState {_currLine = 2, _currCharOnLine = 1, _indentStack = [0], _nestLevel = 0, _printerString = "[ hello\n, bye\n]"}
 
 -- If there are multiple expressions, and this is not the first thing on the
 -- line, then first go to a new line, indent, then continue to print out
 -- normally like above.
 --
 -- >>> let comma = [[Other "foo"], [Other "bar"]]
--- >>> let state = printerState 5 [0] "hello"
+-- >>> let state = printerState 5 [0] 0 "hello"
 -- >>> test $ putSurroundExpr "{" "}" (CommaSeparated comma)
--- PrinterState {_currLine = 3, _currCharOnLine = 4, _indentStack = [0], _printerString = "hello\n    [ foo\n    , bar\n    ]"}
+-- PrinterState {_currLine = 3, _currCharOnLine = 4, _indentStack = [0], _nestLevel = 0, _printerString = "hello\n    [ foo\n    , bar\n    ]"}
 putSurroundExpr
   :: MonadState PrinterState m
   => String -- ^ starting character (@\[@ or @\{@ or @\(@)
@@ -211,9 +214,18 @@ newLineAndDoIndent
 newLineAndDoIndent = newLine >> doIndent
 
 putExpression :: MonadState PrinterState m => Expr -> m ()
-putExpression (Brackets commaSeparated) = putSurroundExpr "[" "]" commaSeparated
-putExpression (Braces commaSeparated) = putSurroundExpr "{" "}" commaSeparated
-putExpression (Parens commaSeparated) = putSurroundExpr "(" ")" commaSeparated
+putExpression (Brackets commaSeparated) = do
+    nestLevel += 1
+    putSurroundExpr "[" "]" commaSeparated
+    nestLevel -= 1
+putExpression (Braces commaSeparated) = do
+    nestLevel += 1
+    putSurroundExpr "{" "}" commaSeparated
+    nestLevel -= 1
+putExpression (Parens commaSeparated) = do
+    nestLevel += 1
+    putSurroundExpr "(" ")" commaSeparated
+    nestLevel -= 1
 putExpression (StringLit string) = putString $ "\"" <> string <> "\""
 putExpression (Other string) = putString string
 
