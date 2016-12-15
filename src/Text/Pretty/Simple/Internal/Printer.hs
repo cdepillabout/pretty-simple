@@ -150,7 +150,7 @@ putString string = do
 -- out normally and put each expression on a different line with a comma.
 -- No indentation happens.
 --
--- >>> comma = [[Other "hello"], [Other "bye"]]
+-- >>> let comma = [[Other "hello"], [Other "bye"]]
 -- >>> testInit $ putSurroundExpr "[" "]" (CommaSeparated comma)
 -- PrinterState {_currLine = 2, _currCharOnLine = 1, _indentStack = [0], _printerString = "[ hello\n, bye\n]"}
 
@@ -158,8 +158,8 @@ putString string = do
 -- line, then first go to a new line, indent, then continue to print out
 -- normally like above.
 --
--- >>> comma = [[Other "foo"], [Other "bar"]]
--- >>> state = printerState 5 [0] "hello"
+-- >>> let comma = [[Other "foo"], [Other "bar"]]
+-- >>> let state = printerState 5 [0] "hello"
 -- >>> test $ putSurroundExpr "{" "}" (CommaSeparated comma)
 -- PrinterState {_currLine = 3, _currCharOnLine = 4, _indentStack = [0], _printerString = "hello\n    [ foo\n    , bar\n    ]"}
 putSurroundExpr
