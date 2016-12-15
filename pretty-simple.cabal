@@ -1,0 +1,40 @@
+name:                pretty-simple
+version:             0.2.1.0
+synopsis:            Simple pretty printer for any datatype with a 'Show' instance.
+description:         Please see README.md
+homepage:            https://github.com/cdepillabout/pretty-simple
+license:             BSD3
+license-file:        LICENSE
+author:              Dennis Gosnell
+maintainer:          cdep.illabout@gmail.com
+copyright:           2016 Dennis Gosnell
+category:            Text
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Text.Pretty.Simple
+  build-depends:       base >= 4.6 && < 5
+                     , lens
+                     , mono-traversable
+                     , mtl
+                     , parsec
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+  other-extensions:    TemplateHaskell
+
+test-suite pretty-simple-doctest
+  type:                exitcode-stdio-1.0
+  main-is:             DocTest.hs
+  hs-source-dirs:      test
+  build-depends:       base
+                     , doctest
+                     , Glob
+  default-language:    Haskell2010
+  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+
+source-repository head
+  type:     git
+  location: git@github.com:cdepillabout/pretty-simple.git
