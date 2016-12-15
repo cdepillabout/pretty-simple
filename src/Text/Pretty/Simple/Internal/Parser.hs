@@ -27,8 +27,8 @@ import Control.Applicative
 import Control.Applicative ((<|>))
 import Data.Functor.Identity (Identity)
 import Text.Parsec
-       (Parsec, ParseError, between, char, lookAhead, many, noneOf,
-        optionMaybe, parserFail, runParser, try)
+       (Parsec, ParseError, between, char, many, noneOf, parserFail,
+        runParser)
 import Text.Parsec.Language (haskellDef)
 import qualified Text.Parsec.Token as Token
 

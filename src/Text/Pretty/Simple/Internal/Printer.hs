@@ -34,7 +34,6 @@ import Data.MonoTraversable (headEx)
 import Data.Semigroup ((<>))
 import Data.Sequences (intersperse, tailEx)
 import Data.Typeable (Typeable)
-import Debug.Trace (traceM)
 import GHC.Generics (Generic)
 
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
