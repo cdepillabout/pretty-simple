@@ -100,3 +100,15 @@ pString string =
 --         , Foo 2.2 "hello"
 --         ]
 --     }
+--
+-- Newtype:
+--
+-- >>> newtype Baz = Baz { unBaz :: [String] } deriving Show
+--
+-- >>> pPrint $ Baz ["hello", "bye"]
+-- Baz
+--     { unBaz =
+--         [ "hello"
+--         , "bye"
+--         ]
+--     }

@@ -7,7 +7,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 {-|
-Module      : Text.Pretty.Simple.Internal.Printer
+Module      : Text.Pretty.Simple.Internal.OutputPrinter
 Copyright   : (c) Dennis Gosnell, 2016
 License     : BSD-style (see LICENSE file)
 Maintainer  : cdep.illabout@gmail.com
@@ -15,7 +15,7 @@ Stability   : experimental
 Portability : POSIX
 
 -}
-module Text.Pretty.Simple.Internal.Printer
+module Text.Pretty.Simple.Internal.OutputPrinter
   where
 
 #if __GLASGOW_HASKELL__ < 710

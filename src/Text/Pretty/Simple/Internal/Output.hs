@@ -7,7 +7,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 {-|
-Module      : Text.Pretty.Simple.Internal.Expr
+Module      : Text.Pretty.Simple.Internal.Output
 Copyright   : (c) Dennis Gosnell, 2016
 License     : BSD-style (see LICENSE file)
 Maintainer  : cdep.illabout@gmail.com
@@ -15,7 +15,7 @@ Stability   : experimental
 Portability : POSIX
 
 -}
-module Text.Pretty.Simple.Internal.Expr
+module Text.Pretty.Simple.Internal.Output
   where
 
 #if __GLASGOW_HASKELL__ < 710
@@ -28,13 +28,23 @@ import Data.Data (Data)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 
-newtype CommaSeparated a = CommaSeparated { unCommaSeparated :: [a] }
+type NestLevel = Int
+
+data OutputType
+  = OutputCloseBrace
+  | OutputCloseBracket
+  | OutputCloseParen
+  | OutputComma
+  | OutputIndent
+  | OutputNewLine
+  | OutputOpenBrace
+  | OutputOpenBracket
+  | OutputOpenParen
+  | OutputOther !String
+  | OutputStringLit !String
   deriving (Data, Eq, Generic, Show, Typeable)
 
-data Expr
-  = Brackets !(CommaSeparated [Expr])
-  | Braces !(CommaSeparated [Expr])
-  | Parens !(CommaSeparated [Expr])
-  | StringLit !String
-  | Other !String
-  deriving (Data, Eq, Generic, Show, Typeable)
+data Output = Output
+  { outputNestLevel :: NestLevel
+  , outputOutputType :: OutputType
+  } deriving (Data, Eq, Generic, Show, Typeable)

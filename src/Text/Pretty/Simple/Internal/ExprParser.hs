@@ -7,7 +7,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 {-|
-Module      : Text.Pretty.Simple.Internal.Parser
+Module      : Text.Pretty.Simple.Internal.ExprParser
 Copyright   : (c) Dennis Gosnell, 2016
 License     : BSD-style (see LICENSE file)
 Maintainer  : cdep.illabout@gmail.com
@@ -15,7 +15,7 @@ Stability   : experimental
 Portability : POSIX
 
 -}
-module Text.Pretty.Simple.Internal.Parser
+module Text.Pretty.Simple.Internal.ExprParser
   where
 
 #if __GLASGOW_HASKELL__ < 710
