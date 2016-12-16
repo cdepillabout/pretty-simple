@@ -189,8 +189,14 @@ putExpression (Braces commaSeparated) = do
     putSurroundExpr OutputOpenBrace OutputCloseBrace commaSeparated
 putExpression (Parens commaSeparated) = do
     putSurroundExpr OutputOpenParen OutputCloseParen commaSeparated
-putExpression (StringLit string) = addOutput $ OutputStringLit string
-putExpression (Other string) = addOutput $ OutputOther string
+putExpression (StringLit string) = do
+    nest <- use nestLevel
+    when (nest < 0) $ nestLevel += 1
+    addOutput $ OutputStringLit string
+putExpression (Other string) = do
+    nest <- use nestLevel
+    when (nest < 0) $ nestLevel += 1
+    addOutput $ OutputOther string
 
 runPrinterState :: PrinterState -> [Expr] -> PrinterState
 runPrinterState initState expressions =
