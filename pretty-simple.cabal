@@ -16,10 +16,12 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Text.Pretty.Simple
+                     , Text.Pretty.Simple.Internal
                      , Text.Pretty.Simple.Internal.Expr
+                     , Text.Pretty.Simple.Internal.ExprParser
+                     , Text.Pretty.Simple.Internal.ExprToOutput
                      , Text.Pretty.Simple.Internal.Output
-                     , Text.Pretty.Simple.Internal.Parser
-                     , Text.Pretty.Simple.Internal.Printer
+                     , Text.Pretty.Simple.Internal.OutputPrinter
   build-depends:       base >= 4.6 && < 5
                      , lens
                      , mono-traversable

@@ -24,20 +24,18 @@ module Text.Pretty.Simple.Internal.ExprToOutput
 import Control.Applicative
 #endif
 
-import Control.Lens
-       (Lens', (%=), (<>=), (.=), (+=), (-=), lens, use, view)
+import Control.Lens ((<>=), (+=), (-=), use, view)
 import Control.Lens.TH (makeLenses)
 import Control.Monad (when)
 import Control.Monad.State (MonadState, execState)
 import Data.Data (Data)
 import Data.Foldable (traverse_)
-import Data.MonoTraversable (headEx)
-import Data.Semigroup ((<>))
-import Data.Sequences (intersperse, tailEx)
+import Data.Sequences (intersperse)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
+import Text.Pretty.Simple.Internal.Output (Output(..), OutputType(..))
 
 -- $setup
 -- >>> import Control.Monad.State (State)
@@ -50,15 +48,13 @@ import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
 
 data PrinterState = PrinterState
   { _currLine :: Int
-  , _currCharOnLine :: Int
-  , _indentStack :: [Int]
   , _nestLevel :: Int
   , _outputList :: [Output]
   } deriving (Eq, Data, Generic, Show, Typeable)
 makeLenses ''PrinterState
 
-printerState :: Int -> Int -> [Int] -> Int -> [Output] -> PrinterState
-printerState currLineNum currCharNum stack nestNum output =
+printerState :: Int -> Int -> [Output] -> PrinterState
+printerState currLineNum nestNum output =
   PrinterState
   { _currLine = currLineNum
   , _nestLevel = nestNum
@@ -82,7 +78,7 @@ addOutputs outputTypes = do
   outputList <>= outputs
 
 initPrinterState :: PrinterState
-initPrinterState = printerState 0 0 [0] 0 []
+initPrinterState = printerState 0 (-1) []
 
 -- | Print a surrounding expression (like @\[\]@ or @\{\}@ or @\(\)@).
 --
@@ -90,17 +86,17 @@ initPrinterState = printerState 0 0 [0] 0 []
 -- markers.
 --
 -- >>> testInit $ putSurroundExpr "[" "]" (CommaSeparated [])
--- PrinterState {_currLine = 0, _currCharOnLine = 2, _indentStack = [0], _nestLevel = 0, _outputList = "[]"}
+-- PrinterState {_currLine = 0, _nestLevel = 0, _outputList = "[]"}
 --
 -- >>> let state = printerState 1 5 [5,0] 10 "\nhello"
 -- >>> test state $ putSurroundExpr "(" ")" (CommaSeparated [[]])
--- PrinterState {_currLine = 1, _currCharOnLine = 7, _indentStack = [5,0], _nestLevel = 10, _outputList = "\nhello()"}
+-- PrinterState {_currLine = 1, _nestLevel = 10, _outputList = "\nhello()"}
 --
 -- If there is only one expression, then just print it it all on one line, with
 -- spaces around the expressions.
 --
 -- >>> testInit $ putSurroundExpr "{" "}" (CommaSeparated [[Other "hello", Other "bye"]])
--- PrinterState {_currLine = 0, _currCharOnLine = 12, _indentStack = [0], _nestLevel = 0, _outputList = "{ hellobye }"}
+-- PrinterState {_currLine = 0, _nestLevel = 0, _outputList = "{ hellobye }"}
 --
 -- If there are multiple expressions, and this is indent level 0, then print
 -- out normally and put each expression on a different line with a comma.
@@ -108,7 +104,7 @@ initPrinterState = printerState 0 0 [0] 0 []
 --
 -- >>> let comma = [[Other "hello"], [Other "bye"]]
 -- >>> testInit $ putSurroundExpr "[" "]" (CommaSeparated comma)
--- PrinterState {_currLine = 2, _currCharOnLine = 1, _indentStack = [0], _nestLevel = 0, _outputList = "[ hello\n, bye\n]"}
+-- PrinterState {_currLine = 2, _nestLevel = 0, _outputList = "[ hello\n, bye\n]"}
 
 -- If there are multiple expressions, and this is not the first thing on the
 -- line, then first go to a new line, indent, then continue to print out
@@ -117,7 +113,7 @@ initPrinterState = printerState 0 0 [0] 0 []
 -- >>> let comma = [[Other "foo"], [Other "bar"]]
 -- >>> let state = printerState 5 [0] 0 "hello"
 -- >>> test $ putSurroundExpr "{" "}" (CommaSeparated comma)
--- PrinterState {_currLine = 3, _currCharOnLine = 4, _indentStack = [0], _nestLevel = 0, _outputList = "hello\n    [ foo\n    , bar\n    ]"}
+-- PrinterState {_currLine = 3, _nestLevel = 0, _outputList = "hello\n    [ foo\n    , bar\n    ]"}
 putSurroundExpr
   :: MonadState PrinterState m
   => OutputType
@@ -127,19 +123,25 @@ putSurroundExpr
 putSurroundExpr startOutputType endOutputType (CommaSeparated []) =
   addOutputs [startOutputType, endOutputType]
 putSurroundExpr startOutputType endOutputType (CommaSeparated [exprs]) = do
-  let isExprsMultiLine = howManyLines exprs
-  when isExprsMultiLine newLineAndDoIndent
+  let isExprsMultiLine = howManyLines exprs > 1
+  when isExprsMultiLine $ do
+      nestLevel += 1
+      newLineAndDoIndent
   addOutputs [startOutputType, OutputOther " "]
   traverse_ putExpression exprs
   if isExprsMultiLine
-    then newLineAndDoIndent
+    then do
+      newLineAndDoIndent
+      nestLevel -= 1
     else addOutput $ OutputOther " "
-  addOutputs endOutputType
+  addOutput endOutputType
 putSurroundExpr startOutputType endOutputType commaSeparated = do
+  nestLevel += 1
   newLineAndDoIndent
   addOutputs [startOutputType, OutputOther " "]
   putCommaSep commaSeparated
   newLineAndDoIndent
+  nestLevel -= 1
   addOutputs [endOutputType, OutputOther " "]
 
 putCommaSep
@@ -182,17 +184,11 @@ newLineAndDoIndent = newLine >> doIndent
 
 putExpression :: MonadState PrinterState m => Expr -> m ()
 putExpression (Brackets commaSeparated) = do
-    nestLevel += 1
     putSurroundExpr OutputOpenBracket OutputCloseBracket commaSeparated
-    nestLevel -= 1
 putExpression (Braces commaSeparated) = do
-    nestLevel += 1
     putSurroundExpr OutputOpenBrace OutputCloseBrace commaSeparated
-    nestLevel -= 1
 putExpression (Parens commaSeparated) = do
-    nestLevel += 1
     putSurroundExpr OutputOpenParen OutputCloseParen commaSeparated
-    nestLevel -= 1
 putExpression (StringLit string) = addOutput $ OutputStringLit string
 putExpression (Other string) = addOutput $ OutputOther string
 

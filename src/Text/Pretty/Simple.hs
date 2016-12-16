@@ -31,8 +31,8 @@ import Control.Applicative
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
 
-import Text.Pretty.Simple.Internal.Parser (expressionParse)
-import Text.Pretty.Simple.Internal.Printer (expressionPrint)
+import Text.Pretty.Simple.Internal
+       (expressionParse, expressionsToOutputs, renderOutputs)
 
 pPrint :: (MonadIO m, Show a) => a -> m ()
 pPrint = liftIO . putStrLn . pShow
@@ -42,8 +42,9 @@ pShow = pString . show
 
 pString :: String -> String
 pString string =
-  either (const string) expressionPrint $ expressionParse string
-
+  case expressionParse string of
+    Left _ -> string
+    Right expressions -> renderOutputs $ expressionsToOutputs expressions
 
 -- $examples
 -- Simple Haskell datatype:
