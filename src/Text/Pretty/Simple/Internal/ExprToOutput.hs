@@ -2,9 +2,11 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 
 {-|
 Module      : Text.Pretty.Simple.Internal.Printer
@@ -35,7 +37,8 @@ import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
-import Text.Pretty.Simple.Internal.Output (Output(..), OutputType(..))
+import Text.Pretty.Simple.Internal.Output
+       (NestLevel(..), Output(..), OutputType(..), unNestLevel)
 
 -- $setup
 -- >>> import Control.Monad.State (State)
@@ -46,14 +49,18 @@ import Text.Pretty.Simple.Internal.Output (Output(..), OutputType(..))
 --     testInit = test initPrinterState
 -- :}
 
+newtype LineNum = LineNum { unLineNum :: Int }
+  deriving (Data, Eq, Generic, Num, Ord, Read, Show, Typeable)
+makeLenses ''LineNum
+
 data PrinterState = PrinterState
-  { _currLine :: Int
-  , _nestLevel :: Int
+  { _currLine :: LineNum
+  , _nestLevel :: NestLevel
   , _outputList :: [Output]
   } deriving (Eq, Data, Generic, Show, Typeable)
 makeLenses ''PrinterState
 
-printerState :: Int -> Int -> [Output] -> PrinterState
+printerState :: LineNum -> NestLevel -> [Output] -> PrinterState
 printerState currLineNum nestNum output =
   PrinterState
   { _currLine = currLineNum
@@ -162,12 +169,12 @@ putComma = do
   newLineAndDoIndent
   addOutputs [OutputComma, OutputOther " "]
 
-howManyLines :: [Expr] -> Int
+howManyLines :: [Expr] -> LineNum
 howManyLines = view currLine . runInitPrinterState
 
 doIndent :: MonadState PrinterState m => m ()
 doIndent = do
-  nest <- use nestLevel
+  nest <- use $ nestLevel . unNestLevel
   addOutputs $ replicate nest OutputIndent
 
 newLine

@@ -2,9 +2,11 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 
 {-|
 Module      : Text.Pretty.Simple.Internal.Output
@@ -24,11 +26,14 @@ module Text.Pretty.Simple.Internal.Output
 import Control.Applicative
 #endif
 
+import Control.Lens.TH (makeLenses)
 import Data.Data (Data)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 
-type NestLevel = Int
+newtype NestLevel = NestLevel { _unNestLevel :: Int }
+  deriving (Data, Eq, Generic, Num, Ord, Read, Show, Typeable)
+makeLenses ''NestLevel
 
 data OutputType
   = OutputCloseBrace
@@ -42,9 +47,9 @@ data OutputType
   | OutputOpenParen
   | OutputOther !String
   | OutputStringLit !String
-  deriving (Data, Eq, Generic, Show, Typeable)
+  deriving (Data, Eq, Generic, Read, Show, Typeable)
 
 data Output = Output
   { outputNestLevel :: NestLevel
   , outputOutputType :: OutputType
-  } deriving (Data, Eq, Generic, Show, Typeable)
+  } deriving (Data, Eq, Generic, Read, Show, Typeable)
