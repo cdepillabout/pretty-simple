@@ -1,4 +1,4 @@
-.PHONY: build build-haddock clean ghci haddock haddock-server lint repl test watch watch-tests watch-test
+.PHONY: build build-haddock clean dump-splices dump-th ghci haddock haddock-server lint repl test watch watch-tests watch-test
 all: build
 
 clean:
@@ -6,6 +6,15 @@ clean:
 
 build: 
 	stack build
+
+# dump the template haskell
+dump-splices: dump-th
+dump-th:
+	-stack build --ghc-options="-ddump-splices"
+	@echo
+	@echo "Splice files:"
+	@echo
+	@find "$$(stack path --dist-dir)" -name "*.dump-splices" | sort
 
 haddock: build-haddock
 build-haddock:
