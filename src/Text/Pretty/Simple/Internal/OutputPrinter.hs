@@ -65,7 +65,7 @@ renderOutputs
   :: forall m.
      MonadReader OutputOptions m
   => [Output] -> m String
-renderOutputs = foldlM foldFunc "" . modifications
+renderOutputs = foldlM foldFunc "" . modificationsOutputList
   where
     foldFunc :: String -> Output -> m String
     foldFunc accum output = mappend accum <$> renderOutput output
@@ -90,8 +90,8 @@ renderOutput (Output _ (OutputStringLit string)) = pure $ "\"" <> string <> "\""
 --
 -- An sample of an optimization is 'removeStartingNewLine' which just removes a
 -- newline if it is the first item in an 'Output' list.
-modifications :: [Output] -> [Output]
-modifications = shrinkWhitespaceInOthers . compressOthers . removeStartingNewLine
+modificationsOutputList :: [Output] -> [Output]
+modificationsOutputList = shrinkWhitespaceInOthers . compressOthers . removeStartingNewLine
 
 -- | Remove a 'OutputNewLine' if it is the first item in the 'Output' list.
 --

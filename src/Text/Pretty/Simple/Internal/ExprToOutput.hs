@@ -32,6 +32,7 @@ import Control.Monad (when)
 import Control.Monad.State (MonadState, execState)
 import Data.Data (Data)
 import Data.Foldable (traverse_)
+import Data.Monoid ((<>))
 import Data.Sequences (intersperse)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
@@ -96,63 +97,57 @@ initPrinterState = printerState 0 (-1) []
 -- markers.
 --
 -- >>> testInit $ putSurroundExpr "[" "]" (CommaSeparated [])
--- PrinterState {_currLine = 0, _nestLevel = 0, _outputList = "[]"}
+-- PrinterState {_currLine = LineNum {unLineNum = 0}, _nestLevel = NestLevel {_unNestLevel = -1}, _outputList = [Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOpenBracket},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputCloseBracket}]}
 --
--- >>> let state = printerState 1 5 [5,0] 10 "\nhello"
--- >>> test state $ putSurroundExpr "(" ")" (CommaSeparated [[]])
--- PrinterState {_currLine = 1, _nestLevel = 10, _outputList = "\nhello()"}
+-- If there is only one expression, and it will print out on one line, then
+-- just print everything all on one line, with spaces around the expressions.
 --
--- If there is only one expression, then just print it all on one line, with
--- spaces around the expressions.
+-- >>> testInit $ putSurroundExpr "{" "}" (CommaSeparated [[Other "hello"]])
+-- PrinterState {_currLine = LineNum {unLineNum = 0}, _nestLevel = NestLevel {_unNestLevel = -1}, _outputList = [Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOpenBrace},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOther " "},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOther "hello"},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOther " "},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputCloseBrace}]}
 --
--- >>> testInit $ putSurroundExpr "{" "}" (CommaSeparated [[Other "hello", Other "bye"]])
--- PrinterState {_currLine = 0, _nestLevel = 0, _outputList = "{ hellobye }"}
+-- If there is only one expression, but it will print out on multiple lines,
+-- then go to newline and print out on multiple lines.
 --
--- If there are multiple expressions, and this is indent level 0, then print
--- out normally and put each expression on a different line with a comma.
--- No indentation happens.
+-- >>> 1 + 1  -- TODO: Example here.
+-- 2
 --
--- >>> let comma = [[Other "hello"], [Other "bye"]]
--- >>> testInit $ putSurroundExpr "[" "]" (CommaSeparated comma)
--- PrinterState {_currLine = 2, _nestLevel = 0, _outputList = "[ hello\n, bye\n]"}
-
--- If there are multiple expressions, and this is not the first thing on the
--- line, then first go to a new line, indent, then continue to print out
--- normally like above.
+-- If there are multiple expressions, then first go to a newline.
+-- Print out on multiple lines.
 --
--- >>> let comma = [[Other "foo"], [Other "bar"]]
--- >>> let state = printerState 5 [0] 0 "hello"
--- >>> test $ putSurroundExpr "{" "}" (CommaSeparated comma)
--- PrinterState {_currLine = 3, _nestLevel = 0, _outputList = "hello\n    [ foo\n    , bar\n    ]"}
+-- >>> 1 + 1  -- TODO: Example here.
+-- 2
 putSurroundExpr
   :: MonadState PrinterState m
   => OutputType
   -> OutputType
   -> CommaSeparated [Expr] -- ^ comma separated inner expression.
   -> m ()
-putSurroundExpr startOutputType endOutputType (CommaSeparated []) =
+putSurroundExpr startOutputType endOutputType (CommaSeparated []) = do
+  nestLevel += 1
   addOutputs [startOutputType, endOutputType]
+  nestLevel -= 1
 putSurroundExpr startOutputType endOutputType (CommaSeparated [exprs]) = do
+  nestLevel += 1
   let isExprsMultiLine = howManyLines exprs > 1
   when isExprsMultiLine $ do
-      nestLevel += 1
       newLineAndDoIndent
   addOutputs [startOutputType, OutputOther " "]
   traverse_ putExpression exprs
   if isExprsMultiLine
     then do
       newLineAndDoIndent
-      nestLevel -= 1
     else addOutput $ OutputOther " "
   addOutput endOutputType
+  nestLevel -= 1
 putSurroundExpr startOutputType endOutputType commaSeparated = do
   nestLevel += 1
   newLineAndDoIndent
   addOutputs [startOutputType, OutputOther " "]
   putCommaSep commaSeparated
   newLineAndDoIndent
+  addOutput endOutputType
   nestLevel -= 1
-  addOutputs [endOutputType, OutputOther " "]
+  addOutput $ OutputOther " "
 
 putCommaSep
   :: forall m.
@@ -194,19 +189,19 @@ newLineAndDoIndent = newLine >> doIndent
 
 putExpression :: MonadState PrinterState m => Expr -> m ()
 putExpression (Brackets commaSeparated) = do
-    putSurroundExpr OutputOpenBracket OutputCloseBracket commaSeparated
+  putSurroundExpr OutputOpenBracket OutputCloseBracket commaSeparated
 putExpression (Braces commaSeparated) = do
-    putSurroundExpr OutputOpenBrace OutputCloseBrace commaSeparated
+  putSurroundExpr OutputOpenBrace OutputCloseBrace commaSeparated
 putExpression (Parens commaSeparated) = do
-    putSurroundExpr OutputOpenParen OutputCloseParen commaSeparated
+  putSurroundExpr OutputOpenParen OutputCloseParen commaSeparated
 putExpression (StringLit string) = do
-    nest <- use nestLevel
-    when (nest < 0) $ nestLevel += 1
-    addOutput $ OutputStringLit string
+  nest <- use nestLevel
+  when (nest < 0) $ nestLevel += 1
+  addOutput $ OutputStringLit string
 putExpression (Other string) = do
-    nest <- use nestLevel
-    when (nest < 0) $ nestLevel += 1
-    addOutput $ OutputOther string
+  nest <- use nestLevel
+  when (nest < 0) $ nestLevel += 1
+  addOutput $ OutputOther string
 
 runPrinterState :: PrinterState -> [Expr] -> PrinterState
 runPrinterState initState expressions =
@@ -216,4 +211,50 @@ runInitPrinterState :: [Expr] -> PrinterState
 runInitPrinterState = runPrinterState initPrinterState
 
 expressionsToOutputs :: [Expr] -> [Output]
-expressionsToOutputs = view outputList . runInitPrinterState
+expressionsToOutputs =
+  view outputList . runInitPrinterState . modificationsExprList
+
+-- | A function that performs optimizations and modifications to a list of
+-- input 'Expr's.
+--
+-- An sample of an optimization is 'removeEmptyInnerCommaSeparatedExprList'
+-- which removes empty inner lists in a 'CommaSeparated' value.
+modificationsExprList :: [Expr] -> [Expr]
+modificationsExprList = removeEmptyInnerCommaSeparatedExprList
+
+removeEmptyInnerCommaSeparatedExprList :: [Expr] -> [Expr]
+removeEmptyInnerCommaSeparatedExprList = fmap removeEmptyInnerCommaSeparatedExpr
+
+removeEmptyInnerCommaSeparatedExpr :: Expr -> Expr
+removeEmptyInnerCommaSeparatedExpr (Brackets commaSeparated) =
+  Brackets $ removeEmptyInnerCommaSeparated commaSeparated
+removeEmptyInnerCommaSeparatedExpr (Braces commaSeparated) =
+  Braces $ removeEmptyInnerCommaSeparated commaSeparated
+removeEmptyInnerCommaSeparatedExpr (Parens commaSeparated) =
+  Parens $ removeEmptyInnerCommaSeparated commaSeparated
+removeEmptyInnerCommaSeparatedExpr other = other
+
+removeEmptyInnerCommaSeparated :: CommaSeparated [Expr] -> CommaSeparated [Expr]
+removeEmptyInnerCommaSeparated (CommaSeparated commaSeps) =
+  CommaSeparated . fmap removeEmptyInnerCommaSeparatedExprList $
+  removeEmptyList commaSeps
+
+-- | Remove empty lists from a list of lists.
+--
+-- >>> removeEmptyList [[1,2,3], [], [4,5]]
+-- [[1,2,3],[4,5]]
+--
+-- >>> removeEmptyList [[]]
+-- []
+--
+-- >>> removeEmptyList [[1]]
+-- [[1]]
+--
+-- >>> removeEmptyList [[1,2], [10,20], [100,200]]
+-- [[1,2],[10,20],[100,200]]
+removeEmptyList :: forall a . [[a]] -> [[a]]
+removeEmptyList = foldl f []
+  where
+    f :: [[a]] -> [a] -> [[a]]
+    f accum [] = accum
+    f accum a = accum <> [a]

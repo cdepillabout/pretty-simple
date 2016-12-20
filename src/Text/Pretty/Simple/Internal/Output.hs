@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -28,6 +29,7 @@ import Control.Applicative
 
 import Control.Lens.TH (makeLenses)
 import Data.Data (Data)
+import Data.String (IsString, fromString)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 
@@ -75,7 +77,7 @@ data OutputType
 -- | 'IsString' (and 'fromString') should generally only be used in tests and
 -- debugging.  There is no way to represent 'OutputIndent' and
 -- 'OutputStringLit'.
-class IsString OutputType where
+instance IsString OutputType where
     fromString :: String -> OutputType
     fromString "}" = OutputCloseBrace
     fromString "]" = OutputCloseBracket
