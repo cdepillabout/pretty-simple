@@ -33,7 +33,14 @@ import GHC.Generics (Generic)
 
 -- | Datatype representing how much something is nested.
 --
--- For example, 
+-- For example, a 'NestLevel' of 0 would mean an 'Output' token
+-- is at the very highest level, not in any braces.
+--
+-- A 'NestLevel' of 1 would mean that an 'Output' token is in one single pair
+-- of @\{@ and @\}@, or @\[@ and @\], or @\(@ and @\)@.
+--
+-- A 'NestLevel' of 2 would mean that an 'Output' token is two levels of
+-- brackets, etc.
 newtype NestLevel = NestLevel { _unNestLevel :: Int }
   deriving (Data, Eq, Generic, Num, Ord, Read, Show, Typeable)
 makeLenses ''NestLevel
