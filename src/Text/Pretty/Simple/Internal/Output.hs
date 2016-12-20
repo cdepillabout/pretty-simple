@@ -31,24 +31,57 @@ import Data.Data (Data)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 
+-- | Datatype representing how much something is nested.
+--
+-- For example, 
 newtype NestLevel = NestLevel { _unNestLevel :: Int }
   deriving (Data, Eq, Generic, Num, Ord, Read, Show, Typeable)
 makeLenses ''NestLevel
 
+-- | These are the output tokens that we will be printing to the screen.
 data OutputType
   = OutputCloseBrace
+  -- ^ This represents the @\}@ character.
   | OutputCloseBracket
+  -- ^ This represents the @\]@ character.
   | OutputCloseParen
+  -- ^ This represents the @\)@ character.
   | OutputComma
+  -- ^ This represents the @\,@ character.
   | OutputIndent
+  -- ^ This represents an indentation.
   | OutputNewLine
+  -- ^ This represents the @\\n@ character.
   | OutputOpenBrace
+  -- ^ This represents the @\{@ character.
   | OutputOpenBracket
+  -- ^ This represents the @\[@ character.
   | OutputOpenParen
+  -- ^ This represents the @\(@ character.
   | OutputOther !String
+  -- ^ This represents some collection of characters that don\'t fit into any
+  -- of the other tokens.
   | OutputStringLit !String
+  -- ^ This represents a string literal.  For instance, @\"foobar\"@.
   deriving (Data, Eq, Generic, Read, Show, Typeable)
 
+-- | 'IsString' (and 'fromString') should generally only be used in tests and
+-- debugging.  There is no way to represent 'OutputIndent' and
+-- 'OutputStringLit'.
+class IsString OutputType where
+    fromString :: String -> OutputType
+    fromString "}" = OutputCloseBrace
+    fromString "]" = OutputCloseBracket
+    fromString ")" = OutputCloseParen
+    fromString "," = OutputComma
+    fromString "\n" = OutputNewLine
+    fromString "{" = OutputOpenBrace
+    fromString "[" = OutputOpenBracket
+    fromString "(" = OutputOpenParen
+    fromString string = OutputOther string
+
+-- | An 'OutputType' token together with a 'NestLevel'.  Basically, each
+-- 'OutputType' keeps track of its own 'NestLevel'.
 data Output = Output
   { outputNestLevel :: NestLevel
   , outputOutputType :: OutputType

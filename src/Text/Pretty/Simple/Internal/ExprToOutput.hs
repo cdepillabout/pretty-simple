@@ -49,6 +49,8 @@ import Text.Pretty.Simple.Internal.Output
 --     testInit = test initPrinterState
 -- :}
 
+-- | Newtype around 'Int' to represent a line number.  After a newline, the
+-- 'LineNum' will increase by 1.
 newtype LineNum = LineNum { unLineNum :: Int }
   deriving (Data, Eq, Generic, Num, Ord, Read, Show, Typeable)
 makeLenses ''LineNum
@@ -60,6 +62,7 @@ data PrinterState = PrinterState
   } deriving (Eq, Data, Generic, Show, Typeable)
 makeLenses ''PrinterState
 
+-- | Smart-constructor for 'PrinterState'.
 printerState :: LineNum -> NestLevel -> [Output] -> PrinterState
 printerState currLineNum nestNum output =
   PrinterState
@@ -99,7 +102,7 @@ initPrinterState = printerState 0 (-1) []
 -- >>> test state $ putSurroundExpr "(" ")" (CommaSeparated [[]])
 -- PrinterState {_currLine = 1, _nestLevel = 10, _outputList = "\nhello()"}
 --
--- If there is only one expression, then just print it it all on one line, with
+-- If there is only one expression, then just print it all on one line, with
 -- spaces around the expressions.
 --
 -- >>> testInit $ putSurroundExpr "{" "}" (CommaSeparated [[Other "hello", Other "bye"]])
