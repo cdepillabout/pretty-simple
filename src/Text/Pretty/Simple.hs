@@ -31,6 +31,8 @@ module Text.Pretty.Simple
   , pStringOpt
   , OutputOptions(..)
   , UseColor(..)
+  , defaultOutputOptions
+  , noColorOutputOptions
   -- * Examples
   -- $examples
   ) where
