@@ -16,9 +16,21 @@ Portability : POSIX
 
 -}
 module Text.Pretty.Simple
-  ( pShow
+  (
+  -- * Output With Color
+    pShow
   , pPrint
   , pString
+  -- * Output With NO Color
+  , pShowNoColor
+  , pPrintNoColor
+  , pStringNoColor
+  -- * Output With Output Options
+  , pShowOpt
+  , pPrintOpt
+  , pStringOpt
+  , OutputOptions(..)
+  , UseColor(..)
   -- * Examples
   -- $examples
   ) where
@@ -32,33 +44,54 @@ import Control.Applicative
 import Control.Monad.IO.Class (MonadIO, liftIO)
 
 import Text.Pretty.Simple.Internal
-       (defaultOutputOptions, expressionParse, expressionsToOutputs,
-        render)
+       (OutputOptions(..), UseColor(..), defaultOutputOptions,
+        expressionParse, expressionsToOutputs, render)
 
 pPrint :: (MonadIO m, Show a) => a -> m ()
-pPrint = liftIO . putStrLn . pShow
+pPrint = pPrintOpt defaultOutputOptions
 
 pShow :: Show a => a -> String
-pShow = pString . show
+pShow = pShowOpt defaultOutputOptions
 
 pString :: String -> String
-pString string =
+pString = pStringOpt defaultOutputOptions
+
+pPrintNoColor :: (MonadIO m, Show a) => a -> m ()
+pPrintNoColor = pPrintOpt noColorOutputOptions
+
+pShowNoColor :: Show a => a -> String
+pShowNoColor = pShowOpt noColorOutputOptions
+
+pStringNoColor :: String -> String
+pStringNoColor = pStringOpt noColorOutputOptions
+
+noColorOutputOptions :: OutputOptions
+noColorOutputOptions = defaultOutputOptions {_useColor = NoColor}
+
+pPrintOpt :: (MonadIO m, Show a) => OutputOptions -> a -> m ()
+pPrintOpt outputOptions = liftIO . putStrLn . pShowOpt outputOptions
+
+pShowOpt :: Show a => OutputOptions -> a -> String
+pShowOpt outputOptions = pStringOpt outputOptions . show
+
+pStringOpt :: OutputOptions -> String -> String
+pStringOpt outputOptions string =
   case expressionParse string of
     Left _ -> string
     Right expressions ->
-      render defaultOutputOptions $ expressionsToOutputs expressions
+      render outputOptions $ expressionsToOutputs expressions
 
 -- $examples
 -- Simple Haskell datatype:
 --
 -- >>> data Foo a = Foo a String deriving Show
 --
--- >>> pPrint $ Foo 3 "hello"
+-- >>> pPrintNoColor $ Foo 3 "hello"
 -- Foo 3 "hello"
 --
 -- Lists:
 --
--- >>> pPrint $ [1,2,3]
+-- >>> pPrintNoColor $ [1,2,3]
 -- [ 1
 -- , 2
 -- , 3
@@ -66,14 +99,14 @@ pString string =
 --
 -- Slightly more complicated lists:
 --
--- >>> pPrint $ [ Foo [ (),    () ] "hello" ]
+-- >>> pPrintNoColor $ [ Foo [ (),    () ] "hello" ]
 -- [ Foo
 --     [ ()
 --     , ()
 --     ] "hello"
 -- ]
 --
--- >>> pPrint $ [ Foo [ "bar", "baz" ] "hello", Foo [] "bye" ]
+-- >>> pPrintNoColor $ [ Foo [ "bar", "baz" ] "hello", Foo [] "bye" ]
 -- [ Foo
 --     [ "bar"
 --     , "baz"
@@ -91,7 +124,7 @@ pString string =
 --   } deriving Show
 -- :}
 --
--- >>> pPrint $ Bar 1 [10, 11] [Foo 1.1 "", Foo 2.2 "hello"]
+-- >>> pPrintNoColor $ Bar 1 [10, 11] [Foo 1.1 "", Foo 2.2 "hello"]
 -- Bar
 --     { barInt = 1
 --     , barA =
@@ -108,7 +141,7 @@ pString string =
 --
 -- >>> newtype Baz = Baz { unBaz :: [String] } deriving Show
 --
--- >>> pPrint $ Baz ["hello", "bye"]
+-- >>> pPrintNoColor $ Baz ["hello", "bye"]
 -- Baz
 --     { unBaz =
 --         [ "hello"
