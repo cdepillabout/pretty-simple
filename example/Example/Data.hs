@@ -26,16 +26,16 @@ foo :: Foo
 foo = Foo 3 fooList 3.3
 
 bar :: Bar
-bar = Bar 10 (replicate 2 foo) 10.55
+bar = Bar 10 (replicate 10 foo) 10.55
 
 bazLevel1 :: Baz
 bazLevel1 = Baz bar []
 
 bazLevel2 :: Baz
-bazLevel2 = Baz bar $ replicate 5 bazLevel1
+bazLevel2 = Baz bar $ replicate 10 bazLevel1
 
 baz :: Baz
-baz = Baz bar $ replicate 5 bazLevel2
+baz = Baz bar $ replicate 10 bazLevel2
 
 fooList :: [String]
 fooList =
