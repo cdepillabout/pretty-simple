@@ -57,9 +57,9 @@ newtype LineNum = LineNum { unLineNum :: Int }
 makeLenses ''LineNum
 
 data PrinterState = PrinterState
-  { _currLine :: LineNum
-  , _nestLevel :: NestLevel
-  , _outputList :: [Output]
+  { _currLine :: {-# UNPACK #-} !LineNum
+  , _nestLevel :: {-# UNPACK #-} !NestLevel
+  , _outputList :: ![Output]
   } deriving (Eq, Data, Generic, Show, Typeable)
 makeLenses ''PrinterState
 

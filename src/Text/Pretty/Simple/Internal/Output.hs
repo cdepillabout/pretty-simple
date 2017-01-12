@@ -92,6 +92,6 @@ instance IsString OutputType where
 -- | An 'OutputType' token together with a 'NestLevel'.  Basically, each
 -- 'OutputType' keeps track of its own 'NestLevel'.
 data Output = Output
-  { outputNestLevel :: NestLevel
-  , outputOutputType :: OutputType
+  { outputNestLevel :: {-# UNPACK #-} !NestLevel
+  , outputOutputType :: !OutputType
   } deriving (Data, Eq, Generic, Read, Show, Typeable)
