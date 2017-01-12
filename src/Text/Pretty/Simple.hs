@@ -44,42 +44,56 @@ import Control.Applicative
 #endif
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import Data.Text.Lazy (Text, pack)
+import Data.Text.Lazy.IO as LText
 
 import Text.Pretty.Simple.Internal
        (OutputOptions(..), UseColor(..), defaultOutputOptions,
         expressionParse, expressionsToOutputs, render)
 
+------------------------------
+-- normal (color) functions --
+------------------------------
+
 pPrint :: (MonadIO m, Show a) => a -> m ()
 pPrint = pPrintOpt defaultOutputOptions
 
-pShow :: Show a => a -> String
+pShow :: Show a => a -> Text
 pShow = pShowOpt defaultOutputOptions
 
-pString :: String -> String
+pString :: String -> Text
 pString = pStringOpt defaultOutputOptions
+
+------------------------
+-- no-color functions --
+------------------------
 
 pPrintNoColor :: (MonadIO m, Show a) => a -> m ()
 pPrintNoColor = pPrintOpt noColorOutputOptions
 
-pShowNoColor :: Show a => a -> String
+pShowNoColor :: Show a => a -> Text
 pShowNoColor = pShowOpt noColorOutputOptions
 
-pStringNoColor :: String -> String
+pStringNoColor :: String -> Text
 pStringNoColor = pStringOpt noColorOutputOptions
 
 noColorOutputOptions :: OutputOptions
 noColorOutputOptions = defaultOutputOptions {_useColor = NoColor}
 
-pPrintOpt :: (MonadIO m, Show a) => OutputOptions -> a -> m ()
-pPrintOpt outputOptions = liftIO . putStrLn . pShowOpt outputOptions
+---------------------------------
+-- functions that take options --
+---------------------------------
 
-pShowOpt :: Show a => OutputOptions -> a -> String
+pPrintOpt :: (MonadIO m, Show a) => OutputOptions -> a -> m ()
+pPrintOpt outputOptions = liftIO . LText.putStrLn . pShowOpt outputOptions
+
+pShowOpt :: Show a => OutputOptions -> a -> Text
 pShowOpt outputOptions = pStringOpt outputOptions . show
 
-pStringOpt :: OutputOptions -> String -> String
+pStringOpt :: OutputOptions -> String -> Text
 pStringOpt outputOptions string =
   case expressionParse string of
-    Left _ -> string
+    Left _ -> pack string
     Right expressions ->
       render outputOptions $ expressionsToOutputs expressions
 

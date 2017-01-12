@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -30,6 +31,8 @@ import Control.Monad.Reader (MonadReader, runReader)
 import Data.Data (Data)
 import Data.Foldable (fold, foldlM)
 import Data.Semigroup ((<>))
+import Data.Text.Lazy (Text)
+import Data.Text.Lazy.Builder (Builder, fromString, toLazyText)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import System.Console.ANSI
@@ -62,43 +65,46 @@ makeLenses ''OutputOptions
 defaultOutputOptions :: OutputOptions
 defaultOutputOptions = OutputOptions {_indentAmount = 4, _useColor = UseColor}
 
-render :: OutputOptions -> [Output] -> String
-render options outputs = runReader (renderOutputs outputs) options
+render :: OutputOptions -> [Output] -> Text
+render options outputs = toLazyText $ runReader (renderOutputs outputs) options
 
 renderOutputs
   :: forall m.
      MonadReader OutputOptions m
-  => [Output] -> m String
+  => [Output] -> m Builder
 renderOutputs = foldlM foldFunc "" . modificationsOutputList
   where
-    foldFunc :: String -> Output -> m String
+    foldFunc :: Builder -> Output -> m Builder
     foldFunc accum output = mappend accum <$> renderOutput output
 
 renderRaibowParenFor
   :: MonadReader OutputOptions m
-  => NestLevel -> String -> m String
+  => NestLevel -> Builder -> m Builder
 renderRaibowParenFor nest string =
   sequenceFold [rainbowParen nest, pure string, colorReset]
 
-renderOutput :: MonadReader OutputOptions m => Output -> m String
+renderOutput :: MonadReader OutputOptions m => Output -> m Builder
 renderOutput (Output nest OutputCloseBrace) = renderRaibowParenFor nest "}"
 renderOutput (Output nest OutputCloseBracket) = renderRaibowParenFor nest "]"
 renderOutput (Output nest OutputCloseParen) = renderRaibowParenFor nest ")"
 renderOutput (Output nest OutputComma) = renderRaibowParenFor nest ","
 renderOutput (Output _ OutputIndent) = do
     indentSpaces <- view indentAmount
-    pure $ replicate indentSpaces ' '
+    pure . mconcat $ replicate indentSpaces " "
 renderOutput (Output _ OutputNewLine) = pure "\n"
 renderOutput (Output nest OutputOpenBrace) = renderRaibowParenFor nest "{"
 renderOutput (Output nest OutputOpenBracket) = renderRaibowParenFor nest "["
 renderOutput (Output nest OutputOpenParen) = renderRaibowParenFor nest "("
-renderOutput (Output _ (OutputOther string)) = pure string
+renderOutput (Output _ (OutputOther string)) =
+  -- TODO: This probably shouldn't be a string to begin with.
+  pure $ fromString string
 renderOutput (Output _ (OutputStringLit string)) = do
   sequenceFold
     [ colorQuote
     , pure "\""
     , colorString
-    , pure string
+    -- TODO: This probably shouldn't be a string to begin with.
+    , pure $ fromString string
     , colorQuote
     , pure "\""
     , colorReset
@@ -156,27 +162,27 @@ shrinkWhitespace "" = ""
 -- High-level colors --
 -----------------------
 
-colorQuote :: MonadReader OutputOptions m => m String
+colorQuote :: MonadReader OutputOptions m => m Builder
 colorQuote = appendColors colorBold colorVividWhite
 
-colorString :: MonadReader OutputOptions m => m String
+colorString :: MonadReader OutputOptions m => m Builder
 colorString = appendColors colorBold colorVividBlue
 
-colorError :: MonadReader OutputOptions m => m String
+colorError :: MonadReader OutputOptions m => m Builder
 colorError = appendColors colorBold colorVividRed
 
-colorNum :: MonadReader OutputOptions m => m String
+colorNum :: MonadReader OutputOptions m => m Builder
 colorNum = appendColors colorBold colorVividGreen
 
 rainbowParen
   :: forall m.
      MonadReader OutputOptions m
-  => NestLevel -> m String
+  => NestLevel -> m Builder
 rainbowParen (NestLevel nestLevel) =
   let choicesLen = length rainbowParenChoices
   in rainbowParenChoices !! (nestLevel `mod` choicesLen)
   where
-    rainbowParenChoices :: [m String]
+    rainbowParenChoices :: [m Builder]
     rainbowParenChoices =
         [ appendColors colorBold colorVividMagenta
         , appendColors colorBold colorVividCyan
@@ -201,36 +207,39 @@ ifM comparisonM thenValue elseValue = do
     True -> pure thenValue
     False -> pure elseValue
 
-colorBold :: MonadReader OutputOptions m => m String
-colorBold = ifM canUseColor (setSGRCode [SetConsoleIntensity BoldIntensity]) ""
+colorBold :: MonadReader OutputOptions m => m Builder
+colorBold = ifM canUseColor (setSGRCodeBuilder [SetConsoleIntensity BoldIntensity]) ""
 
-colorReset :: MonadReader OutputOptions m => m String
-colorReset = ifM canUseColor (setSGRCode [Reset]) ""
+colorReset :: MonadReader OutputOptions m => m Builder
+colorReset = ifM canUseColor (setSGRCodeBuilder [Reset]) ""
 
-colorVividBlue :: MonadReader OutputOptions m => m String
+colorVividBlue :: MonadReader OutputOptions m => m Builder
 colorVividBlue = colorHelper Vivid Blue
 
-colorVividCyan :: MonadReader OutputOptions m => m String
+colorVividCyan :: MonadReader OutputOptions m => m Builder
 colorVividCyan = colorHelper Vivid Cyan
 
-colorVividGreen :: MonadReader OutputOptions m => m String
+colorVividGreen :: MonadReader OutputOptions m => m Builder
 colorVividGreen = colorHelper Vivid Green
 
-colorVividMagenta :: MonadReader OutputOptions m => m String
+colorVividMagenta :: MonadReader OutputOptions m => m Builder
 colorVividMagenta = colorHelper Vivid Magenta
 
-colorVividRed :: MonadReader OutputOptions m => m String
+colorVividRed :: MonadReader OutputOptions m => m Builder
 colorVividRed = colorHelper Vivid Red
 
-colorVividWhite :: MonadReader OutputOptions m => m String
+colorVividWhite :: MonadReader OutputOptions m => m Builder
 colorVividWhite = colorHelper Vivid White
 
-colorVividYellow :: MonadReader OutputOptions m => m String
+colorVividYellow :: MonadReader OutputOptions m => m Builder
 colorVividYellow = colorHelper Vivid Yellow
 
-colorHelper :: MonadReader OutputOptions m => ColorIntensity -> Color -> m String
+colorHelper :: MonadReader OutputOptions m => ColorIntensity -> Color -> m Builder
 colorHelper colorIntensity color =
-  ifM canUseColor (setSGRCode [SetColor Foreground colorIntensity color]) ""
+  ifM canUseColor (setSGRCodeBuilder [SetColor Foreground colorIntensity color]) ""
 
-appendColors :: MonadReader OutputOptions m => m String -> m String -> m String
+appendColors :: MonadReader OutputOptions m => m Builder -> m Builder -> m Builder
 appendColors color1 color2 = mappend <$> color1 <*> color2
+
+setSGRCodeBuilder :: [SGR] -> Builder
+setSGRCodeBuilder = fromString . setSGRCode
