@@ -1,11 +1,15 @@
-.PHONY: build build-haddock clean dump-splices dump-th ghci haddock haddock-server lint repl test watch watch-tests watch-test
+.PHONY: bench benchmark build build-haddock clean dump-splices dump-th example example-profile ghci haddock haddock-server lint repl test watch watch-tests watch-test
 all: build
 
-clean:
-	stack clean
+bench: benchmark
+benchmark:
+	stack bench
 
 build: 
 	stack build
+
+clean:
+	stack clean
 
 # dump the template haskell
 dump-splices: dump-th
@@ -15,6 +19,14 @@ dump-th:
 	@echo "Splice files:"
 	@echo
 	@find "$$(stack path --dist-dir)" -name "*.dump-splices" | sort
+
+example:
+	stack build --flag pretty-simple:buildexample
+	stack exec pretty-simple-example
+
+example-profile:
+	stack build --flag pretty-simple:buildexample --profile
+	stack exec pretty-simple-example -- +RTS -p
 
 haddock: build-haddock
 build-haddock:
