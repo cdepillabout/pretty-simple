@@ -3,7 +3,11 @@ module Main where
 
 import Text.Pretty.Simple (pPrint)
 
-import Example.Data (baz)
+import Example.Data (bar)
 
 main :: IO ()
-main = pPrint baz
+main = do
+  putStrLn "\nThe following normal \"print\" output:\n"
+  print bar
+  putStrLn "\ngets turned into this (using \"Text.Pretty.Simple.pPrint\"):\n"
+  pPrint bar
