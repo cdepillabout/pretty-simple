@@ -28,6 +28,7 @@ library
                      , Text.Pretty.Simple.Internal.OutputPrinter
   build-depends:       base >= 4.6 && < 5
                      , ansi-terminal
+                     , containers
                      , lens
                      , mono-traversable
                      , mtl

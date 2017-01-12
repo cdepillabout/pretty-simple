@@ -44,6 +44,7 @@ import Control.Applicative
 #endif
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import Data.Foldable (toList)
 import Data.Text.Lazy (Text, pack)
 import Data.Text.Lazy.IO as LText
 
@@ -95,7 +96,7 @@ pStringOpt outputOptions string =
   case expressionParse string of
     Left _ -> pack string
     Right expressions ->
-      render outputOptions $ expressionsToOutputs expressions
+      render outputOptions . toList $ expressionsToOutputs expressions
 
 -- $examples
 -- Simple Haskell datatype:

@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -33,7 +34,8 @@ import Control.Monad.State (MonadState, execState)
 import Data.Data (Data)
 import Data.Foldable (traverse_)
 import Data.Monoid ((<>))
-import Data.Sequences (intersperse)
+import Data.Sequence (Seq)
+import Data.Sequences (fromList, intersperse, singleton)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 
@@ -59,12 +61,12 @@ makeLenses ''LineNum
 data PrinterState = PrinterState
   { _currLine :: {-# UNPACK #-} !LineNum
   , _nestLevel :: {-# UNPACK #-} !NestLevel
-  , _outputList :: ![Output]
+  , _outputList :: !(Seq Output)
   } deriving (Eq, Data, Generic, Show, Typeable)
 makeLenses ''PrinterState
 
 -- | Smart-constructor for 'PrinterState'.
-printerState :: LineNum -> NestLevel -> [Output] -> PrinterState
+printerState :: LineNum -> NestLevel -> Seq Output -> PrinterState
 printerState currLineNum nestNum output =
   PrinterState
   { _currLine = currLineNum
@@ -78,11 +80,11 @@ addOutput
 addOutput outputType = do
   nest <- use nestLevel
   let output = Output nest outputType
-  outputList <>= [output]
+  outputList <>= singleton output
 
 addOutputs
   :: MonadState PrinterState m
-  => [OutputType] -> m ()
+  => Seq OutputType -> m ()
 addOutputs outputTypes = do
   nest <- use nestLevel
   let outputs = Output nest <$> outputTypes
@@ -173,7 +175,7 @@ howManyLines = view currLine . runInitPrinterState
 doIndent :: MonadState PrinterState m => m ()
 doIndent = do
   nest <- use $ nestLevel . unNestLevel
-  addOutputs $ replicate nest OutputIndent
+  addOutputs . fromList $ replicate nest OutputIndent
 
 newLine
   :: MonadState PrinterState m
@@ -210,7 +212,7 @@ runPrinterState initState expressions =
 runInitPrinterState :: [Expr] -> PrinterState
 runInitPrinterState = runPrinterState initPrinterState
 
-expressionsToOutputs :: [Expr] -> [Output]
+expressionsToOutputs :: [Expr] -> Seq Output
 expressionsToOutputs =
   view outputList . runInitPrinterState . modificationsExprList
 
