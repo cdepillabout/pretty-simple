@@ -99,13 +99,13 @@ initPrinterState = printerState 0 (-1) []
 -- markers.
 --
 -- >>> testInit $ putSurroundExpr "[" "]" (CommaSeparated [])
--- PrinterState {_currLine = LineNum {unLineNum = 0}, _nestLevel = NestLevel {_unNestLevel = -1}, _outputList = [Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOpenBracket},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputCloseBracket}]}
+-- PrinterState {_currLine = LineNum {unLineNum = 0}, _nestLevel = NestLevel {_unNestLevel = -1}, _outputList = fromList [Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOpenBracket},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputCloseBracket}]}
 --
 -- If there is only one expression, and it will print out on one line, then
 -- just print everything all on one line, with spaces around the expressions.
 --
 -- >>> testInit $ putSurroundExpr "{" "}" (CommaSeparated [[Other "hello"]])
--- PrinterState {_currLine = LineNum {unLineNum = 0}, _nestLevel = NestLevel {_unNestLevel = -1}, _outputList = [Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOpenBrace},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOther " "},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOther "hello"},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOther " "},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputCloseBrace}]}
+-- PrinterState {_currLine = LineNum {unLineNum = 0}, _nestLevel = NestLevel {_unNestLevel = -1}, _outputList = fromList [Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOpenBrace},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOther " "},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOther "hello"},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOther " "},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputCloseBrace}]}
 --
 -- If there is only one expression, but it will print out on multiple lines,
 -- then go to newline and print out on multiple lines.
