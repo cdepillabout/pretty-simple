@@ -126,10 +126,10 @@ script:
 - |
   case "$BUILD" in
     stack)
-      stack --no-terminal $ARGS test --haddock --no-haddock-deps
+      stack --no-terminal $ARGS test --haddock --no-haddock-deps --flag pretty-simple:buildexample
       ;;
     cabal)
-      cabal configure --enable-tests --enable-benchmarks -v2 --ghc-options="-O0 -Werror"
+      cabal configure --enable-tests --enable-benchmarks -v2 --ghc-options="-O0 -Werror" --flags="buildexample"
       cabal build
       cabal check || [ "$CABALVER" == "1.16" ]
       cabal test
