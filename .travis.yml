@@ -126,7 +126,7 @@ script:
 - |
   case "$BUILD" in
     stack)
-      stack --no-terminal $ARGS test --haddock --no-haddock-deps --flag pretty-simple:buildexample
+      stack --no-terminal $ARGS test --haddock --no-haddock-deps --flag pretty-simple:buildexample --bench --no-run-benchmarks
       ;;
     cabal)
       cabal configure --enable-tests --enable-benchmarks -v2 --ghc-options="-O0 -Werror" --flags="buildexample"
