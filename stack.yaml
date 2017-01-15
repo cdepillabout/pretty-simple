@@ -36,4 +36,6 @@ extra-package-dbs: []
 
 # Enable Hackage-friendly mode, for more details see
 #  https://docs.haskellstack.org/en/stable/yaml_configuration/#pvp-bounds
-pvp-bounds: both
+# This has been disabled because of the following exchange:
+# https://github.com/cdepillabout/pretty-simple/pull/1#issuecomment-272706215
+#pvp-bounds: both
