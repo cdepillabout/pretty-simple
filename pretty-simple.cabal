@@ -7,7 +7,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              Dennis Gosnell
 maintainer:          cdep.illabout@gmail.com
-copyright:           2016 Dennis Gosnell
+copyright:           2017 Dennis Gosnell
 category:            Text
 build-type:          Simple
 extra-source-files:  README.md
