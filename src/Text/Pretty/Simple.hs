@@ -116,7 +116,7 @@ pStringOpt outputOptions string =
 --
 -- Slightly more complicated lists:
 --
--- >>> pPrintNoColor $ [ Foo [ (),    () ] "hello" ]
+-- >>> pPrintNoColor $ [ Foo [ (), () ] "hello" ]
 -- [ Foo
 --     [ ()
 --     , ()
