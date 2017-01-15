@@ -33,3 +33,7 @@ extra-package-dbs: []
 
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
+
+# Enable Hackage-friendly mode, for more details see
+#  https://docs.haskellstack.org/en/stable/yaml_configuration/#pvp-bounds
+pvp-bounds: both
