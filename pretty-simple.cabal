@@ -1,5 +1,5 @@
 name:                pretty-simple
-version:             1.0.0.2
+version:             1.0.0.3
 synopsis:            pretty printer for data types with a 'Show' instance.
 description:         Please see README.md
 homepage:            https://github.com/cdepillabout/pretty-simple
