@@ -70,16 +70,19 @@ Just
 
 `pretty-simple` has these features:
 
-- Easy-to-read formatting for complex data types.
-- Prints in color using ANSI escape codes.
-  - It is possible to print without color by using the `pPrintNoColor` function.
-- Prints nested data types using rainbow parentheses to make it easy to see the
-  nesting.
-- Amount of indentation for nested data types is configurable with the
-  `pPrintOpt` function.
-- Fast.  Shouldn't have a problem pretty-printing data types thousands of lines
-  long.
-- Capable of pretty-printing any Haskell data type that has a `Show` instance.
+- Easy-to-read
+    - Complex data types are simple to understand.
+- Color
+    - Prints in color using ANSI escape codes.
+    - It is possible to print without color by using the `pPrintNoColor`
+      function.
+- Rainbox Parentheses
+    - Easy to understand deeply nested data types.
+- Configurable Indentation
+    - Amount of indentation is configurable with the `pPrintOpt` function.
+- Fast.
+    - No problem with data types thousands of lines long.
+- Works with any data type with a `Show` instance
     - Some common Haskell data types have a `Show` instance that produces
       non-valid Haskell code.  `pretty-simple` will pretty-print even these
       data types.
@@ -88,9 +91,8 @@ Just
 
 Other pretty-printing packages have some combination of these defects:
 
-- Doesn't provide any options for printing in color.
-- Doesn't provide any options for changing the amount of indentation for nested
-  data types.
+- No options for printing in color.
+- No options for changing the amount of indentation
 - Requires every data type to be an instance of some special typeclass (instead
   of just `Show`).
 - Requires all `Show` instances to output valid Haskell code.
