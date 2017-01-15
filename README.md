@@ -14,24 +14,18 @@ instance.
 For example, imagine the following Haskell data types and values:
 
 ```haskell
-data Foo = Foo
-  { foo1 :: Integer
-  , foo2 :: [String]
-  } deriving (Data, Eq, Read, Show, Typeable)
-
-data Bar = Bar
-  { bar1 :: Double
-  , bar2 :: [Foo]
-  } deriving (Data, Eq, Read, Show, Typeable)
+data Foo = Foo { foo1 :: Integer , foo2 :: [String] } deriving Show
 
 foo :: Foo
 foo = Foo 3 ["hello", "goodbye"]
+
+data Bar = Bar { bar1 :: Double , bar2 :: [Foo] } deriving Show
 
 bar :: Bar
 bar = Bar 10.55 [foo, foo]
 ```
 
-If you run this in `ghci` and type `print bar`, you'll get an output like this:
+If you run this in `ghci` and type `print bar`, you'll get output like this:
 
 ```haskell
 Bar {bar1 = 10, bar2 = [Foo {foo1 = 3, foo2 = ["hello","goodbye"], foo3 = 3.3},Foo {foo1 = 3, foo2 = ["hello","goodbye"], foo3 = 3.3}], bar3 = 10.55}
