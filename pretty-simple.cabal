@@ -11,6 +11,7 @@ copyright:           2016 Dennis Gosnell
 category:            Text
 build-type:          Simple
 extra-source-files:  README.md
+                   , img/pretty-simple-example-screenshot.png
 cabal-version:       >=1.10
 
 flag buildexample
