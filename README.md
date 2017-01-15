@@ -46,4 +46,61 @@ more deeply nested.  It would be even more difficult to read.
 
 ## Usage
 
-TODO
+`pretty-simple` can be easily used from `ghci` when debugging.
+
+When using `stack` to run `ghci`, just append append the `--package` flag to
+the command line to load `pretty-simple`.
+
+```sh
+$ stack ghci --package pretty-simple
+```
+
+Once you get a prompt in `ghci`, you can use `import` to get `pretty-simple`'s
+`pPrint` function in scope.
+
+```haskell
+> import Text.Pretty.Simple (pPrint)
+```
+
+You can test out `pPrint` with simple data types like `Maybe` or tuples.
+
+```haskell
+> pPrint $ Just ("hello", "goodbye")
+Just
+    ( "hello"
+    , "goodbye"
+    )
+```
+
+## Features
+
+`pretty-simple` has these features:
+
+- Easy-to-read formatting for complex data types.
+- Prints in color using ANSI escape codes.
+  - It is possible to print without color by using the `pPrintNoColor` function.
+- Prints nested data types using rainbow parentheses to make it easy to see the
+  nesting.
+- Amount of indentation for nested data types is configurable with the
+  `pPrintOpt` function.
+- Fast.  Shouldn't have a problem pretty-printing data types thousands of lines
+  long.
+- Capable of pretty-printing any Haskell data type that has a `Show` instance.
+    - Some common Haskell data types have a `Show` instance that produces
+      non-valid Haskell code.  `pretty-simple` will pretty-print even these
+      data types.
+
+## Why not `(some other package)`?
+
+Other pretty-printing packages have some combination of these defects:
+
+- Doesn't provide any options for printing in color.
+- Doesn't provide any options for changing the amount of indentation for nested
+  data types.
+- Requires every data type to be an instance of some special typeclass (instead
+  of just `Show`).
+- Requires all `Show` instances to output valid Haskell code.
+
+## Contributions
+
+Feel free to open an issue or PR for any bugs/problems/suggestions/improvements.
