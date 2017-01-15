@@ -80,7 +80,7 @@ Just
     - Easy to understand deeply nested data types.
 - Configurable Indentation
     - Amount of indentation is configurable with the `pPrintOpt` function.
-- Fast.
+- Fast
     - No problem with data types thousands of lines long.
 - Works with any data type with a `Show` instance
     - Some common Haskell data types have a `Show` instance that produces
