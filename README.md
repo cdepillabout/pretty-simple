@@ -50,7 +50,8 @@ $ stack ghci --package pretty-simple
 ```
 
 Once you get a prompt in `ghci`, you can use `import` to get `pretty-simple`'s
-`pPrint` function in scope.
+[`pPrint`](https://hackage.haskell.org/package/pretty-simple/docs/Text-Pretty-Simple.html#v:pPrint)
+function in scope.
 
 ```haskell
 > import Text.Pretty.Simple (pPrint)
@@ -74,12 +75,15 @@ Just
     - Complex data types are simple to understand.
 - Color
     - Prints in color using ANSI escape codes.
-    - It is possible to print without color by using the `pPrintNoColor`
+    - It is possible to print without color by using the
+      [`pPrintNoColor`](https://hackage.haskell.org/package/pretty-simple/docs/Text-Pretty-Simple.html#v:pPrintNoColor)
       function.
 - Rainbox Parentheses
     - Easy to understand deeply nested data types.
 - Configurable Indentation
-    - Amount of indentation is configurable with the `pPrintOpt` function.
+    - Amount of indentation is configurable with the
+      [`pPrintOpt`](https://hackage.haskell.org/package/pretty-simple-1.0.0.6/docs/Text-Pretty-Simple.html#v:pPrintOpt)
+      function.
 - Fast
     - No problem with data types thousands of lines long.
 - Works with any data type with a `Show` instance
