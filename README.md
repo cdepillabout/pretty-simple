@@ -28,6 +28,7 @@ bar = Bar 10.55 [foo, foo]
 If you run this in `ghci` and type `print bar`, you'll get output like this:
 
 ```haskell
+> print bar
 Bar {bar1 = 10, bar2 = [Foo {foo1 = 3, foo2 = ["hello","goodbye"], foo3 = 3.3},Foo {foo1 = 3, foo2 = ["hello","goodbye"], foo3 = 3.3}], bar3 = 10.55}
 ```
 
@@ -69,8 +70,6 @@ Just
 
 ## Features
 
-`pretty-simple` has these features:
-
 - Easy-to-read
     - Complex data types are simple to understand.
 - Color
@@ -85,7 +84,7 @@ Just
       [`pPrintOpt`](https://hackage.haskell.org/package/pretty-simple-1.0.0.6/docs/Text-Pretty-Simple.html#v:pPrintOpt)
       function.
 - Fast
-    - No problem with data types thousands of lines long.
+    - No problem pretty-printing data types thousands of lines long.
 - Works with any data type with a `Show` instance
     - Some common Haskell data types have a `Show` instance that produces
       non-valid Haskell code.  `pretty-simple` will pretty-print even these
@@ -103,4 +102,7 @@ Other pretty-printing packages have some combination of these defects:
 
 ## Contributions
 
-Feel free to open an issue or PR for any bugs/problems/suggestions/improvements.
+Feel free to open an
+[issue](https://github.com/cdepillabout/pretty-simple/issues) or
+[PR](https://github.com/cdepillabout/pretty-simple/pulls) for any
+bugs/problems/suggestions/improvements.
