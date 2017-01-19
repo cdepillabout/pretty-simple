@@ -1,4 +1,4 @@
-.PHONY: bench benchmark build build-haddock clean dump-splices dump-th example example-profile ghci haddock haddock-server lint repl test watch watch-tests watch-test
+.PHONY: bench benchmark build build-haddock clean dump-splices dump-th example example-profile ghci haddock haddock-server lint repl test upload watch watch-tests watch-test
 all: build
 
 bench: benchmark
@@ -59,3 +59,7 @@ lint:
 # In order to run this, you need to have run `make build-haddock`.
 haddock-server:
 	cd "$$(stack path --local-doc-root)" && python -m http.server 8001
+
+# Upload this package to hackage.
+upload:
+	stack upload .
