@@ -25,9 +25,7 @@ module Text.Pretty.Simple.Internal.OutputPrinter
 import Control.Applicative
 #endif
 
-import Control.Lens (view)
-import Control.Lens.TH (makeLenses)
-import Control.Monad.Reader (MonadReader, runReader)
+import Control.Monad.Reader (MonadReader(reader), runReader)
 import Data.Data (Data)
 import Data.Foldable (fold, foldlM)
 import Data.Semigroup ((<>))
@@ -52,18 +50,19 @@ data UseColor
 -- | Data-type wrapping up all the options available when rendering the list
 -- of 'Output's.
 data OutputOptions = OutputOptions
-  { _indentAmount :: Int
+  { outputOptionsIndentAmount :: Int
   -- ^ Number of spaces to use when indenting.  It should probably be either 2
   -- or 4.
-  , _useColor :: UseColor
+  , outputOptionsUseColor :: UseColor
   -- ^ Whether or not to use ansi escape sequences to print colors.
   } deriving (Data, Eq, Generic, Read, Show, Typeable)
-makeLenses ''OutputOptions
 
--- | Default values for 'OutputOptions'.  '_indentAmount' defaults to 4, and
--- '_useColor' defaults to 'UseColor'.
+-- | Default values for 'OutputOptions'.  'outputOptionsIndentAmount' defaults
+-- to 4, and 'outputOptionsUseColor' defaults to 'UseColor'.
 defaultOutputOptions :: OutputOptions
-defaultOutputOptions = OutputOptions {_indentAmount = 4, _useColor = UseColor}
+defaultOutputOptions =
+  OutputOptions
+  {outputOptionsIndentAmount = 4, outputOptionsUseColor = UseColor}
 
 render :: OutputOptions -> [Output] -> Text
 render options outputs = toLazyText $ runReader (renderOutputs outputs) options
@@ -89,7 +88,7 @@ renderOutput (Output nest OutputCloseBracket) = renderRaibowParenFor nest "]"
 renderOutput (Output nest OutputCloseParen) = renderRaibowParenFor nest ")"
 renderOutput (Output nest OutputComma) = renderRaibowParenFor nest ","
 renderOutput (Output _ OutputIndent) = do
-    indentSpaces <- view indentAmount
+    indentSpaces <- reader outputOptionsIndentAmount
     pure . mconcat $ replicate indentSpaces " "
 renderOutput (Output _ OutputNewLine) = pure "\n"
 renderOutput (Output nest OutputOpenBrace) = renderRaibowParenFor nest "{"
@@ -195,7 +194,7 @@ rainbowParen (NestLevel nestLevel) =
 
 canUseColor :: MonadReader OutputOptions m => m Bool
 canUseColor = do
-  color <- view useColor
+  color <- reader outputOptionsUseColor
   case color of
     NoColor -> pure False
     UseColor -> pure True

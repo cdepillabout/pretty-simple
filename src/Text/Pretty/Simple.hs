@@ -79,7 +79,7 @@ pStringNoColor :: String -> Text
 pStringNoColor = pStringOpt noColorOutputOptions
 
 noColorOutputOptions :: OutputOptions
-noColorOutputOptions = defaultOutputOptions {_useColor = NoColor}
+noColorOutputOptions = defaultOutputOptions {outputOptionsUseColor = NoColor}
 
 ---------------------------------
 -- functions that take options --
