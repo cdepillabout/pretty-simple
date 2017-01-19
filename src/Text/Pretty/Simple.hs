@@ -14,6 +14,16 @@ Maintainer  : cdep.illabout@gmail.com
 Stability   : experimental
 Portability : POSIX
 
+This module contains the functions 'pPrint', 'pShow', and 'pString', for
+pretty-printing any Haskell data type with a show instance.
+
+'pPrint' should be the main go-to function when debugging in GHCi.
+
+There are other variations of 'pPrint', 'pShow', and 'pString' for printing
+without color and changing the indentation amount.  Most users can ignore these.
+
+See the Examples section at the end of this module for examples of acutally
+using 'pPrint'.
 -}
 module Text.Pretty.Simple
   (
@@ -56,12 +66,24 @@ import Text.Pretty.Simple.Internal
 -- normal (color) functions --
 ------------------------------
 
+-- | Pretty-print any data type that has a 'Show' instance.
+--
+-- If you've never seen 'MonadIO' before, you can think of this function as
+-- having the following type signature:
+--
+-- @
+--  pPrint :: Show a => a -> IO ()
+-- @
 pPrint :: (MonadIO m, Show a) => a -> m ()
 pPrint = pPrintOpt defaultOutputOptions
 
+-- | Similar to 'pPrint', but just return the resulting pretty-printed data
+-- type as a 'Text' instead of printing it to the screen.
 pShow :: Show a => a -> Text
 pShow = pShowOpt defaultOutputOptions
 
+-- | Similar to 'pShow', but the first argument is a 'String' representing a
+-- data type that has already been 'show'ed.
 pString :: String -> Text
 pString = pStringOpt defaultOutputOptions
 
@@ -69,15 +91,27 @@ pString = pStringOpt defaultOutputOptions
 -- no-color functions --
 ------------------------
 
+-- | Similar to 'pPrint', but doesn't print in color.  However, data types
+-- will still be indented nicely.
+--
+-- >>> pPrintNoColor $ Just ["hello", "bye"]
+-- Just
+--     [ "hello"
+--     , "bye"
+--     ]
 pPrintNoColor :: (MonadIO m, Show a) => a -> m ()
 pPrintNoColor = pPrintOpt noColorOutputOptions
 
+-- | Like 'pShow', but without color.
 pShowNoColor :: Show a => a -> Text
 pShowNoColor = pShowOpt noColorOutputOptions
 
+-- | LIke 'pString', but without color.
 pStringNoColor :: String -> Text
 pStringNoColor = pStringOpt noColorOutputOptions
 
+-- | 'noColorOutputOptions' is just like 'defaultOutputOptions', but
+-- 'outputOptionsUseColor' is set to 'NoColor'.
 noColorOutputOptions :: OutputOptions
 noColorOutputOptions = defaultOutputOptions {outputOptionsUseColor = NoColor}
 
@@ -85,12 +119,38 @@ noColorOutputOptions = defaultOutputOptions {outputOptionsUseColor = NoColor}
 -- functions that take options --
 ---------------------------------
 
+-- | Similar to 'pPrint' but takes 'OutputOptions' to change how the
+-- pretty-printing is done.
+--
+-- For example, 'pPrintOpt' can be used to make the indentation much smaller
+-- than normal.
+--
+-- This is what the normal indentation looks like:
+--
+-- >>> pPrintOpt noColorOutputOptions $ Just ("hello", "bye")
+-- Just
+--     ( "hello"
+--     , "bye"
+--     )
+--
+-- This is what smaller indentation looks like:
+--
+-- >>> let smallIndent = noColorOutputOptions {outputOptionsIndentAmount = 1}
+-- >>> pPrintOpt smallIndent $ Just ("hello", "bye")
+-- Just
+--  ( "hello"
+--  , "bye"
+--  )
 pPrintOpt :: (MonadIO m, Show a) => OutputOptions -> a -> m ()
 pPrintOpt outputOptions = liftIO . LText.putStrLn . pShowOpt outputOptions
 
+-- | Like 'pShow' but takes 'OutputOptions' to change how the
+-- pretty-printing is done.
 pShowOpt :: Show a => OutputOptions -> a -> Text
 pShowOpt outputOptions = pStringOpt outputOptions . show
 
+-- | Like 'pString' but takes 'OutputOptions' to change how the
+-- pretty-printing is done.
 pStringOpt :: OutputOptions -> String -> Text
 pStringOpt outputOptions string =
   case expressionParse string of
@@ -99,14 +159,24 @@ pStringOpt outputOptions string =
       render outputOptions . toList $ expressionsToOutputs expressions
 
 -- $examples
--- Simple Haskell datatype:
+--
+-- Here are some examples of using 'pPrint' on different data types.  You can
+-- look at these examples to get an idea of what 'pPrint' will output.
+--
+-- The following examples are all using 'pPrintNoColor' instead of 'pPrint'
+-- because their output is being checked using
+-- <https://github.com/sol/doctest#readme doctest>.  'pPrint' outputs ANSI
+-- escape codes in order to produce color, so the following examples would be
+-- hard to read had 'pPrint' been used.
+--
+-- __Simple Haskell data type__
 --
 -- >>> data Foo a = Foo a String deriving Show
 --
 -- >>> pPrintNoColor $ Foo 3 "hello"
 -- Foo 3 "hello"
 --
--- Lists:
+-- __List__
 --
 -- >>> pPrintNoColor $ [1,2,3]
 -- [ 1
@@ -114,7 +184,7 @@ pStringOpt outputOptions string =
 -- , 3
 -- ]
 --
--- Slightly more complicated lists:
+-- __Slightly more complicated list__
 --
 -- >>> pPrintNoColor $ [ Foo [ (), () ] "hello" ]
 -- [ Foo
@@ -131,7 +201,7 @@ pStringOpt outputOptions string =
 -- , Foo [] "bye"
 -- ]
 --
--- Record:
+-- __Record__
 --
 -- >>> :{
 -- data Bar b = Bar
@@ -154,7 +224,7 @@ pStringOpt outputOptions string =
 --         ]
 --     }
 --
--- Newtype:
+-- __Newtype__
 --
 -- >>> newtype Baz = Baz { unBaz :: [String] } deriving Show
 --
