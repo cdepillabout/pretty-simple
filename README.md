@@ -29,7 +29,7 @@ If you run this in `ghci` and type `print bar`, you'll get output like this:
 
 ```haskell
 > print bar
-Bar {bar1 = 10, bar2 = [Foo {foo1 = 3, foo2 = ["hello","goodbye"], foo3 = 3.3},Foo {foo1 = 3, foo2 = ["hello","goodbye"], foo3 = 3.3}], bar3 = 10.55}
+Bar {bar1 = 10.55, bar2 = [Foo {foo1 = 3, foo2 = ["hello","goodbye"]},Foo {foo1 = 3, foo2 = ["hello","goodbye"]}]}
 ```
 
 This is pretty hard to read.  Imagine if there were more fields or it were even
@@ -99,6 +99,61 @@ Other pretty-printing packages have some combination of these defects:
 - Requires every data type to be an instance of some special typeclass (instead
   of just `Show`).
 - Requires all `Show` instances to output valid Haskell code.
+
+## Other Uses
+
+`pretty-simple` can be used to pretty-print any `String` that is similar to
+Haskell data types.  The only requirement is that the `String` must correctly
+use brackets, parenthese, and braces to indicate nesting.
+
+For example, the
+[`pString`](https://hackage.haskell.org/package/pretty-simple/docs/Text-Pretty-Simple.html#v:pString)
+function can be used to pretty-print JSON.
+
+Recall our example from before.
+
+```haskell
+data Foo = Foo { foo1 :: Integer , foo2 :: [String] } deriving Show
+
+foo :: Foo
+foo = Foo 3 ["hello", "goodbye"]
+
+data Bar = Bar { bar1 :: Double , bar2 :: [Foo] } deriving Show
+
+bar :: Bar
+bar = Bar 10.55 [foo, foo]
+```
+
+You can use [`aeson`](https://hackage.haskell.org/package/aeson) to turn these
+data types into JSON.  First, you must derive
+[`ToJSON`](https://hackage.haskell.org/package/aeson/docs/Data-Aeson.html#t:ToJSON)
+instances for the data types.  It is easiest to do this with Template Haskell:
+
+```haskell
+{-# LANGUAGE TemplateHaskell #-}
+
+$(deriveJSON defaultOptions ''Foo)
+$(deriveJSON defaultOptions ''Bar)
+```
+
+If you run this in `ghci` and type `encode bar`, you'll get output like this:
+
+```haskell
+> import Data.Aeson (encode)
+> putLazyByteStringLn $ encode bar
+{"bar1":10.55,"bar2":[{"foo1":3,"foo2":["hello","goodbye"]},{"foo1":3,"foo2":["hello","goodbye"]}]}
+```
+
+Just like Haskell's normal `print` output, this is pretty hard to read.
+
+`pretty-simple` can be used to pretty-print the JSON-encoded `bar` in an
+easy-to-read format:
+
+![json example screenshot](/img/pretty-simple-json-example-screenshot.png?raw=true "json example screenshot")
+
+(You can find the `lazyByteStringToString`, `putLazyByteStringLn`,
+and `putLazyTextLn` in the [`ExampleJSON.hs`](example/ExampleJSON.hs)
+file.)
 
 ## Contributions
 
