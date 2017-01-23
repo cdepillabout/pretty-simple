@@ -1,4 +1,4 @@
-.PHONY: bench benchmark build build-haddock clean dump-splices dump-th example example-profile ghci haddock haddock-server lint repl test upload watch watch-tests watch-test
+.PHONY: bench benchmark build build-haddock clean dump-splices dump-th example example-json example-profile ghci haddock haddock-server lint repl test upload watch watch-tests watch-test
 all: build
 
 bench: benchmark
@@ -23,6 +23,10 @@ dump-th:
 example:
 	stack build --flag pretty-simple:buildexample
 	stack exec pretty-simple-example
+
+example-json:
+	stack build --flag pretty-simple:buildexample
+	stack exec pretty-simple-json-example
 
 example-profile:
 	stack build --flag pretty-simple:buildexample --profile
