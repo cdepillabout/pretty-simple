@@ -14,12 +14,13 @@ Maintainer  : cdep.illabout@gmail.com
 Stability   : experimental
 Portability : POSIX
 
-This module contains the functions 'pPrint', 'pShow', and 'pString', for
-pretty-printing any Haskell data type with a show instance.
+This module contains the functions 'pPrint', 'pShow', and 'pString' for
+pretty-printing any Haskell data type with a 'Show' instance.
 
-'pPrint' should be the main go-to function when debugging in GHCi.
+'pPrint' is the main go-to function when debugging Haskell code.  'pShow' and
+'pString' are slight variations on 'pPrint'.
 
-There are other variations of 'pPrint', 'pShow', and 'pString' for printing
+The other variations of 'pPrint', 'pShow', and 'pString' are for printing
 without color and changing the indentation amount.  Most users can ignore these.
 
 See the Examples section at the end of this module for examples of acutally
@@ -84,6 +85,11 @@ pShow = pShowOpt defaultOutputOptions
 
 -- | Similar to 'pShow', but the first argument is a 'String' representing a
 -- data type that has already been 'show'ed.
+--
+-- This will work on any 'String' that is similar to a Haskell data type.  The
+-- only requirement is that the strings are quoted, and braces, parentheses, and
+-- brackets are correctly used to represent indentation.  For example,
+-- 'pString' will correctly pretty-print JSON.
 pString :: String -> Text
 pString = pStringOpt defaultOutputOptions
 
