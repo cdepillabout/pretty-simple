@@ -1,5 +1,23 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
+{- |
+Module      :  Example.Data
+Copyright   :  Dennis Gosnell 2017
+License     :  BSD3
+Maintainer  :  Dennis Gosnell (cdep.illabout@gmail.com)
+Stability   :  experimental
+Portability :  unknown
+
+This module contains some data types and values that users can use to play
+around with pretty-simple.
+
+These data types are also use in the two example programs, as well as the
+benchmark for pretty-simple.
+
+Most users should use 'foo' or 'bar'.  'baz' is an extremely large data type,
+only used in the benchmark.
+-}
+
 module Example.Data where
 
 import Data.Data (Data)
