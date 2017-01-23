@@ -1,6 +1,17 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{- |
+Copyright   :  Dennis Gosnell 2017
+License     :  BSD3
+Maintainer  :  Dennis Gosnell (cdep.illabout@gmail.com)
+Stability   :  experimental
+Portability :  unknown
+
+This is an short example of using 'pString' from "Text.Pretty.Simple" to
+pretty-print JSON.
+-}
+
 module Main where
 
 import Data.Aeson (encode)
