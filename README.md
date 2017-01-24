@@ -102,6 +102,23 @@ Other pretty-printing packages have some combination of these defects:
 
 ## Other Uses
 
+### Pretty-print all GHCi output
+
+The `pPrint` function can be used as the default output function in GHCi.
+
+All you need to do is run GHCi like this:
+
+```sh
+$ stack ghci --ghci-options "-interactive-print=Text.Pretty.Simple.pPrint" --package pretty-simple
+```
+
+Now, whenever you make GHCi evaluate an expression, GHCi will pretty-print the
+result using `pPrint`!  See
+[here](https://downloads.haskell.org/%7Eghc/latest/docs/html/users_guide/ghci.html#using-a-custom-interactive-printing-function)
+for more info on this neat feature in GHCi.
+
+### Pretty-printing JSON
+
 `pretty-simple` can be used to pretty-print any `String` that is similar to
 Haskell data types.  The only requirement is that the `String` must correctly
 use brackets, parenthese, and braces to indicate nesting.
