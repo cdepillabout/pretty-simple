@@ -30,8 +30,8 @@ library
   build-depends:       base >= 4.8 && < 5
                      , ansi-terminal >= 0.6
                      , containers >= 0.5
-                     , microlens >= 0.4
-                     , microlens-th >= 0.4
+                     , microlens >= 0.3
+                     , microlens-th >= 0.3
                      , microlens-mtl >= 0.1
                      , mono-traversable >= 0.10
                      , mtl >= 2.2
