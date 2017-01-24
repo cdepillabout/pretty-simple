@@ -27,8 +27,10 @@ module Text.Pretty.Simple.Internal.ExprToOutput
 import Control.Applicative
 #endif
 
-import Control.Lens ((<>=), (+=), (-=), use, view)
-import Control.Lens.TH (makeLenses)
+import Lens.Micro.Mtl ((+=), (-=), use)
+import Lens.Micro.Extras (view)
+import Lens.Micro (over)
+import Lens.Micro.TH (makeLenses)
 import Control.Monad (when)
 import Control.Monad.State (MonadState, execState)
 import Data.Data (Data)
@@ -38,6 +40,7 @@ import Data.Sequence (Seq)
 import Data.Sequences (fromList, intersperse, singleton)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
+import qualified Control.Monad.State.Class as State
 
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
 import Text.Pretty.Simple.Internal.Output
@@ -80,7 +83,7 @@ addOutput
 addOutput outputType = do
   nest <- use nestLevel
   let output = Output nest outputType
-  outputList <>= singleton output
+  State.modify (over outputList (`mappend` singleton output))
 
 addOutputs
   :: MonadState PrinterState m
@@ -88,7 +91,7 @@ addOutputs
 addOutputs outputTypes = do
   nest <- use nestLevel
   let outputs = Output nest <$> outputTypes
-  outputList <>= outputs
+  State.modify (over outputList (`mappend` outputs))
 
 initPrinterState :: PrinterState
 initPrinterState = printerState 0 (-1) []
