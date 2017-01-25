@@ -33,7 +33,6 @@ library
                      , microlens >= 0.3
                      , microlens-th >= 0.3
                      , microlens-mtl >= 0.1
-                     , mono-traversable >= 0.10
                      , mtl >= 2.2
                      , parsec >= 3.1
                      , semigroups >= 0.18
