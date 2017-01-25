@@ -27,7 +27,6 @@ module Text.Pretty.Simple.Internal.Output
 import Control.Applicative
 #endif
 
-import Lens.Micro.TH (makeLenses)
 import Data.Data (Data)
 import Data.String (IsString, fromString)
 import Data.Typeable (Typeable)
@@ -43,9 +42,8 @@ import GHC.Generics (Generic)
 --
 -- A 'NestLevel' of 2 would mean that an 'Output' token is two levels of
 -- brackets, etc.
-newtype NestLevel = NestLevel { _unNestLevel :: Int }
+newtype NestLevel = NestLevel { unNestLevel :: Int }
   deriving (Data, Eq, Generic, Num, Ord, Read, Show, Typeable)
-makeLenses ''NestLevel
 
 -- | These are the output tokens that we will be printing to the screen.
 data OutputType

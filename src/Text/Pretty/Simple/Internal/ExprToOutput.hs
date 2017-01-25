@@ -27,12 +27,8 @@ module Text.Pretty.Simple.Internal.ExprToOutput
 import Control.Applicative
 #endif
 
-import Lens.Micro.Mtl ((+=), (-=), use)
-import Lens.Micro.Extras (view)
-import Lens.Micro (over)
-import Lens.Micro.TH (makeLenses)
 import Control.Monad (when)
-import Control.Monad.State (MonadState, execState, modify)
+import Control.Monad.State (MonadState, execState, gets, modify)
 import Data.Data (Data)
 import Data.Foldable (traverse_)
 import Data.Monoid ((<>))
@@ -58,39 +54,47 @@ import Text.Pretty.Simple.Internal.Output
 -- 'LineNum' will increase by 1.
 newtype LineNum = LineNum { unLineNum :: Int }
   deriving (Data, Eq, Generic, Num, Ord, Read, Show, Typeable)
-makeLenses ''LineNum
 
 data PrinterState = PrinterState
-  { _currLine :: {-# UNPACK #-} !LineNum
-  , _nestLevel :: {-# UNPACK #-} !NestLevel
-  , _outputList :: !(Seq Output)
+  { currLine :: {-# UNPACK #-} !LineNum
+  , nestLevel :: {-# UNPACK #-} !NestLevel
+  , outputList :: !(Seq Output)
   } deriving (Eq, Data, Generic, Show, Typeable)
-makeLenses ''PrinterState
 
 -- | Smart-constructor for 'PrinterState'.
 printerState :: LineNum -> NestLevel -> Seq Output -> PrinterState
 printerState currLineNum nestNum output =
   PrinterState
-  { _currLine = currLineNum
-  , _nestLevel = nestNum
-  , _outputList = output
+  { currLine = currLineNum
+  , nestLevel = nestNum
+  , outputList = output
   }
+
+addToOutputList
+  :: MonadState PrinterState m
+  => Seq Output -> m ()
+addToOutputList output =
+  modify
+    (\printState ->
+       printState {outputList = outputList printState `mappend` output})
 
 addOutput
   :: MonadState PrinterState m
   => OutputType -> m ()
 addOutput outputType = do
-  nest <- use nestLevel
+  nest <- gets nestLevel
   let output = Output nest outputType
-  modify (over outputList (`mappend` singleton output))
+  -- modify (over outputList (`mappend` singleton output))
+  addToOutputList $ singleton output
 
 addOutputs
   :: MonadState PrinterState m
   => Seq OutputType -> m ()
 addOutputs outputTypes = do
-  nest <- use nestLevel
+  nest <- gets nestLevel
   let outputs = Output nest <$> outputTypes
-  modify (over outputList (`mappend` outputs))
+  -- modify (over outputList (`mappend` outputs))
+  addToOutputList outputs
 
 initPrinterState :: PrinterState
 initPrinterState = printerState 0 (-1) []
@@ -101,13 +105,13 @@ initPrinterState = printerState 0 (-1) []
 -- markers.
 --
 -- >>> testInit $ putSurroundExpr "[" "]" (CommaSeparated [])
--- PrinterState {_currLine = LineNum {unLineNum = 0}, _nestLevel = NestLevel {_unNestLevel = -1}, _outputList = fromList [Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOpenBracket},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputCloseBracket}]}
+-- PrinterState {currLine = LineNum {unLineNum = 0}, nestLevel = NestLevel {unNestLevel = -1}, outputList = fromList [Output {outputNestLevel = NestLevel {unNestLevel = 0}, outputOutputType = OutputOpenBracket},Output {outputNestLevel = NestLevel {unNestLevel = 0}, outputOutputType = OutputCloseBracket}]}
 --
 -- If there is only one expression, and it will print out on one line, then
 -- just print everything all on one line, with spaces around the expressions.
 --
 -- >>> testInit $ putSurroundExpr "{" "}" (CommaSeparated [[Other "hello"]])
--- PrinterState {_currLine = LineNum {unLineNum = 0}, _nestLevel = NestLevel {_unNestLevel = -1}, _outputList = fromList [Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOpenBrace},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOther " "},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOther "hello"},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOther " "},Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputCloseBrace}]}
+-- PrinterState {currLine = LineNum {unLineNum = 0}, nestLevel = NestLevel {unNestLevel = -1}, outputList = fromList [Output {outputNestLevel = NestLevel {unNestLevel = 0}, outputOutputType = OutputOpenBrace},Output {outputNestLevel = NestLevel {unNestLevel = 0}, outputOutputType = OutputOther " "},Output {outputNestLevel = NestLevel {unNestLevel = 0}, outputOutputType = OutputOther "hello"},Output {outputNestLevel = NestLevel {unNestLevel = 0}, outputOutputType = OutputOther " "},Output {outputNestLevel = NestLevel {unNestLevel = 0}, outputOutputType = OutputCloseBrace}]}
 --
 -- If there is only one expression, but it will print out on multiple lines,
 -- then go to newline and print out on multiple lines.
@@ -127,11 +131,11 @@ putSurroundExpr
   -> CommaSeparated [Expr] -- ^ comma separated inner expression.
   -> m ()
 putSurroundExpr startOutputType endOutputType (CommaSeparated []) = do
-  nestLevel += 1
+  addToNestLevel 1
   addOutputs [startOutputType, endOutputType]
-  nestLevel -= 1
+  addToNestLevel (-1)
 putSurroundExpr startOutputType endOutputType (CommaSeparated [exprs]) = do
-  nestLevel += 1
+  addToNestLevel 1
   let isExprsMultiLine = howManyLines exprs > 1
   when isExprsMultiLine $ do
       newLineAndDoIndent
@@ -142,15 +146,15 @@ putSurroundExpr startOutputType endOutputType (CommaSeparated [exprs]) = do
       newLineAndDoIndent
     else addOutput $ OutputOther " "
   addOutput endOutputType
-  nestLevel -= 1
+  addToNestLevel (-1)
 putSurroundExpr startOutputType endOutputType commaSeparated = do
-  nestLevel += 1
+  addToNestLevel 1
   newLineAndDoIndent
   addOutputs [startOutputType, OutputOther " "]
   putCommaSep commaSeparated
   newLineAndDoIndent
   addOutput endOutputType
-  nestLevel -= 1
+  addToNestLevel (-1)
   addOutput $ OutputOther " "
 
 putCommaSep
@@ -172,11 +176,11 @@ putComma = do
   addOutputs [OutputComma, OutputOther " "]
 
 howManyLines :: [Expr] -> LineNum
-howManyLines = view currLine . runInitPrinterState
+howManyLines = currLine . runInitPrinterState
 
 doIndent :: MonadState PrinterState m => m ()
 doIndent = do
-  nest <- use $ nestLevel . unNestLevel
+  nest <- gets $ unNestLevel . nestLevel
   addOutputs . fromList $ replicate nest OutputIndent
 
 newLine
@@ -184,12 +188,24 @@ newLine
   => m ()
 newLine = do
   addOutput OutputNewLine
-  currLine += 1
+  addToCurrentLine 1
 
 newLineAndDoIndent
   :: MonadState PrinterState m
   => m ()
 newLineAndDoIndent = newLine >> doIndent
+
+addToNestLevel
+  :: MonadState PrinterState m
+  => NestLevel -> m ()
+addToNestLevel diff =
+  modify (\printState -> printState {nestLevel = nestLevel printState + diff})
+
+addToCurrentLine
+  :: MonadState PrinterState m
+  => LineNum -> m ()
+addToCurrentLine diff =
+  modify (\printState -> printState {currLine = currLine printState + diff})
 
 putExpression :: MonadState PrinterState m => Expr -> m ()
 putExpression (Brackets commaSeparated) = do
@@ -199,12 +215,12 @@ putExpression (Braces commaSeparated) = do
 putExpression (Parens commaSeparated) = do
   putSurroundExpr OutputOpenParen OutputCloseParen commaSeparated
 putExpression (StringLit string) = do
-  nest <- use nestLevel
-  when (nest < 0) $ nestLevel += 1
+  nest <- gets nestLevel
+  when (nest < 0) $ addToNestLevel 1
   addOutput $ OutputStringLit string
 putExpression (Other string) = do
-  nest <- use nestLevel
-  when (nest < 0) $ nestLevel += 1
+  nest <- gets nestLevel
+  when (nest < 0) $ addToNestLevel 1
   addOutput $ OutputOther string
 
 runPrinterState :: PrinterState -> [Expr] -> PrinterState
@@ -216,7 +232,7 @@ runInitPrinterState = runPrinterState initPrinterState
 
 expressionsToOutputs :: [Expr] -> Seq Output
 expressionsToOutputs =
-  view outputList . runInitPrinterState . modificationsExprList
+  outputList . runInitPrinterState . modificationsExprList
 
 -- | A function that performs optimizations and modifications to a list of
 -- input 'Expr's.

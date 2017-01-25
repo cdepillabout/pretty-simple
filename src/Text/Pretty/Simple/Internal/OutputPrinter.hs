@@ -122,7 +122,7 @@ modificationsOutputList = shrinkWhitespaceInOthers . compressOthers . removeStar
 -- | Remove a 'OutputNewLine' if it is the first item in the 'Output' list.
 --
 -- >>> removeStartingNewLine [Output 3 OutputNewLine, Output 3 OutputComma]
--- [Output {outputNestLevel = NestLevel {_unNestLevel = 3}, outputOutputType = OutputComma}]
+-- [Output {outputNestLevel = NestLevel {unNestLevel = 3}, outputOutputType = OutputComma}]
 removeStartingNewLine :: [Output] -> [Output]
 removeStartingNewLine ((Output _ OutputNewLine) : t) = t
 removeStartingNewLine outputs = outputs
@@ -131,7 +131,7 @@ removeStartingNewLine outputs = outputs
 -- one 'OutputOther'.
 --
 -- >>> compressOthers [Output 0 (OutputOther "foo"), Output 0 (OutputOther "bar")]
--- [Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOther "foobar"}]
+-- [Output {outputNestLevel = NestLevel {unNestLevel = 0}, outputOutputType = OutputOther "foobar"}]
 compressOthers :: [Output] -> [Output]
 compressOthers [] = []
 compressOthers (Output _ (OutputOther string1):(Output nest (OutputOther string2)):t) =
@@ -142,7 +142,7 @@ compressOthers (h:t) = h : compressOthers t
 -- whitespace.
 --
 -- >>> shrinkWhitespaceInOthers [Output 0 (OutputOther "  hello  ")]
--- [Output {outputNestLevel = NestLevel {_unNestLevel = 0}, outputOutputType = OutputOther " hello "}]
+-- [Output {outputNestLevel = NestLevel {unNestLevel = 0}, outputOutputType = OutputOther " hello "}]
 shrinkWhitespaceInOthers :: [Output] -> [Output]
 shrinkWhitespaceInOthers = fmap shrinkWhitespaceInOther
 
