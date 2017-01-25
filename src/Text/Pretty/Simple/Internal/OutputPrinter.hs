@@ -28,7 +28,6 @@ import Control.Applicative
 import Control.Monad.Reader (MonadReader(reader), runReader)
 import Data.Data (Data)
 import Data.Foldable (fold, foldlM)
-import Data.Semigroup ((<>))
 import Data.Text.Lazy (Text)
 import Data.Text.Lazy.Builder (Builder, fromString, toLazyText)
 import Data.Typeable (Typeable)
@@ -136,7 +135,7 @@ removeStartingNewLine outputs = outputs
 compressOthers :: [Output] -> [Output]
 compressOthers [] = []
 compressOthers (Output _ (OutputOther string1):(Output nest (OutputOther string2)):t) =
-  compressOthers ((Output nest (OutputOther (string1 <> string2))) : t)
+  compressOthers ((Output nest (OutputOther (string1 `mappend` string2))) : t)
 compressOthers (h:t) = h : compressOthers t
 
 -- | In each 'OutputOther' token, compress multiple whitespaces to just one
