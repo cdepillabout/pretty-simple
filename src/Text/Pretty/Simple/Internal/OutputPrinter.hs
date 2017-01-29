@@ -33,7 +33,9 @@ import Data.Text.Lazy.Builder (Builder, fromString, toLazyText)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 
-import Text.Pretty.Simple.Internal.Color (ColorOptions(..), colorReset, defaultColorOptionsDarkBg)
+import Text.Pretty.Simple.Internal.Color
+       (ColorOptions(..), colorReset, defaultColorOptionsDarkBg,
+        defaultColorOptionsLightBg)
 import Text.Pretty.Simple.Internal.Output
        (NestLevel(..), Output(..), OutputType(..))
 
@@ -65,7 +67,7 @@ defaultOutputOptionsLightBg :: OutputOptions
 defaultOutputOptionsLightBg =
   OutputOptions
   { outputOptionsIndentAmount = 4
-  , outputOptionsColorOptions = Just defaultColorOptionsDarkBg
+  , outputOptionsColorOptions = Just defaultColorOptionsLightBg
   }
 
 -- | Default values for 'OutputOptions' when printing using using ANSI escape
@@ -113,9 +115,11 @@ renderOutput (Output _ (OutputStringLit string)) = do
   sequenceFold
     [ useColorQuote
     , pure "\""
+    , useColorReset
     , useColorString
     -- TODO: This probably shouldn't be a string to begin with.
     , pure $ fromString string
+    , useColorReset
     , useColorQuote
     , pure "\""
     , useColorReset

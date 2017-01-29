@@ -93,13 +93,21 @@ defaultColorErrorDarkBg = colorVividRedBold
 defaultColorNumDarkBg :: Builder
 defaultColorNumDarkBg = colorVividGreenBold
 
--- | Default colors for 'colorRainbowParens' for dark backgrounds.  This is
--- @['colorVividMagentaBold', 'colorVividCyanBold', 'colorVividYellowBold']@.
+-- | Default colors for 'colorRainbowParens' for dark backgrounds.
 defaultColorRainbowParensDarkBg :: [Builder]
 defaultColorRainbowParensDarkBg =
   [ colorVividMagentaBold
   , colorVividCyanBold
   , colorVividYellowBold
+  , colorDullMagenta
+  , colorDullCyan
+  , colorDullYellow
+  , colorDullMagentaBold
+  , colorDullCyanBold
+  , colorDullYellowBold
+  , colorVividMagenta
+  , colorVividCyan
+  , colorVividYellow
   ]
 
 -------------------------------------
@@ -125,7 +133,7 @@ defaultColorOptionsLightBg =
 -- | Default color for 'colorQuote' for light backgrounds. This is
 -- 'colorVividWhiteBold'.
 defaultColorQuoteLightBg :: Builder
-defaultColorQuoteLightBg = colorVividWhiteBold
+defaultColorQuoteLightBg = colorVividBlackBold
 
 -- | Default color for 'colorString' for light backgrounds. This is
 -- 'colorVividBlueBold'.
@@ -142,18 +150,25 @@ defaultColorErrorLightBg = colorVividRedBold
 defaultColorNumLightBg :: Builder
 defaultColorNumLightBg = colorVividGreenBold
 
--- | Default colors for 'colorRainbowParens' for light backgrounds.  This is
--- @['colorVividMagentaBold', 'colorVividCyanBold', 'colorVividYellowBold']@.
+-- | Default colors for 'colorRainbowParens' for light backgrounds.
 defaultColorRainbowParensLightBg :: [Builder]
 defaultColorRainbowParensLightBg =
   [ colorVividMagentaBold
   , colorVividCyanBold
-  , colorVividYellowBold
+  , colorDullMagenta
+  , colorDullCyan
+  , colorDullMagentaBold
+  , colorDullCyanBold
+  , colorVividMagenta
+  , colorVividCyan
   ]
 
------------------
--- Bold Colors --
------------------
+-----------------------
+-- Vivid Bold Colors --
+-----------------------
+
+colorVividBlackBold :: Builder
+colorVividBlackBold = colorBold `mappend` colorVividBlack
 
 colorVividBlueBold :: Builder
 colorVividBlueBold = colorBold `mappend` colorVividBlue
@@ -176,9 +191,40 @@ colorVividWhiteBold = colorBold `mappend` colorVividWhite
 colorVividYellowBold :: Builder
 colorVividYellowBold = colorBold `mappend` colorVividYellow
 
--------------------
--- Normal Colors --
--------------------
+-----------------------
+-- Dull Bold Colors --
+-----------------------
+
+colorDullBlackBold :: Builder
+colorDullBlackBold = colorBold `mappend` colorDullBlack
+
+colorDullBlueBold :: Builder
+colorDullBlueBold = colorBold `mappend` colorDullBlue
+
+colorDullCyanBold :: Builder
+colorDullCyanBold = colorBold `mappend` colorDullCyan
+
+colorDullGreenBold :: Builder
+colorDullGreenBold = colorBold `mappend` colorDullGreen
+
+colorDullMagentaBold :: Builder
+colorDullMagentaBold = colorBold `mappend` colorDullMagenta
+
+colorDullRedBold :: Builder
+colorDullRedBold = colorBold `mappend` colorDullRed
+
+colorDullWhiteBold :: Builder
+colorDullWhiteBold = colorBold `mappend` colorDullWhite
+
+colorDullYellowBold :: Builder
+colorDullYellowBold = colorBold `mappend` colorDullYellow
+
+------------------
+-- Vivid Colors --
+------------------
+
+colorVividBlack :: Builder
+colorVividBlack = colorHelper Vivid Black
 
 colorVividBlue :: Builder
 colorVividBlue = colorHelper Vivid Blue
@@ -200,6 +246,34 @@ colorVividWhite = colorHelper Vivid White
 
 colorVividYellow :: Builder
 colorVividYellow = colorHelper Vivid Yellow
+
+------------------
+-- Dull Colors --
+------------------
+
+colorDullBlack :: Builder
+colorDullBlack = colorHelper Dull Black
+
+colorDullBlue :: Builder
+colorDullBlue = colorHelper Dull Blue
+
+colorDullCyan :: Builder
+colorDullCyan = colorHelper Dull Cyan
+
+colorDullGreen :: Builder
+colorDullGreen = colorHelper Dull Green
+
+colorDullMagenta :: Builder
+colorDullMagenta = colorHelper Dull Magenta
+
+colorDullRed :: Builder
+colorDullRed = colorHelper Dull Red
+
+colorDullWhite :: Builder
+colorDullWhite = colorHelper Dull White
+
+colorDullYellow :: Builder
+colorDullYellow = colorHelper Dull Yellow
 
 --------------------
 -- Special Colors --
