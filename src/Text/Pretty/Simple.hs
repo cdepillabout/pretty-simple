@@ -20,33 +20,42 @@ pretty-printing any Haskell data type with a 'Show' instance.
 'pPrint' is the main go-to function when debugging Haskell code.  'pShow' and
 'pString' are slight variations on 'pPrint'.
 
-The other variations of 'pPrint', 'pShow', and 'pString' are for printing
-without color and changing the indentation amount.  Most users can ignore these.
+'pPrint', 'pShow', and 'pString' will pretty-print in color using ANSI escape
+codes.  They look good on a console with a dark (black) background. The
+variations 'pPrintLightBg', 'pShowLightBg', and 'pStringLightBg' are for
+printing in color to a console with a light (white) background.  The variations
+'pPrintNoColor', 'pShowNoColor', and 'pStringNoColor' are for pretty-printing
+without using color.
+
+The variations 'pPrintOpt', 'pShowOpt', and 'pStringOpt' are used when
+specifying the 'OutputOptions'.  Most users can ignore these.
 
 See the Examples section at the end of this module for examples of acutally
-using 'pPrint'.
+using 'pPrint'.  See the
+<https://github.com/cdepillabout/pretty-simple#textprettysimple README.md>
+for examples of printing in color.
 -}
 module Text.Pretty.Simple
   (
   -- * Output with color on dark background
-    pShow
-  , pPrint
+    pPrint
+  , pShow
   , pString
   -- * Aliases for output with color on dark background
-  , pShowDarkBg
   , pPrintDarkBg
+  , pShowDarkBg
   , pStringDarkBg
   -- * Output with color on light background
-  , pShowLightBg
   , pPrintLightBg
+  , pShowLightBg
   , pStringLightBg
   -- * Output with NO color
-  , pShowNoColor
   , pPrintNoColor
+  , pShowNoColor
   , pStringNoColor
   -- * Output With 'OutputOptions'
-  , pShowOpt
   , pPrintOpt
+  , pShowOpt
   , pStringOpt
   -- * 'OutputOptions'
   , OutputOptions(..)
