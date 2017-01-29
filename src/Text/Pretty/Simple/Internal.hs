@@ -11,6 +11,7 @@ module Text.Pretty.Simple.Internal
   ( module X
   ) where
 
+import Text.Pretty.Simple.Internal.Color as X
 import Text.Pretty.Simple.Internal.ExprParser as X
 import Text.Pretty.Simple.Internal.Expr as X
 import Text.Pretty.Simple.Internal.ExprToOutput as X

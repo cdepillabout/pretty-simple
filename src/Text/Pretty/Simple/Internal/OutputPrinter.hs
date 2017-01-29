@@ -27,7 +27,6 @@ import Control.Applicative
 #endif
 
 import Control.Monad.Reader (MonadReader(reader), runReader)
-import Data.Data (Data)
 import Data.Foldable (fold, foldlM)
 import Data.Text.Lazy (Text)
 import Data.Text.Lazy.Builder (Builder, fromString, toLazyText)
@@ -38,13 +37,6 @@ import Text.Pretty.Simple.Internal.Color (ColorOptions(..), colorReset, defaultC
 import Text.Pretty.Simple.Internal.Output
        (NestLevel(..), Output(..), OutputType(..))
 
--- | 'UseColor' describes whether or not we want to use color when printing the
--- 'Output' list.
-data UseColor
-  = NoColor
-  | UseColor
-  deriving (Data, Eq, Generic, Read, Show, Typeable)
-
 -- | Data-type wrapping up all the options available when rendering the list
 -- of 'Output's.
 data OutputOptions = OutputOptions
@@ -52,21 +44,45 @@ data OutputOptions = OutputOptions
   -- ^ Number of spaces to use when indenting.  It should probably be either 2
   -- or 4.
   , outputOptionsColorOptions :: Maybe ColorOptions
-  -- ^ 
+  -- ^ If this is 'Nothing', then don't colorize the output.  If this is
+  -- @'Just' colorOptions@, then use @colorOptions@ to colorize the output.
   } deriving (Eq, Generic, Show, Typeable)
 
--- | Default values for 'OutputOptions'.  'outputOptionsIndentAmount' defaults
--- to 4, and 'outputOptionsUseColor' defaults to 'UseColor'.
-defaultOutputOptions :: OutputOptions
-defaultOutputOptions =
+-- | Default values for 'OutputOptions' when printing to a console with a dark
+-- background.  'outputOptionsIndentAmount' is 4, and
+-- 'outputOptionsColorOptions' is 'defaultColorOptionsDarkBg'.
+defaultOutputOptionsDarkBg :: OutputOptions
+defaultOutputOptionsDarkBg =
   OutputOptions
   { outputOptionsIndentAmount = 4
   , outputOptionsColorOptions = Just defaultColorOptionsDarkBg
   }
 
+-- | Default values for 'OutputOptions' when printing to a console with a light
+-- background.  'outputOptionsIndentAmount' is 4, and
+-- 'outputOptionsColorOptions' is 'defaultColorOptionsLightBg'.
+defaultOutputOptionsLightBg :: OutputOptions
+defaultOutputOptionsLightBg =
+  OutputOptions
+  { outputOptionsIndentAmount = 4
+  , outputOptionsColorOptions = Just defaultColorOptionsDarkBg
+  }
+
+-- | Default values for 'OutputOptions' when printing using using ANSI escape
+-- sequences for color.  'outputOptionsIndentAmount' is 4, and
+-- 'outputOptionsColorOptions' is 'Nothing'.
+defaultOutputOptionsNoColor :: OutputOptions
+defaultOutputOptionsNoColor =
+  OutputOptions
+  {outputOptionsIndentAmount = 4, outputOptionsColorOptions = Nothing}
+
+-- | Given 'OutputOptions' and a list of 'Output', turn the 'Output' into a
+-- lazy 'Text'.
 render :: OutputOptions -> [Output] -> Text
 render options outputs = toLazyText $ runReader (renderOutputs outputs) options
 
+-- | Turn a list of 'Output' into a 'Builder', using the options specified in
+-- the 'OutputOptions'.
 renderOutputs
   :: forall m.
      MonadReader OutputOptions m
@@ -76,12 +92,8 @@ renderOutputs = foldlM foldFunc "" . modificationsOutputList
     foldFunc :: Builder -> Output -> m Builder
     foldFunc accum output = mappend accum <$> renderOutput output
 
-renderRaibowParenFor
-  :: MonadReader OutputOptions m
-  => NestLevel -> Builder -> m Builder
-renderRaibowParenFor nest string =
-  sequenceFold [useColorRainbowParens nest, pure string, useColorReset]
-
+-- | Render a single 'Output' as a 'Builder', using the options specified in
+-- the 'OutputOptions'.
 renderOutput :: MonadReader OutputOptions m => Output -> m Builder
 renderOutput (Output nest OutputCloseBrace) = renderRaibowParenFor nest "}"
 renderOutput (Output nest OutputCloseBracket) = renderRaibowParenFor nest "]"
@@ -109,9 +121,16 @@ renderOutput (Output _ (OutputStringLit string)) = do
     , useColorReset
     ]
 
+-- | Produce a 'Builder' corresponding to the ANSI escape sequence for the
+-- color for the @\"@, based on whether or not 'outputOptionsColorOptions' is
+-- 'Just' or 'Nothing', and the value of 'colorQuote'.
 useColorQuote :: forall m. MonadReader OutputOptions m => m Builder
 useColorQuote = maybe "" colorQuote <$> reader outputOptionsColorOptions
 
+-- | Produce a 'Builder' corresponding to the ANSI escape sequence for the
+-- color for the characters of a string, based on whether or not
+-- 'outputOptionsColorOptions' is 'Just' or 'Nothing', and the value of
+-- 'colorString'.
 useColorString :: forall m. MonadReader OutputOptions m => m Builder
 useColorString = maybe "" colorString <$> reader outputOptionsColorOptions
 
@@ -121,8 +140,23 @@ useColorError = maybe "" colorError <$> reader outputOptionsColorOptions
 useColorNum :: forall m. MonadReader OutputOptions m => m Builder
 useColorNum = maybe "" colorNum <$> reader outputOptionsColorOptions
 
+-- | Produce a 'Builder' corresponding to the ANSI escape sequence for
+-- resetting the console color back to the default. Produces an empty 'Builder'
+-- if 'outputOptionsColorOptions' is 'Nothing'.
 useColorReset :: forall m. MonadReader OutputOptions m => m Builder
 useColorReset = maybe "" (const colorReset) <$> reader outputOptionsColorOptions
+
+-- | Produce a 'Builder' representing the ANSI escape sequence for the color of
+-- the rainbow parenthesis, given an input 'NestLevel' and 'Builder' to use as
+-- the input character.
+--
+-- If 'outputOptionsColorOptions' is 'Nothing', then just return the input
+-- character.  If it is 'Just', then return the input character colorized.
+renderRaibowParenFor
+  :: MonadReader OutputOptions m
+  => NestLevel -> Builder -> m Builder
+renderRaibowParenFor nest string =
+  sequenceFold [useColorRainbowParens nest, pure string, useColorReset]
 
 useColorRainbowParens
   :: forall m.
@@ -139,6 +173,7 @@ useColorRainbowParens nest = do
           else colorRainbowParens !! (unNestLevel nest `mod` choicesLen)
       Nothing -> ""
 
+-- | This is simply @'fmap' 'fold' '.' 'sequence'@.
 sequenceFold :: (Monad f, Monoid a, Traversable t) => t (f a) -> f a
 sequenceFold = fmap fold . sequence
 

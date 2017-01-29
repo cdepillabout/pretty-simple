@@ -28,22 +28,35 @@ using 'pPrint'.
 -}
 module Text.Pretty.Simple
   (
-  -- * Output With Color
+  -- * Output with color on dark background
     pShow
   , pPrint
   , pString
-  -- * Output With NO Color
+  -- * Aliases for output with color on dark background
+  , pShowDarkBg
+  , pPrintDarkBg
+  , pStringDarkBg
+  -- * Output with color on light background
+  , pShowLightBg
+  , pPrintLightBg
+  , pStringLightBg
+  -- * Output with NO color
   , pShowNoColor
   , pPrintNoColor
   , pStringNoColor
-  -- * Output With Output Options
+  -- * Output With 'OutputOptions'
   , pShowOpt
   , pPrintOpt
   , pStringOpt
+  -- * 'OutputOptions'
   , OutputOptions(..)
-  , UseColor(..)
-  , defaultOutputOptions
-  , noColorOutputOptions
+  , defaultOutputOptionsDarkBg
+  , defaultOutputOptionsLightBg
+  , defaultOutputOptionsNoColor
+  -- * 'ColorOptions'
+  -- $colorOptions
+  , defaultColorOptionsDarkBg
+  , defaultColorOptionsLightBg
   -- * Examples
   -- $examples
   ) where
@@ -60,12 +73,14 @@ import Data.Text.Lazy (Text, pack)
 import Data.Text.Lazy.IO as LText
 
 import Text.Pretty.Simple.Internal
-       (OutputOptions(..), UseColor(..), defaultOutputOptions,
+       (OutputOptions(..), defaultColorOptionsDarkBg,
+        defaultColorOptionsLightBg, defaultOutputOptionsDarkBg,
+        defaultOutputOptionsLightBg, defaultOutputOptionsNoColor,
         expressionParse, expressionsToOutputs, render)
 
-------------------------------
--- normal (color) functions --
-------------------------------
+----------------------------------------------------------
+-- functions for printing in color to a dark background --
+----------------------------------------------------------
 
 -- | Pretty-print any data type that has a 'Show' instance.
 --
@@ -75,13 +90,17 @@ import Text.Pretty.Simple.Internal
 -- @
 --  pPrint :: Show a => a -> IO ()
 -- @
+--
+-- This function is for printing to a dark background.
 pPrint :: (MonadIO m, Show a) => a -> m ()
-pPrint = pPrintOpt defaultOutputOptions
+pPrint = pPrintOpt defaultOutputOptionsDarkBg
 
 -- | Similar to 'pPrint', but just return the resulting pretty-printed data
 -- type as a 'Text' instead of printing it to the screen.
+--
+-- This function is for printing to a dark background.
 pShow :: Show a => a -> Text
-pShow = pShowOpt defaultOutputOptions
+pShow = pShowOpt defaultOutputOptionsDarkBg
 
 -- | Similar to 'pShow', but the first argument is a 'String' representing a
 -- data type that has already been 'show'ed.
@@ -90,12 +109,46 @@ pShow = pShowOpt defaultOutputOptions
 -- only requirement is that the strings are quoted, and braces, parentheses, and
 -- brackets are correctly used to represent indentation.  For example,
 -- 'pString' will correctly pretty-print JSON.
+--
+-- This function is for printing to a dark background.
 pString :: String -> Text
-pString = pStringOpt defaultOutputOptions
+pString = pStringOpt defaultOutputOptionsDarkBg
 
-------------------------
--- no-color functions --
-------------------------
+--------------------------------------------------------
+-- aliases for printing in color to a dark background --
+--------------------------------------------------------
+
+-- | Alias for 'pPrint'.
+pPrintDarkBg :: (MonadIO m, Show a) => a -> m ()
+pPrintDarkBg = pPrint
+
+-- | Alias for 'pShow'.
+pShowDarkBg :: Show a => a -> Text
+pShowDarkBg = pShow
+
+-- | Alias for 'pString'.
+pStringDarkBg :: String -> Text
+pStringDarkBg = pString
+
+-----------------------------------------------------------
+-- functions for printing in color to a light background --
+-----------------------------------------------------------
+
+-- | Just like 'pPrintDarkBg', but for printing to a light background.
+pPrintLightBg :: (MonadIO m, Show a) => a -> m ()
+pPrintLightBg = pPrintOpt defaultOutputOptionsLightBg
+
+-- | Just like 'pShowDarkBg', but for printing to a light background.
+pShowLightBg :: Show a => a -> Text
+pShowLightBg = pShowOpt defaultOutputOptionsLightBg
+
+-- | Just like 'pStringDarkBg', but for printing to a light background.
+pStringLightBg :: String -> Text
+pStringLightBg = pStringOpt defaultOutputOptionsLightBg
+
+------------------------------------------
+-- functions for printing without color --
+------------------------------------------
 
 -- | Similar to 'pPrint', but doesn't print in color.  However, data types
 -- will still be indented nicely.
@@ -106,20 +159,15 @@ pString = pStringOpt defaultOutputOptions
 --     , "bye"
 --     ]
 pPrintNoColor :: (MonadIO m, Show a) => a -> m ()
-pPrintNoColor = pPrintOpt noColorOutputOptions
+pPrintNoColor = pPrintOpt defaultOutputOptionsNoColor
 
 -- | Like 'pShow', but without color.
 pShowNoColor :: Show a => a -> Text
-pShowNoColor = pShowOpt noColorOutputOptions
+pShowNoColor = pShowOpt defaultOutputOptionsNoColor
 
 -- | LIke 'pString', but without color.
 pStringNoColor :: String -> Text
-pStringNoColor = pStringOpt noColorOutputOptions
-
--- | 'noColorOutputOptions' is just like 'defaultOutputOptions', but
--- 'outputOptionsUseColor' is set to 'NoColor'.
-noColorOutputOptions :: OutputOptions
-noColorOutputOptions = defaultOutputOptions {outputOptionsColorOptions = Nothing}
+pStringNoColor = pStringOpt defaultOutputOptionsNoColor
 
 ---------------------------------
 -- functions that take options --
@@ -133,7 +181,7 @@ noColorOutputOptions = defaultOutputOptions {outputOptionsColorOptions = Nothing
 --
 -- This is what the normal indentation looks like:
 --
--- >>> pPrintOpt noColorOutputOptions $ Just ("hello", "bye")
+-- >>> pPrintOpt defaultOutputOptionsNoColor $ Just ("hello", "bye")
 -- Just
 --     ( "hello"
 --     , "bye"
@@ -141,7 +189,7 @@ noColorOutputOptions = defaultOutputOptions {outputOptionsColorOptions = Nothing
 --
 -- This is what smaller indentation looks like:
 --
--- >>> let smallIndent = noColorOutputOptions {outputOptionsIndentAmount = 1}
+-- >>> let smallIndent = defaultOutputOptionsNoColor {outputOptionsIndentAmount = 1}
 -- >>> pPrintOpt smallIndent $ Just ("hello", "bye")
 -- Just
 --  ( "hello"
@@ -163,6 +211,11 @@ pStringOpt outputOptions string =
     Left _ -> pack string
     Right expressions ->
       render outputOptions . toList $ expressionsToOutputs expressions
+
+-- $colorOptions
+--
+-- Additional settings for color options can be found in
+-- 'Text.Pretty.Simple.Internal.Color'.
 
 -- $examples
 --
