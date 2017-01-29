@@ -224,7 +224,7 @@ pStringOpt outputOptions string =
 -- $colorOptions
 --
 -- Additional settings for color options can be found in
--- 'Text.Pretty.Simple.Internal.Color'.
+-- "Text.Pretty.Simple.Internal.Color".
 
 -- $examples
 --
