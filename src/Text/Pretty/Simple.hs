@@ -119,7 +119,7 @@ pStringNoColor = pStringOpt noColorOutputOptions
 -- | 'noColorOutputOptions' is just like 'defaultOutputOptions', but
 -- 'outputOptionsUseColor' is set to 'NoColor'.
 noColorOutputOptions :: OutputOptions
-noColorOutputOptions = defaultOutputOptions {outputOptionsUseColor = NoColor}
+noColorOutputOptions = defaultOutputOptions {outputOptionsColorOptions = Nothing}
 
 ---------------------------------
 -- functions that take options --
