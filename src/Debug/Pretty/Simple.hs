@@ -107,7 +107,7 @@ and the message would only be printed once.  If your monad is in 'MonadIO',
 >   pTraceM $ "y: " ++ show y
 -}
 pTraceM :: (Applicative f) => String -> f ()
-pTraceM string = trace string $ pure ()
+pTraceM string = pTrace string $ pure ()
 
 {-|
 Like 'pTraceM', but uses 'show' on the argument to convert it to a 'String'.
