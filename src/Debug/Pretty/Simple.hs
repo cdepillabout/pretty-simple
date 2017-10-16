@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {-|
 Module      : Text.Pretty.Simple.Internal
 Copyright   : (c) Dennis Gosnell, 2016
