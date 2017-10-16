@@ -11,9 +11,6 @@ This module contains the same functionality with Prelude's Debug.Trace module, w
 Warning: This module also shares the same unsafety of Debug.Trace module.
 -}
 
-{-# LANGUAGE OverloadedStrings        #-}
-{-# LANGUAGE ForeignFunctionInterface #-}
-
 module Debug.Pretty.Simple
   (
   -- * Trace with color on dark background
