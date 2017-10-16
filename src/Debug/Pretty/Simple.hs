@@ -28,8 +28,8 @@ module Debug.Pretty.Simple
     pTraceMarkerIO
   ) where
 
-import Debug.Trace         (trace, traceIO, traceStack, traceEvent, traceEventIO, traceMarker, traceMarkerIO)
-import Text.Pretty.Simple  (pShow)
+import Debug.Trace                 (trace, traceIO, traceStack, traceEvent, traceEventIO, traceMarker, traceMarkerIO)
+import Text.Pretty.Simple          (pShow)
 import qualified Data.Text.Lazy as LText
 
 #if __GLASGOW_HASKELL__ < 710
