@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
 
 {-|
-Module      : Text.Pretty.Simple.Internal
+Module      : Debug.Pretty.Simple
 Copyright   : (c) Dennis Gosnell, 2016
 License     : BSD-style (see LICENSE file)
 Maintainer  : cdep.illabout@gmail.com
