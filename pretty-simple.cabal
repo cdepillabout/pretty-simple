@@ -20,7 +20,8 @@ flag buildexample
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Text.Pretty.Simple
+  exposed-modules:     Debug.Pretty.Simple
+                     , Text.Pretty.Simple
                      , Text.Pretty.Simple.Internal
                      , Text.Pretty.Simple.Internal.Color
                      , Text.Pretty.Simple.Internal.Expr
