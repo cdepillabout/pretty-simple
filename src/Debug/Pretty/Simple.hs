@@ -2,37 +2,39 @@
 
 {-|
 Module      : Debug.Pretty.Simple
-Copyright   : (c) Dennis Gosnell, 2016
+Copyright   : (c) Dennis Gosnell, 2017
 License     : BSD-style (see LICENSE file)
 Maintainer  : cdep.illabout@gmail.com
 Stability   : experimental
 Portability : POSIX
 
-This module contains the same functionality with Prelude's Debug.Trace module, with pretty printing the debug strings.
+This module contains the same functionality with Prelude's "Debug.Trace" module,
+with pretty printing the debug strings.
 
-Warning: This module also shares the same unsafety of Debug.Trace module.
+Warning: This module also shares the same unsafety of "Debug.Trace" module.
 -}
 
 module Debug.Pretty.Simple
-  (
-  -- * Trace with color on dark background
-    pTrace,
-    pTraceId,
-    pTraceShow,
-    pTraceIO,
-    pTraceShowId,
-    pTraceM,
-    pTraceShowM,
-    pTraceStack,
-    pTraceEvent,
-    pTraceEventIO,
-    pTraceMarker,
-    pTraceMarkerIO
+  ( -- * Trace with color on dark background
+    pTrace
+  , pTraceId
+  , pTraceShow
+  , pTraceIO
+  , pTraceShowId
+  , pTraceM
+  , pTraceShowM
+  , pTraceStack
+  , pTraceEvent
+  , pTraceEventIO
+  , pTraceMarker
+  , pTraceMarkerIO
   ) where
 
-import Debug.Trace                 (trace, traceIO, traceStack, traceEvent, traceEventIO, traceMarker, traceMarkerIO)
-import Text.Pretty.Simple          (pShow)
-import qualified Data.Text.Lazy as LText
+import Data.Text.Lazy (unpack)
+import Debug.Trace
+       (trace, traceIO, traceStack, traceEvent, traceEventIO, traceMarker,
+        traceMarkerIO)
+import Text.Pretty.Simple (pShow)
 
 #if __GLASGOW_HASKELL__ < 710
 -- We don't need this import for GHC 7.10 as it exports all required functions
@@ -43,9 +45,11 @@ import Control.Applicative
 {-|
 The 'pTraceIO' function outputs the trace message from the IO monad.
 This sequences the output with respect to other IO actions.
+
+@since 2.0.1.0
 -}
 pTraceIO :: String -> IO ()
-pTraceIO = traceIO . LText.unpack . pShow
+pTraceIO = traceIO . unpack . pShow
 
 {-|
 The 'pTrace' function pretty prints the trace message given as its first
@@ -59,12 +63,16 @@ The 'pTrace' function should /only/ be used for debugging, or for monitoring
 execution. The function is not referentially transparent: its type indicates
 that it is a pure function but it has the side effect of outputting the
 trace message.
+
+@since 2.0.1.0
 -}
 pTrace :: String -> a -> a
-pTrace = trace . LText.unpack . pShow
+pTrace = trace . unpack . pShow
 
 {-|
 Like 'pTrace' but returns the message instead of a third value.
+
+@since 2.0.1.0
 -}
 pTraceId :: String -> String
 pTraceId a = pTrace a a
@@ -81,12 +89,16 @@ variables @x@ and @z@:
 >   where
 >     z = ...
 >     ...
+
+@since 2.0.1.0
 -}
 pTraceShow :: (Show a) => a -> b -> b
 pTraceShow = pTrace . show
 
 {-|
 Like 'pTraceShow' but returns the shown value instead of a third value.
+
+@since 2.0.1.0
 -}
 pTraceShowId :: (Show a) => a -> a
 pTraceShowId a = pTrace (show a) a
@@ -107,6 +119,8 @@ and the message would only be printed once.  If your monad is in 'MonadIO',
 >   pTraceM $ "x: " ++ show x
 >   y <- ...
 >   pTraceM $ "y: " ++ show y
+
+@since 2.0.1.0
 -}
 pTraceM :: (Applicative f) => String -> f ()
 pTraceM string = pTrace string $ pure ()
@@ -119,6 +133,8 @@ Like 'pTraceM', but uses 'show' on the argument to convert it to a 'String'.
 >   pTraceShowM $ x
 >   y <- ...
 >   pTraceShowM $ x + y
+
+@since 2.0.1.0
 -}
 pTraceShowM :: (Show a, Applicative f) => a -> f ()
 pTraceShowM = pTraceM . show
@@ -132,9 +148,11 @@ available if the program was compiled with @-prof@; otherwise
 'pTraceStack' behaves exactly like 'pTrace'.  Entries in the call
 stack correspond to @SCC@ annotations, so it is a good idea to use
 @-fprof-auto@ or @-fprof-auto-calls@ to add SCC annotations automatically.
+
+@since 2.0.1.0
 -}
 pTraceStack :: String -> a -> a
-pTraceStack = traceStack . LText.unpack . pShow
+pTraceStack = traceStack . unpack . pShow
 
 {-|
 The 'pTraceEvent' function behaves like 'trace' with the difference that
@@ -147,9 +165,11 @@ instead.
 Note that when using GHC's SMP runtime, it is possible (but rare) to get
 duplicate events emitted if two CPUs simultaneously evaluate the same thunk
 that uses 'pTraceEvent'.
+
+@since 2.0.1.0
 -}
 pTraceEvent :: String -> a -> a
-pTraceEvent = traceEvent . LText.unpack . pShow
+pTraceEvent = traceEvent . unpack . pShow
 
 {-|
 The 'pTraceEventIO' function emits a message to the eventlog, if eventlog
@@ -157,9 +177,11 @@ profiling is available and enabled at runtime.
 
 Compared to 'pTraceEvent', 'pTraceEventIO' sequences the event with respect to
 other IO actions.
+
+@since 2.0.1.0
 -}
 pTraceEventIO :: String -> IO ()
-pTraceEventIO = traceEventIO . LText.unpack . pShow
+pTraceEventIO = traceEventIO . unpack . pShow
 
 {-|
 The 'pTraceMarker' function emits a marker to the eventlog, if eventlog
@@ -173,9 +195,11 @@ This function is suitable for use in pure code. In an IO context use
 Note that when using GHC's SMP runtime, it is possible (but rare) to get
 duplicate events emitted if two CPUs simultaneously evaluate the same thunk
 that uses 'pTraceMarker'.
+
+@since 2.0.1.0
 -}
 pTraceMarker :: String -> a -> a
-pTraceMarker = traceMarker . LText.unpack . pShow
+pTraceMarker = traceMarker . unpack . pShow
 
 {-
 The 'pTraceMarkerIO' function emits a marker to the eventlog, if eventlog
@@ -183,6 +207,8 @@ profiling is available and enabled at runtime.
 
 Compared to 'pTraceMarker', 'pTraceMarkerIO' sequences the event with respect to
 other IO actions.
+
+@since 2.0.1.0
 -}
 pTraceMarkerIO :: String -> IO ()
-pTraceMarkerIO = traceMarkerIO . LText.unpack . pShow
+pTraceMarkerIO = traceMarkerIO . unpack . pShow
