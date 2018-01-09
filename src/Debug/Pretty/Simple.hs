@@ -93,7 +93,7 @@ variables @x@ and @z@:
 @since 2.0.1.0
 -}
 pTraceShow :: (Show a) => a -> b -> b
-pTraceShow = pTrace . show
+pTraceShow = pTrace . unpack . pShow
 
 {-|
 Like 'pTraceShow' but returns the shown value instead of a third value.
@@ -101,7 +101,7 @@ Like 'pTraceShow' but returns the shown value instead of a third value.
 @since 2.0.1.0
 -}
 pTraceShowId :: (Show a) => a -> a
-pTraceShowId a = pTrace (show a) a
+pTraceShowId a = pTrace (unpack (pShow a)) a
 
 {-|
 Like 'pTrace' but returning unit in an arbitrary 'Applicative' context. Allows
@@ -137,7 +137,7 @@ Like 'pTraceM', but uses 'show' on the argument to convert it to a 'String'.
 @since 2.0.1.0
 -}
 pTraceShowM :: (Show a, Applicative f) => a -> f ()
-pTraceShowM = pTraceM . show
+pTraceShowM = pTraceM . unpack . pShow
 
 {-|
 like 'pTrace', but additionally prints a call stack if one is
