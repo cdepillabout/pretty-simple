@@ -19,8 +19,8 @@ module Debug.Pretty.Simple
     pTrace
   , pTraceId
   , pTraceShow
-  , pTraceIO
   , pTraceShowId
+  , pTraceIO
   , pTraceM
   , pTraceShowM
   , pTraceStack
@@ -28,18 +28,30 @@ module Debug.Pretty.Simple
   , pTraceEventIO
   , pTraceMarker
   , pTraceMarkerIO
+  , pTraceNoColor
+  , pTraceIdNoColor
+  , pTraceShowNoColor
+  , pTraceShowIdNoColor
+  , pTraceMNoColor
+  , pTraceShowMNoColor
+  , pTraceStackNoColor
+  , pTraceEventNoColor
+  , pTraceEventIONoColor
+  , pTraceMarkerNoColor
+  , pTraceMarkerIONoColor
+  , pTraceIONoColor
   ) where
 
-import Data.Text.Lazy (unpack)
-import Debug.Trace
-       (trace, traceIO, traceStack, traceEvent, traceEventIO, traceMarker,
-        traceMarkerIO)
-import Text.Pretty.Simple (pShow)
+import qualified Data.Map            as M
+import           Data.Text.Lazy      (unpack)
+import           Debug.Trace         (trace, traceEvent, traceEventIO, traceIO,
+                                      traceMarker, traceMarkerIO, traceStack)
+import           Text.Pretty.Simple  (pShow, pShowNoColor)
 
 #if __GLASGOW_HASKELL__ < 710
 -- We don't need this import for GHC 7.10 as it exports all required functions
 -- from Prelude
-import Control.Applicative
+import           Control.Applicative
 #endif
 
 {-|
@@ -93,7 +105,7 @@ variables @x@ and @z@:
 @since 2.0.1.0
 -}
 pTraceShow :: (Show a) => a -> b -> b
-pTraceShow = pTrace . unpack . pShow
+pTraceShow = trace . unpack . pShow
 
 {-|
 Like 'pTraceShow' but returns the shown value instead of a third value.
@@ -101,7 +113,7 @@ Like 'pTraceShow' but returns the shown value instead of a third value.
 @since 2.0.1.0
 -}
 pTraceShowId :: (Show a) => a -> a
-pTraceShowId a = pTrace (unpack (pShow a)) a
+pTraceShowId a = trace (unpack (pShow a)) a
 
 {-|
 Like 'pTrace' but returning unit in an arbitrary 'Applicative' context. Allows
@@ -123,7 +135,7 @@ and the message would only be printed once.  If your monad is in 'MonadIO',
 @since 2.0.1.0
 -}
 pTraceM :: (Applicative f) => String -> f ()
-pTraceM string = pTrace string $ pure ()
+pTraceM string = trace string $ pure ()
 
 {-|
 Like 'pTraceM', but uses 'show' on the argument to convert it to a 'String'.
@@ -212,3 +224,94 @@ other IO actions.
 -}
 pTraceMarkerIO :: String -> IO ()
 pTraceMarkerIO = traceMarkerIO . unpack . pShow
+
+------------------------------------------
+-- Traces without color
+------------------------------------------
+
+-- | Similar to 'pTrace', but without color.
+-- >>> pTraceNoColor "wow" () `seq` ()
+-- "wow"
+-- ()
+pTraceNoColor :: String -> a -> a
+pTraceNoColor = trace . unpack . pShowNoColor
+
+-- | Similar to 'pTraceId', but without color.
+-- >>> pTraceIdNoColor "wow" `seq` ()
+-- "wow"
+-- ()
+pTraceIdNoColor :: String -> String
+pTraceIdNoColor a = pTraceNoColor a a
+
+-- | Similar to 'pTraceShow', but without color.
+-- >>> pTraceShowNoColor (M.fromList [(1, True)]) () `seq` ()
+-- fromList
+--     [
+--         ( 1
+--         , True
+--         )
+--     ]
+-- ()
+pTraceShowNoColor :: (Show a) => a -> b -> b
+pTraceShowNoColor = trace . unpack . pShowNoColor
+
+-- | Similar to 'pTraceShowId', but without color.
+-- >>> pTraceShowIdNoColor (M.fromList [(1, True)]) `seq` ()
+-- fromList
+--     [
+--         ( 1
+--         , True
+--         )
+--     ]
+-- ()
+pTraceShowIdNoColor :: (Show a) => a -> a
+pTraceShowIdNoColor a = trace (unpack (pShowNoColor a)) a
+
+-- | Similar to 'pTraceM', but without color.
+-- >>> pTraceMNoColor "wow"
+-- wow
+pTraceMNoColor :: (Applicative f) => String -> f ()
+pTraceMNoColor string = trace string $ pure ()
+
+-- | Similar to 'pTraceShowM', but without color.
+-- >>> pTraceShowMNoColor "wow"
+-- "wow"
+pTraceShowMNoColor :: (Show a, Applicative f) => a -> f ()
+pTraceShowMNoColor = pTraceM . unpack . pShowNoColor
+
+-- | Similar to 'pTraceStack', but without color.
+-- >>> pTraceStackNoColor "wow" () `seq` ()
+-- "wow"
+-- ()
+pTraceStackNoColor :: String -> a -> a
+pTraceStackNoColor = traceStack . unpack . pShowNoColor
+
+-- | Similar to 'pTraceEvent', but without color.
+-- >>> pTraceEventNoColor "wow" () `seq` ()
+-- ()
+pTraceEventNoColor :: String -> a -> a
+pTraceEventNoColor = traceEvent . unpack . pShowNoColor
+
+-- | Similar to 'pTraceEventIO', but without color.
+-- >>> pTraceEventIONoColor "wow"
+--
+pTraceEventIONoColor :: String -> IO ()
+pTraceEventIONoColor = traceEventIO . unpack . pShowNoColor
+
+-- | Similar to 'pTraceMarker', but without color.
+-- >>> pTraceMarkerNoColor "wow" ()
+-- ()
+pTraceMarkerNoColor :: String -> a -> a
+pTraceMarkerNoColor = traceMarker . unpack . pShowNoColor
+
+-- | Similar to 'pTraceMarkerIO', but without color.
+-- >>> pTraceMarkerIONoColor "wow"
+--
+pTraceMarkerIONoColor :: String -> IO ()
+pTraceMarkerIONoColor = traceMarkerIO . unpack . pShowNoColor
+
+-- | Similar to 'pTraceIO', but without color.
+-- >>> pTraceIONoColor "wow"
+-- "wow"
+pTraceIONoColor :: String -> IO ()
+pTraceIONoColor = traceIO . unpack . pShowNoColor
