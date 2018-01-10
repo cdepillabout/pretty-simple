@@ -42,7 +42,6 @@ module Debug.Pretty.Simple
   , pTraceIONoColor
   ) where
 
-import qualified Data.Map            as M
 import           Data.Text.Lazy      (unpack)
 import           Debug.Trace         (trace, traceEvent, traceEventIO, traceIO,
                                       traceMarker, traceMarkerIO, traceStack)
@@ -244,6 +243,7 @@ pTraceIdNoColor :: String -> String
 pTraceIdNoColor a = pTraceNoColor a a
 
 -- | Similar to 'pTraceShow', but without color.
+-- >>> import qualified Data.Map as M
 -- >>> pTraceShowNoColor (M.fromList [(1, True)]) () `seq` ()
 -- fromList
 --     [
@@ -256,6 +256,7 @@ pTraceShowNoColor :: (Show a) => a -> b -> b
 pTraceShowNoColor = trace . unpack . pShowNoColor
 
 -- | Similar to 'pTraceShowId', but without color.
+-- >>> import qualified Data.Map as M
 -- >>> pTraceShowIdNoColor (M.fromList [(1, True)]) `seq` ()
 -- fromList
 --     [
