@@ -135,7 +135,11 @@ and the message would only be printed once.  If your monad is in 'MonadIO',
 
 @since 2.0.1.0
 -}
+#if __GLASGOW_HASKELL__ < 800
+pTraceM :: (Monad f) => String -> f ()
+#else
 pTraceM :: (Applicative f) => String -> f ()
+#endif
 pTraceM string = trace (unpack (pString string)) $ pure ()
 
 {-|
@@ -149,7 +153,11 @@ Like 'pTraceM', but uses 'show' on the argument to convert it to a 'String'.
 
 @since 2.0.1.0
 -}
+#if __GLASGOW_HASKELL__ < 800
+pTraceShowM :: (Show a, Monad f) => a -> f ()
+#else
 pTraceShowM :: (Show a, Applicative f) => a -> f ()
+#endif
 pTraceShowM = traceM . unpack . pShow
 
 {-|
@@ -287,7 +295,11 @@ pTraceShowIdNoColor a = trace (unpack (pShowNoColor a)) a
 -- wow
 --
 -- @since 2.0.2.0
+#if __GLASGOW_HASKELL__ < 800
+pTraceMNoColor :: (Monad f) => String -> f ()
+#else
 pTraceMNoColor :: (Applicative f) => String -> f ()
+#endif
 pTraceMNoColor string = trace (unpack (pString string)) $ pure ()
 
 -- | Similar to 'pTraceShowM', but without color.
@@ -299,7 +311,11 @@ pTraceMNoColor string = trace (unpack (pString string)) $ pure ()
 -- ]
 --
 -- @since 2.0.2.0
+#if __GLASGOW_HASKELL__ < 800
+pTraceShowMNoColor :: (Show a, Monad f) => a -> f ()
+#else
 pTraceShowMNoColor :: (Show a, Applicative f) => a -> f ()
+#endif
 pTraceShowMNoColor = traceM . unpack . pShowNoColor
 
 -- | Similar to 'pTraceStack', but without color.
