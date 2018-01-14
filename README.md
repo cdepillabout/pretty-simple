@@ -77,7 +77,7 @@ Just
     - It is possible to print without color by using the
       [`pPrintNoColor`](https://hackage.haskell.org/package/pretty-simple/docs/Text-Pretty-Simple.html#v:pPrintNoColor)
       function.
-- Rainbox Parentheses
+- Rainbow Parentheses
     - Easy to understand deeply nested data types.
 - Configurable Indentation
     - Amount of indentation is configurable with the
