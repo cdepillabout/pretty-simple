@@ -6,7 +6,7 @@
     the flag `buildexe` like so:
 
     ```sh
-    $ stack install pretty-simple-2.0.1.1 --flag pretty-simple:buildexe
+    $ stack install pretty-simple-2.0.2.1 --flag pretty-simple:buildexe
     ```
 
     When you run it, you can paste something you want formatted on stdin, then
