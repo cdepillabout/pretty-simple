@@ -172,6 +172,26 @@ easy-to-read format:
 and `putLazyTextLn` in the [`ExampleJSON.hs`](example/ExampleJSON.hs)
 file.)
 
+### Pretty-printing from the command line
+
+`pretty-simple` includes a command line executable that can be used to
+pretty-print anything passed in on stdin.
+
+It can be installed to `~/.local/bin/` with the following command. Note that you
+must enable the `buildexe` flag, since it will not be built by default:
+
+```sh
+$ stack install pretty-simple-2.0.1.1 --flag pretty-simple:buildexe
+```
+
+When run on the command line, you can paste in the Haskell datatype you want to
+be formatted, then hit <kbd>Ctrl</kbd>-<kbd>D</kbd>:
+
+![cli example screenshot](/img/pretty-simple-cli-screenshot.png?raw=true "cli example screenshot")
+
+This is very useful if you accidentally print out a Haskell data type with
+`print` instead of `pPrint`.
+
 ## Contributions
 
 Feel free to open an
