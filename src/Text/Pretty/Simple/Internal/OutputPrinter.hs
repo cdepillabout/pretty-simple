@@ -113,13 +113,16 @@ renderOutput (Output _ (OutputOther string)) =
   -- TODO: This probably shouldn't be a string to begin with.
   pure $ fromString string
 renderOutput (Output _ (OutputStringLit string)) = do
+  indentSpaces <- reader outputOptionsIndentAmount
+  let spaces = replicate (indentSpaces + 2) ' '
+
   sequenceFold
     [ useColorQuote
     , pure "\""
     , useColorReset
     , useColorString
     -- TODO: This probably shouldn't be a string to begin with.
-    , pure $ fromString $ indentSubsequentLines string
+    , pure $ fromString $ indentSubsequentLinesWith spaces string
     , useColorReset
     , useColorQuote
     , pure "\""
@@ -127,17 +130,18 @@ renderOutput (Output _ (OutputStringLit string)) = do
     ]
 
 -- |
--- >>> indentSubsequentLines "aaa"
+-- >>> indentSubsequentLinesWith "  " "aaa"
 -- "aaa"
 --
--- >>> indentSubsequentLines "aaa\nbbb\nccc"
+-- >>> indentSubsequentLinesWith "  " "aaa\nbbb\nccc"
 -- "aaa\n  bbb\n  ccc"
 --
--- >>> indentSubsequentLines ""
+-- >>> indentSubsequentLinesWith "  " ""
 -- ""
-indentSubsequentLines :: String -> String
-indentSubsequentLines inp = intercalate "\n" $ (start ++) $ map ("  " ++) $ end
-  where (start, end) = splitAt 1 $ lines inp
+indentSubsequentLinesWith :: String -> String -> String
+indentSubsequentLinesWith indent input =
+  intercalate "\n" $ (start ++) $ map (indent ++) $ end
+  where (start, end) = splitAt 1 $ lines input
 
 
 -- | Produce a 'Builder' corresponding to the ANSI escape sequence for the
