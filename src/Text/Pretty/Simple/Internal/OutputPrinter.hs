@@ -31,6 +31,7 @@ import Data.Foldable (fold, foldlM)
 import Data.Text.Lazy (Text)
 import Data.Text.Lazy.Builder (Builder, fromString, toLazyText)
 import Data.Typeable (Typeable)
+import Data.List (intercalate)
 import GHC.Generics (Generic)
 
 import Text.Pretty.Simple.Internal.Color
@@ -118,12 +119,26 @@ renderOutput (Output _ (OutputStringLit string)) = do
     , useColorReset
     , useColorString
     -- TODO: This probably shouldn't be a string to begin with.
-    , pure $ fromString string
+    , pure $ fromString $ indentSubsequentLines string
     , useColorReset
     , useColorQuote
     , pure "\""
     , useColorReset
     ]
+
+-- |
+-- >>> indentSubsequentLines "aaa"
+-- "aaa"
+--
+-- >>> indentSubsequentLines "aaa\nbbb\nccc"
+-- "aaa\n  bbb\n  ccc"
+--
+-- >>> indentSubsequentLines ""
+-- ""
+indentSubsequentLines :: String -> String
+indentSubsequentLines inp = intercalate "\n" $ (start ++) $ map ("  " ++) $ end
+  where (start, end) = splitAt 1 $ lines inp
+
 
 -- | Produce a 'Builder' corresponding to the ANSI escape sequence for the
 -- color for the @\"@, based on whether or not 'outputOptionsColorOptions' is

@@ -204,6 +204,18 @@ pStringNoColor = pStringOpt defaultOutputOptionsNoColor
 --  ( "hello"
 --  , "bye"
 --  )
+--
+-- >>> let cfg = defaultOutputOptionsNoColor
+-- >>> pPrintOpt cfg (1, (2, "foo\nbar\nbaz"), 3)
+-- ( 1
+-- , ( 2
+--   , "foo
+--     bar
+--     baz"
+--   , 3
+--   )
+-- )
+
 pPrintOpt :: (MonadIO m, Show a) => OutputOptions -> a -> m ()
 pPrintOpt outputOptions = liftIO . LText.putStrLn . pShowOpt outputOptions
 
