@@ -204,6 +204,35 @@ pStringNoColor = pStringOpt defaultOutputOptionsNoColor
 --  ( "hello"
 --  , "bye"
 --  )
+--
+-- Lines in strings get indented
+--
+-- >>> pPrintOpt defaultOutputOptionsNoColor (1, (2, "foo\nbar\nbaz", 3))
+-- ( 1
+-- ,
+--     ( 2
+--     , "foo
+--       bar
+--       baz"
+--     , 3
+--     )
+-- )
+--
+-- Lines get indented even in custom show instances
+--
+-- >>> data Foo = Foo
+-- >>> instance Show Foo where show _ = "foo\nbar\nbaz"
+-- >>> pPrintOpt defaultOutputOptionsNoColor (1, (2, Foo, 3))
+-- ( 1
+-- ,
+--     ( 2
+--     , foo
+--       bar
+--       baz
+--     , 3
+--     )
+-- )
+
 pPrintOpt :: (MonadIO m, Show a) => OutputOptions -> a -> m ()
 pPrintOpt outputOptions = liftIO . LText.putStrLn . pShowOpt outputOptions
 
