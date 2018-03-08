@@ -205,10 +205,11 @@ pStringNoColor = pStringOpt defaultOutputOptionsNoColor
 --  , "bye"
 --  )
 --
--- >>> let cfg = defaultOutputOptionsNoColor
--- >>> pPrintOpt cfg (1, (2, "foo\nbar\nbaz"), 3)
+-- >>> let cfg = defaultOutputOptionsNoColor {outputOptionsIndentAmount = 2}
+-- >>> pPrintOpt cfg (1, (2, "foo\nbar\nbaz", 3))
 -- ( 1
--- , ( 2
+-- ,
+--   ( 2
 --   , "foo
 --     bar
 --     baz"
