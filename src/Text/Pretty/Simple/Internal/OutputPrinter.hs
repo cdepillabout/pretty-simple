@@ -109,9 +109,11 @@ renderOutput (Output _ OutputNewLine) = pure "\n"
 renderOutput (Output nest OutputOpenBrace) = renderRaibowParenFor nest "{"
 renderOutput (Output nest OutputOpenBracket) = renderRaibowParenFor nest "["
 renderOutput (Output nest OutputOpenParen) = renderRaibowParenFor nest "("
-renderOutput (Output _ (OutputOther string)) =
+renderOutput (Output _ (OutputOther string)) = do
+  indentSpaces <- reader outputOptionsIndentAmount
+  let spaces = replicate (indentSpaces + 2) ' '
   -- TODO: This probably shouldn't be a string to begin with.
-  pure $ fromString string
+  pure $ fromString $ indentSubsequentLinesWith spaces string
 renderOutput (Output _ (OutputStringLit string)) = do
   indentSpaces <- reader outputOptionsIndentAmount
   let spaces = replicate (indentSpaces + 2) ' '

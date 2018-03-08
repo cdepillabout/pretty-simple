@@ -216,6 +216,20 @@ pStringNoColor = pStringOpt defaultOutputOptionsNoColor
 --   , 3
 --   )
 -- )
+--
+-- >>> data Foo = Foo
+-- >>> instance Show Foo where show _ = "foo\nbar\nbaz"
+-- >>> let cfg = defaultOutputOptionsNoColor {outputOptionsIndentAmount = 2}
+-- >>> pPrintOpt cfg (1, (2, Foo, 3))
+-- ( 1
+-- ,
+--   ( 2
+--   , foo
+--     bar
+--     baz
+--   , 3
+--   )
+-- )
 
 pPrintOpt :: (MonadIO m, Show a) => OutputOptions -> a -> m ()
 pPrintOpt outputOptions = liftIO . LText.putStrLn . pShowOpt outputOptions
