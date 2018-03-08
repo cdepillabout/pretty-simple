@@ -1,4 +1,10 @@
 
+## 2.1.0.0
+
+*   Make strings have indentation by default when pretty-printed.  See
+    [#26](https://github.com/cdepillabout/pretty-simple/pull/26).  Thanks
+    [Milan](https://github.com/Wizek)!
+
 ## 2.0.2.1
 
 *   Add a small command-line program that will pretty print anything from stdin
