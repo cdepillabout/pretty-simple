@@ -17,7 +17,7 @@ main =
         , bench "Bar" $ nf pShow bar
         , bench "Baz" $ nf pShow baz
         ]
-    , bgroup "recursive deeply-nested data structure" (fmap nestTest [17..20])
+    , bgroup "recursive deeply-nested data structure" (fmap nestTest [22..25])
     ]
 
 data ExampleExpr
@@ -30,9 +30,10 @@ nest :: ExampleExpr -> Int -> ExampleExpr
 nest expr 0 = expr
 nest expr n = nest (B expr) (n - 1)
 
--- | The runtime for this doubles every level.  It is effectively O(n^2).  Ideally it should be O(n).
--- If you're interested in fixing this you can find more information at the following link:
--- <https://github.com/cdepillabout/pretty-simple/issues/30>.
+-- | There was a bug in the pretty-simple code that caused deeply nested data
+-- structures to have an exponential runtime.  Effectively, the runtime doubled
+-- at level.  The following benchmark is to make sure that we don't
+-- accidentally introduce this exponential runtime again.
 nestTest :: Int -> Benchmark
 nestTest n = bench ("level " <> show n) $ nf test n
   where

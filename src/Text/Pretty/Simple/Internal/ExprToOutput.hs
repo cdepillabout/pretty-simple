@@ -136,7 +136,7 @@ putSurroundExpr startOutputType endOutputType (CommaSeparated []) = do
   addToNestLevel (-1)
 putSurroundExpr startOutputType endOutputType (CommaSeparated [exprs]) = do
   addToNestLevel 1
-  let isExprsMultiLine = howManyLines exprs > 1
+  let isExprsMultiLine = or $ map isMultiLine exprs
   when isExprsMultiLine $ do
       newLineAndDoIndent
   addOutputs [startOutputType, OutputOther " "]
@@ -147,6 +147,15 @@ putSurroundExpr startOutputType endOutputType (CommaSeparated [exprs]) = do
     else addOutput $ OutputOther " "
   addOutput endOutputType
   addToNestLevel (-1)
+  where
+    isMultiLine (Brackets commaSeparated) = isMultiLine' commaSeparated
+    isMultiLine (Braces commaSeparated) = isMultiLine' commaSeparated
+    isMultiLine (Parens commaSeparated) = isMultiLine' commaSeparated
+    isMultiLine _ = False
+    
+    isMultiLine' (CommaSeparated []) = False
+    isMultiLine' (CommaSeparated [exprs']) = or $ map isMultiLine exprs'
+    isMultiLine' _ = True
 putSurroundExpr startOutputType endOutputType commaSeparated = do
   addToNestLevel 1
   newLineAndDoIndent
@@ -156,6 +165,7 @@ putSurroundExpr startOutputType endOutputType commaSeparated = do
   addOutput endOutputType
   addToNestLevel (-1)
   addOutput $ OutputOther " "
+
 
 putCommaSep
   :: forall m.
