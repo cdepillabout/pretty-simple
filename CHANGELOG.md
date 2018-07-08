@@ -1,4 +1,10 @@
 
+## 2.1.0.1
+
+*   Fix a [bug](https://github.com/cdepillabout/pretty-simple/pull/32) where
+    printing deeply nested data structures would take exponential time.  Thanks
+    [Andrew](https://github.com/andrew-lei)!
+
 ## 2.1.0.0
 
 *   Make strings have indentation by default when pretty-printed.  See
