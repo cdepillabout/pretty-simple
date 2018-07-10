@@ -227,7 +227,7 @@ putExpression (Parens commaSeparated) = do
 putExpression (StringLit string) = do
   nest <- gets nestLevel
   when (nest < 0) $ addToNestLevel 1
-  addOutputs $ [ OutputStringLit string, OutputOther " "]
+  addOutput $ OutputStringLit string
 putExpression (Other string) = do
   nest <- gets nestLevel
   when (nest < 0) $ addToNestLevel 1
