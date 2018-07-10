@@ -50,6 +50,7 @@ executable pretty-simple
   hs-source-dirs:      app
   build-depends:       base
                      , pretty-simple
+                     , semigroups
                      , text
                      , optparse-applicative
   default-language:    Haskell2010

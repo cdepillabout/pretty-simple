@@ -28,7 +28,7 @@ import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy.IO as LT
 import Options.Applicative 
        ( Parser, ReadM, execParser, fullDesc, help, helper, info, long
-       , maybeReader, option, progDesc, short, showDefaultWith, value, (<**>))
+       , option, progDesc, readerError, short, showDefaultWith, str, value, (<**>))
 import Data.Semigroup ((<>))
 import Text.Pretty.Simple 
        ( pStringOpt, OutputOptions
@@ -37,22 +37,23 @@ import Text.Pretty.Simple
        , defaultOutputOptionsNoColor
        )
 
-data Color = DarkBg 
-           | LightBg 
+data Color = DarkBg
+           | LightBg
            | NoColor
 
 newtype Args = Args { color :: Color }
 
 colorReader :: ReadM Color
-colorReader = maybeReader colorReader'
-  where
-    colorReader' "dark-bg"  = Just DarkBg
-    colorReader' "light-bg" = Just LightBg
-    colorReader' "no-color" = Just NoColor
-    colorReader' _          = Nothing
+colorReader = do
+  string <- str
+  case string of
+    "dark-bg"  -> pure DarkBg
+    "light-bg" -> pure LightBg
+    "no-color" -> pure NoColor
+    x          -> readerError $ "Could not parse " <> x <> " as a color."
 
 args :: Parser Args
-args = Args 
+args = Args
     <$> option colorReader
         ( long "color"
        <> short 'c'
@@ -63,7 +64,7 @@ args = Args
 
 main :: IO ()
 main = do
-  args' <- execParser opts 
+  args' <- execParser opts
   input <- T.getContents
   let printOpt = getPrintOpt $ color args'
       output = pStringOpt printOpt $ unpack input
