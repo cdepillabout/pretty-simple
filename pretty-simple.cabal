@@ -51,6 +51,7 @@ executable pretty-simple
   build-depends:       base
                      , pretty-simple
                      , text
+                     , optparse-applicative
   default-language:    Haskell2010
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
 
