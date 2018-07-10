@@ -29,7 +29,7 @@ import qualified Data.Text.Lazy.IO as LT
 import Options.Applicative 
        ( Parser, ReadM, execParser, fullDesc, help, helper, info, long
        , option, progDesc, readerError, short, showDefaultWith, str, value, (<**>))
-import Data.Semigroup ((<>))
+import Data.Monoid ((<>))
 import Text.Pretty.Simple 
        ( pStringOpt, OutputOptions
        , defaultOutputOptionsDarkBg
