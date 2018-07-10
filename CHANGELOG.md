@@ -1,4 +1,10 @@
 
+## next
+
+*   Fixed a [bug](https://github.com/cdepillabout/pretty-simple/pull/33) with a
+    missing space after strings.  Thanks again
+    [Andrew](https://github.com/andrew-lei)!
+
 ## 2.1.0.1
 
 *   Fix a [bug](https://github.com/cdepillabout/pretty-simple/pull/32) where
