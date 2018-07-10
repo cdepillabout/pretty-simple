@@ -4,6 +4,11 @@
 *   Fixed a [bug](https://github.com/cdepillabout/pretty-simple/pull/33) with a
     missing space after strings.  Thanks again
     [Andrew](https://github.com/andrew-lei)!
+*   Add a command line flag `--color` to be able to set whether to use colors for
+    a dark background (`--color dark-bg`), a light background (`--color light-bg`),
+    or no color (`--color no-color`).  This is from
+    [great work](https://github.com/cdepillabout/pretty-simple/pull/35) by
+    [Andrew](https://github.com/andrew-lei)!
 
 ## 2.1.0.1
 
