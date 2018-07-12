@@ -335,7 +335,7 @@ pStringOpt outputOptions string =
 --
 -- __Newline Rules__
 --
--- >>> data Foo = A | B Foo | C [Foo] deriving Show
+-- >>> data Foo = A | B Foo | C [Foo] [Foo] deriving Show
 --
 -- >>> pPrintNoColor $ B ( B A )
 -- B ( B A )
@@ -350,11 +350,15 @@ pStringOpt outputOptions string =
 --         ( B ( B A ) )
 --     )
 --
--- >>> pPrintNoColor $ B ( C [A, A] )
+-- >>> pPrintNoColor $ B ( C [A, A] [B A, B (B (B A))] )
 -- B
 --     ( C
 --         [ A
 --         , A
+--         ]
+--         [ B A
+--         , B
+--             ( B ( B A ) )
 --         ]
 --     )
 --
