@@ -136,26 +136,28 @@ putSurroundExpr startOutputType endOutputType (CommaSeparated []) = do
   addToNestLevel (-1)
 putSurroundExpr startOutputType endOutputType (CommaSeparated [exprs]) = do
   addToNestLevel 1
-  let isExprsMultiLine = or $ map isMultiLine exprs
-  when isExprsMultiLine $ do
-      newLineAndDoIndent
+  let (thisLayerMulti, nextLayerMulti) = thisAndNextMulti exprs
+
+  when thisLayerMulti newLineAndDoIndent
   addOutputs [startOutputType, OutputOther " "]
   traverse_ putExpression exprs
-  if isExprsMultiLine
-    then do
-      newLineAndDoIndent
+  if nextLayerMulti 
+    then newLineAndDoIndent
     else addOutput $ OutputOther " "
   addOutput endOutputType
+
   addToNestLevel (-1)
   where
+    thisAndNextMulti = (\(a,b) -> (or a, or b)) . unzip . map isMultiLine
+
     isMultiLine (Brackets commaSeparated) = isMultiLine' commaSeparated
     isMultiLine (Braces commaSeparated) = isMultiLine' commaSeparated
     isMultiLine (Parens commaSeparated) = isMultiLine' commaSeparated
-    isMultiLine _ = False
+    isMultiLine _ = (False, False)
     
-    isMultiLine' (CommaSeparated []) = False
-    isMultiLine' (CommaSeparated [exprs']) = or $ map isMultiLine exprs'
-    isMultiLine' _ = True
+    isMultiLine' (CommaSeparated []) = (False, False)
+    isMultiLine' (CommaSeparated [es]) = (True, fst $ thisAndNextMulti es)
+    isMultiLine' _ = (True, True)
 putSurroundExpr startOutputType endOutputType commaSeparated = do
   addToNestLevel 1
   newLineAndDoIndent
