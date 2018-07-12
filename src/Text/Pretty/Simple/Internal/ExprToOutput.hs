@@ -141,7 +141,7 @@ putSurroundExpr startOutputType endOutputType (CommaSeparated [exprs]) = do
   when thisLayerMulti newLineAndDoIndent
   addOutputs [startOutputType, OutputOther " "]
   traverse_ putExpression exprs
-  if nextLayerMulti 
+  if nextLayerMulti
     then newLineAndDoIndent
     else addOutput $ OutputOther " "
   addOutput endOutputType
