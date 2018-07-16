@@ -333,6 +333,35 @@ pStringOpt outputOptions string =
 --         ]
 --     }
 --
+-- __Newline Rules__
+--
+-- >>> data Foo = A | B Foo | C [Foo] [Foo] deriving Show
+--
+-- >>> pPrintNoColor $ B ( B A )
+-- B ( B A )
+--
+-- >>> pPrintNoColor $ B ( B ( B A ) )
+-- B
+--     ( B ( B A ) )
+--
+-- >>> pPrintNoColor $ B ( B ( B ( B A ) ) )
+-- B
+--     ( B
+--         ( B ( B A ) )
+--     )
+--
+-- >>> pPrintNoColor $ B ( C [A, A] [B A, B (B (B A))] )
+-- B
+--     ( C
+--         [ A
+--         , A
+--         ]
+--         [ B A
+--         , B
+--             ( B ( B A ) )
+--         ]
+--     )
+--
 -- __Other__
 --
 -- Making sure the spacing after a string is correct
