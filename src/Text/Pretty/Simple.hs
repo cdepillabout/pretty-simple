@@ -244,11 +244,7 @@ pShowOpt outputOptions = pStringOpt outputOptions . show
 -- | Like 'pString' but takes 'OutputOptions' to change how the
 -- pretty-printing is done.
 pStringOpt :: OutputOptions -> String -> Text
-pStringOpt outputOptions string =
-  case expressionParse string of
-    Left _ -> pack string
-    Right expressions ->
-      render outputOptions . toList $ expressionsToOutputs expressions
+pStringOpt outputOptions = render outputOptions . toList . expressionsToOutputs . expressionParse 
 
 -- $colorOptions
 --
