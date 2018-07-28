@@ -41,9 +41,9 @@ import Text.Pretty.Simple.Internal.Output
 -- $setup
 -- >>> import Control.Monad.State (State)
 -- >>> :{
--- let test :: PrinterState -> State PrinterState a -> PrinterState
---     test initState state = execState state initState
---     testInit :: State PrinterState a -> PrinterState
+-- let test :: PrinterState -> State PrinterState [Output] -> [Output]
+--     test initState state = evalState state initState
+--     testInit :: State PrinterState [Output] -> [Output]
 --     testInit = test initPrinterState
 -- :}
 
@@ -144,7 +144,7 @@ putSurroundExpr startOutputType endOutputType (CommaSeparated [exprs]) = do
 
   addToNestLevel (-1)
 
-  return $ maybeNL <> start <> middle <> [end] <> nlOrSpace
+  return $ maybeNL <> start <> middle <> nlOrSpace <> [end]
   where
     thisAndNextMulti = (\(a,b) -> (or a, or b)) . unzip . map isMultiLine
 
