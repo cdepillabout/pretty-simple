@@ -27,7 +27,7 @@ import Control.Applicative
 #endif
 
 import Control.Monad.Reader (MonadReader(reader), runReader)
-import Data.Foldable (fold, foldlM)
+import Data.Foldable (fold)
 import Data.Text.Lazy (Text)
 import Data.Text.Lazy.Builder (Builder, fromString, toLazyText)
 import Data.Typeable (Typeable)
@@ -82,18 +82,10 @@ defaultOutputOptionsNoColor =
 -- | Given 'OutputOptions' and a list of 'Output', turn the 'Output' into a
 -- lazy 'Text'.
 render :: OutputOptions -> [Output] -> Text
-render options outputs = toLazyText $ runReader (renderOutputs outputs) options
-
--- | Turn a list of 'Output' into a 'Builder', using the options specified in
--- the 'OutputOptions'.
-renderOutputs
-  :: forall m.
-     MonadReader OutputOptions m
-  => [Output] -> m Builder
-renderOutputs = foldlM foldFunc "" . modificationsOutputList
+render options = toLazyText . foldr foldFunc "" . modificationsOutputList
   where
-    foldFunc :: Builder -> Output -> m Builder
-    foldFunc accum output = mappend accum <$> renderOutput output
+    foldFunc :: Output -> Builder -> Builder
+    foldFunc output accum = runReader (renderOutput output) options `mappend` accum
 
 -- | Render a single 'Output' as a 'Builder', using the options specified in
 -- the 'OutputOptions'.
