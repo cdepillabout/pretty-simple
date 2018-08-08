@@ -363,6 +363,17 @@ pStringOpt outputOptions = render outputOptions . toList . expressionsToOutputs 
 -- >>> take 100 . unpack . pShowNoColor $ [1..]
 -- "[ 1\n, 2\n, 3\n, 4\n, 5\n, 6\n, 7\n, 8\n, 9\n, 10\n, 11\n, 12\n, 13\n, 14\n, 15\n, 16\n, 17\n, 18\n, 19\n, 20\n, 21\n, 22"
 --
+-- __Unicode__
+--
+-- >>> pPrintNoColor $ Baz ["猫", "犬", "ヤギ"]
+-- Baz
+--     { unBaz =
+--         [ "猫"
+--         , "犬"
+--         , "ヤギ"
+--         ]
+--     }
+--
 -- __Other__
 --
 -- Making sure the spacing after a string is correct
