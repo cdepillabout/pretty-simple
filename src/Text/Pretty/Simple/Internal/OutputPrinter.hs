@@ -32,6 +32,8 @@ import Data.Text.Lazy (Text)
 import Data.Text.Lazy.Builder (Builder, fromString, toLazyText)
 import Data.Typeable (Typeable)
 import Data.List (intercalate)
+import Data.Maybe (fromMaybe)
+import Text.Read (readMaybe)
 import GHC.Generics (Generic)
 
 import Text.Pretty.Simple.Internal.Color
@@ -116,12 +118,13 @@ renderOutput (Output _ (OutputStringLit string)) = do
     , useColorReset
     , useColorString
     -- TODO: This probably shouldn't be a string to begin with.
-    , pure $ fromString $ indentSubsequentLinesWith spaces string
+    , pure $ fromString $ indentSubsequentLinesWith spaces $ readStr string
     , useColorReset
     , useColorQuote
     , pure "\""
     , useColorReset
     ]
+  where readStr s = fromMaybe s . readMaybe $ '"':s ++ "\""
 
 -- |
 -- >>> indentSubsequentLinesWith "  " "aaa"
