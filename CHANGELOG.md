@@ -1,5 +1,5 @@
 
-## next
+## 2.2.0.0
 
 *   Fixed a [bug](https://github.com/cdepillabout/pretty-simple/pull/33) with a
     missing space after strings.  Thanks again
@@ -9,6 +9,8 @@
     or no color (`--color no-color`).  This is from
     [great work](https://github.com/cdepillabout/pretty-simple/pull/35) by
     [Andrew](https://github.com/andrew-lei)!
+*   Made parsing/printing lazy - pretty-printing will now output strings continuously
+    as they're read, handling potentially infinite input.
 
 ## 2.1.0.1
 

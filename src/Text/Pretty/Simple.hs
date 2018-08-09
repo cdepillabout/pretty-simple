@@ -78,7 +78,7 @@ import Control.Applicative
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Foldable (toList)
-import Data.Text.Lazy (Text, pack)
+import Data.Text.Lazy (Text, pack, unpack)
 import Data.Text.Lazy.IO as LText
 
 import Text.Pretty.Simple.Internal
@@ -244,11 +244,7 @@ pShowOpt outputOptions = pStringOpt outputOptions . show
 -- | Like 'pString' but takes 'OutputOptions' to change how the
 -- pretty-printing is done.
 pStringOpt :: OutputOptions -> String -> Text
-pStringOpt outputOptions string =
-  case expressionParse string of
-    Left _ -> pack string
-    Right expressions ->
-      render outputOptions . toList $ expressionsToOutputs expressions
+pStringOpt outputOptions = render outputOptions . toList . expressionsToOutputs . expressionParse 
 
 -- $colorOptions
 --
@@ -361,6 +357,22 @@ pStringOpt outputOptions string =
 --             ( B ( B A ) )
 --         ]
 --     )
+--
+-- __Laziness__
+--
+-- >>> take 100 . unpack . pShowNoColor $ [1..]
+-- "[ 1\n, 2\n, 3\n, 4\n, 5\n, 6\n, 7\n, 8\n, 9\n, 10\n, 11\n, 12\n, 13\n, 14\n, 15\n, 16\n, 17\n, 18\n, 19\n, 20\n, 21\n, 22"
+--
+-- __Unicode__
+--
+-- >>> pPrintNoColor $ Baz ["猫", "犬", "ヤギ"]
+-- Baz
+--     { unBaz =
+--         [ "猫"
+--         , "犬"
+--         , "ヤギ"
+--         ]
+--     }
 --
 -- __Other__
 --
