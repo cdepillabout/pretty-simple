@@ -181,7 +181,7 @@ It can be installed to `~/.local/bin/` with the following command. Note that you
 must enable the `buildexe` flag, since it will not be built by default:
 
 ```sh
-$ stack install pretty-simple-2.0.2.1 --flag pretty-simple:buildexe
+$ stack install pretty-simple-2.2.0.1 --flag pretty-simple:buildexe
 ```
 
 When run on the command line, you can paste in the Haskell datatype you want to
