@@ -64,8 +64,10 @@ parseStringLit (c:cs)   = (c:cs', rest)
   where (cs', rest) = parseStringLit cs
 
 parseOther :: String -> (String, String)
-parseOther [] = ("", "")
-parseOther s@(c:cs)
-  | c `elem` ("{[()]}\"," :: String) = ("", s)
-  | otherwise = let (toParse, rest) = parseOther cs
-                 in (c : toParse, rest)
+parseOther = span . flip notElem $ ("{[()]}\"," :: String)
+
+-- |
+-- Handle escaped characters correctly
+--
+-- >>> parseExprs $ "Foo \"hello \\\"world!\""
+-- ([Other "Foo ",StringLit "hello \\\"world!"],"")
