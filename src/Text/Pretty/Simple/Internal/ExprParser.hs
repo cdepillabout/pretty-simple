@@ -58,6 +58,8 @@ parseCSep end s@(c:cs)
 parseStringLit :: String -> (String, String)
 parseStringLit [] = ("", "")
 parseStringLit ('"':rest) = ("", rest)
+parseStringLit ('\\':c:cs) = ('\\':c:cs', rest)
+  where (cs', rest) = parseStringLit cs
 parseStringLit (c:cs)   = (c:cs', rest)
   where (cs', rest) = parseStringLit cs
 
