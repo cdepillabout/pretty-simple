@@ -20,6 +20,7 @@ module Text.Pretty.Simple.Internal.ExprParser
 
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
 import Control.Arrow (first)
+import Data.Char (readLitChar)
 
 testString1, testString2 :: String
 testString1 = "Just [TextInput {textInputClass = Just (Class {unClass = \"class\"}), textInputId = Just (Id {unId = \"id\"}), textInputName = Just (Name {unName = \"name\"}), textInputValue = Just (Value {unValue = \"value\"}), textInputPlaceholder = Just (Placeholder {unPlaceholder = \"placeholder\"})}, TextInput {textInputClass = Just (Class {unClass = \"class\"}), textInputId = Just (Id {unId = \"id\"}), textInputName = Just (Name {unName = \"name\"}), textInputValue = Just (Value {unValue = \"value\"}), textInputPlaceholder = Just (Placeholder {unPlaceholder = \"placeholder\"})}]"
@@ -56,11 +57,12 @@ parseCSep end s@(c:cs)
                  in (parsed : toParse, rest)
 
 parseStringLit :: String -> (String, String)
-parseStringLit [] = ("", "")
+parseStringLit [] = ("", "") -- Missing ending quote
 parseStringLit ('"':rest) = ("", rest)
-parseStringLit ('\\':c:cs) = ('\\':c:cs', rest)
-  where (cs', rest) = parseStringLit cs
-parseStringLit (c:cs)   = (c:cs', rest)
+parseStringLit cs | [(c,rest)] <- readLitChar cs =
+               let  (cs', rest') = parseStringLit rest
+               in   (c:cs', rest')
+parseStringLit (c:cs) = (c:cs', rest) -- Invalid char
   where (cs', rest) = parseStringLit cs
 
 parseOther :: String -> (String, String)
