@@ -1,3 +1,6 @@
+## 2.2.0.1
+*   Fixed a [bug](https://github.com/cdepillabout/pretty-simple/pull/41) where the parser failed to parse escaped quotation marks in string literals. Thanks [Andreas](https://github.com/anka-213)!
+
 
 ## 2.2.0.0
 
