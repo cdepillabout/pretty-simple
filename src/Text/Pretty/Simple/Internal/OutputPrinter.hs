@@ -118,13 +118,12 @@ renderOutput (Output _ (OutputStringLit string)) = do
     , useColorReset
     , useColorString
     -- TODO: This probably shouldn't be a string to begin with.
-    , pure $ fromString $ indentSubsequentLinesWith spaces $ readStr string
+    , pure $ fromString $ indentSubsequentLinesWith spaces string
     , useColorReset
     , useColorQuote
     , pure "\""
     , useColorReset
     ]
-  where readStr s = fromMaybe s . readMaybe $ '"':s ++ "\""
 
 -- |
 -- >>> indentSubsequentLinesWith "  " "aaa"
