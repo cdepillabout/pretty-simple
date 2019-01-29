@@ -143,7 +143,7 @@ putSurroundExpr startOutputType endOutputType (CommaSeparated [exprs]) = do
     isMultiLine (Braces commaSeparated) = isMultiLine' commaSeparated
     isMultiLine (Parens commaSeparated) = isMultiLine' commaSeparated
     isMultiLine _ = (False, False)
-    
+
     isMultiLine' (CommaSeparated []) = (False, False)
     isMultiLine' (CommaSeparated [es]) = (True, fst $ thisAndNextMulti es)
     isMultiLine' _ = (True, True)
@@ -215,7 +215,7 @@ addToCurrentLine diff =
   modify (\printState -> printState {currLine = currLine printState + diff})
 
 putExpression :: MonadState PrinterState m => Expr -> m [Output]
-putExpression (Brackets commaSeparated) = 
+putExpression (Brackets commaSeparated) =
   putSurroundExpr OutputOpenBracket OutputCloseBracket commaSeparated
 putExpression (Braces commaSeparated) =
   putSurroundExpr OutputOpenBrace OutputCloseBrace commaSeparated

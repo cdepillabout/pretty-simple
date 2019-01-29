@@ -26,7 +26,9 @@ module Text.Pretty.Simple.Internal.OutputPrinter
 import Control.Applicative
 #endif
 
-import Control.Monad.Reader (MonadReader(reader), runReader)
+import Control.Monad.Reader (MonadReader(ask, reader), runReader)
+import Data.Char (isPrint, ord)
+import Numeric (showHex)
 import Data.Foldable (fold)
 import Data.Text.Lazy (Text)
 import Data.Text.Lazy.Builder (Builder, fromString, toLazyText)
@@ -51,6 +53,10 @@ data OutputOptions = OutputOptions
   , outputOptionsColorOptions :: Maybe ColorOptions
   -- ^ If this is 'Nothing', then don't colorize the output.  If this is
   -- @'Just' colorOptions@, then use @colorOptions@ to colorize the output.
+  --
+  , outputOptionsEscapeNonPrintable :: Bool
+  -- ^ Whether to replace non-printable characters with hexadecimal escape
+  -- sequences.
   } deriving (Eq, Generic, Show, Typeable)
 
 -- | Default values for 'OutputOptions' when printing to a console with a dark
@@ -61,6 +67,7 @@ defaultOutputOptionsDarkBg =
   OutputOptions
   { outputOptionsIndentAmount = 4
   , outputOptionsColorOptions = Just defaultColorOptionsDarkBg
+  , outputOptionsEscapeNonPrintable = True
   }
 
 -- | Default values for 'OutputOptions' when printing to a console with a light
@@ -71,6 +78,7 @@ defaultOutputOptionsLightBg =
   OutputOptions
   { outputOptionsIndentAmount = 4
   , outputOptionsColorOptions = Just defaultColorOptionsLightBg
+  , outputOptionsEscapeNonPrintable = True
   }
 
 -- | Default values for 'OutputOptions' when printing using using ANSI escape
@@ -79,7 +87,10 @@ defaultOutputOptionsLightBg =
 defaultOutputOptionsNoColor :: OutputOptions
 defaultOutputOptionsNoColor =
   OutputOptions
-  {outputOptionsIndentAmount = 4, outputOptionsColorOptions = Nothing}
+  { outputOptionsIndentAmount = 4
+  , outputOptionsColorOptions = Nothing
+  , outputOptionsEscapeNonPrintable = True
+  }
 
 -- | Given 'OutputOptions' and a list of 'Output', turn the 'Output' into a
 -- lazy 'Text'.
@@ -109,8 +120,7 @@ renderOutput (Output _ (OutputOther string)) = do
   -- TODO: This probably shouldn't be a string to begin with.
   pure $ fromString $ indentSubsequentLinesWith spaces string
 renderOutput (Output _ (OutputStringLit string)) = do
-  indentSpaces <- reader outputOptionsIndentAmount
-  let spaces = replicate (indentSpaces + 2) ' '
+  options <- ask
 
   sequenceFold
     [ useColorQuote
@@ -118,13 +128,36 @@ renderOutput (Output _ (OutputStringLit string)) = do
     , useColorReset
     , useColorString
     -- TODO: This probably shouldn't be a string to begin with.
-    , pure $ fromString $ indentSubsequentLinesWith spaces $ readStr string
+    , pure (fromString (process options string))
     , useColorReset
     , useColorQuote
     , pure "\""
     , useColorReset
     ]
-  where readStr s = fromMaybe s . readMaybe $ '"':s ++ "\""
+  where
+    process :: OutputOptions -> String -> String
+    process opts
+      | outputOptionsEscapeNonPrintable opts
+      = indentSubsequentLinesWith spaces . escapeNonPrintable . readStr
+
+      | otherwise
+      = indentSubsequentLinesWith spaces . readStr
+      where
+        spaces :: String
+        spaces = replicate (indentSpaces + 2) ' '
+
+        indentSpaces :: Int
+        indentSpaces =  outputOptionsIndentAmount opts
+
+    readStr :: String -> String
+    readStr s = fromMaybe s . readMaybe $ '"':s ++ "\""
+
+    escapeNonPrintable :: String -> String
+    escapeNonPrintable input = foldr escape "" input
+
+    escape :: Char -> ShowS
+    escape c | isPrint c = (c:)
+             | otherwise = ('\\':) . ('x':) . showHex (ord c)
 
 -- |
 -- >>> indentSubsequentLinesWith "  " "aaa"
@@ -139,7 +172,6 @@ indentSubsequentLinesWith :: String -> String -> String
 indentSubsequentLinesWith indent input =
   intercalate "\n" $ (start ++) $ map (indent ++) $ end
   where (start, end) = splitAt 1 $ lines input
-
 
 -- | Produce a 'Builder' corresponding to the ANSI escape sequence for the
 -- color for the @\"@, based on whether or not 'outputOptionsColorOptions' is

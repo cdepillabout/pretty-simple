@@ -19,6 +19,7 @@ module Text.Pretty.Simple.Internal.ExprParser
   where
 
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
+import Data.Char (isPrint)
 import Control.Arrow (first)
 
 testString1, testString2 :: String
@@ -60,8 +61,8 @@ parseStringLit [] = ("", "")
 parseStringLit ('"':rest) = ("", rest)
 parseStringLit ('\\':c:cs) = ('\\':c:cs', rest)
   where (cs', rest) = parseStringLit cs
-parseStringLit (c:cs)   = (c:cs', rest)
-  where (cs', rest) = parseStringLit cs
+parseStringLit (c:cs) = (c:cs', rest)
+    where (cs', rest) = parseStringLit cs
 
 parseOther :: String -> (String, String)
 parseOther = span . flip notElem $ ("{[()]}\"," :: String)
