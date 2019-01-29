@@ -149,15 +149,17 @@ renderOutput (Output _ (OutputStringLit string)) = do
         indentSpaces :: Int
         indentSpaces =  outputOptionsIndentAmount opts
 
-    readStr :: String -> String
-    readStr s = fromMaybe s . readMaybe $ '"':s ++ "\""
+        readStr :: String -> String
+        readStr s = fromMaybe s . readMaybe $ '"':s ++ "\""
 
-    escapeNonPrintable :: String -> String
-    escapeNonPrintable input = foldr escape "" input
+        escapeNonPrintable :: String -> String
+        escapeNonPrintable input = foldr escape "" input
 
-    escape :: Char -> ShowS
-    escape c | isPrint c = (c:)
-             | otherwise = ('\\':) . ('x':) . showHex (ord c)
+        -- Replace an unprintable character except a newline
+        -- with a hex escape sequence.
+        escape :: Char -> ShowS
+        escape c | isPrint c || c == '\n' = (c:)
+                | otherwise = ('\\':) . ('x':) . showHex (ord c)
 
 -- |
 -- >>> indentSubsequentLinesWith "  " "aaa"
