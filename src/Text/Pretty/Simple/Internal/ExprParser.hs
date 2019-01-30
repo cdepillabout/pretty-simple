@@ -19,7 +19,6 @@ module Text.Pretty.Simple.Internal.ExprParser
   where
 
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
-import Data.Char (isPrint)
 import Control.Arrow (first)
 
 testString1, testString2 :: String
