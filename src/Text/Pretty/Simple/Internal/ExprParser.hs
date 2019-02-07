@@ -61,7 +61,7 @@ parseStringLit ('"':rest) = ("", rest)
 parseStringLit ('\\':c:cs) = ('\\':c:cs', rest)
   where (cs', rest) = parseStringLit cs
 parseStringLit (c:cs) = (c:cs', rest)
-    where (cs', rest) = parseStringLit cs
+  where (cs', rest) = parseStringLit cs
 
 parseOther :: String -> (String, String)
 parseOther = span . flip notElem $ ("{[()]}\"," :: String)
