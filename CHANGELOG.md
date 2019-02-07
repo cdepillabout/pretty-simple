@@ -1,3 +1,12 @@
+
+## next (major version bump)
+
+*   pretty-simple now escapes non-printable characters by default.  A field
+    called `outputOptionsEscapeNonPrintable` has been added to `OutputOptions`
+    to control this behavior.  Implemented in
+    [#44](https://github.com/cdepillabout/pretty-simple/pull/44). Thanks
+    [dminuoso](https://github.com/dminuoso)!
+
 ## 2.2.0.1
 *   Fixed a [bug](https://github.com/cdepillabout/pretty-simple/pull/41) where
     the parser failed to parse escaped quotation marks in string literals.

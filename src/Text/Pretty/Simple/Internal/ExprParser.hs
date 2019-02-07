@@ -60,7 +60,7 @@ parseStringLit [] = ("", "")
 parseStringLit ('"':rest) = ("", rest)
 parseStringLit ('\\':c:cs) = ('\\':c:cs', rest)
   where (cs', rest) = parseStringLit cs
-parseStringLit (c:cs)   = (c:cs', rest)
+parseStringLit (c:cs) = (c:cs', rest)
   where (cs', rest) = parseStringLit cs
 
 parseOther :: String -> (String, String)

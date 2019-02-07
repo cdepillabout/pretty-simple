@@ -78,7 +78,7 @@ import Control.Applicative
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Foldable (toList)
-import Data.Text.Lazy (Text, pack, unpack)
+import Data.Text.Lazy (Text)
 import Data.Text.Lazy.IO as LText
 
 import Text.Pretty.Simple.Internal
@@ -86,6 +86,9 @@ import Text.Pretty.Simple.Internal
         defaultColorOptionsLightBg, defaultOutputOptionsDarkBg,
         defaultOutputOptionsLightBg, defaultOutputOptionsNoColor,
         expressionParse, expressionsToOutputs, render)
+
+-- $setup
+-- >>> import Data.Text.Lazy (unpack)
 
 ----------------------------------------------------------
 -- functions for printing in color to a dark background --
@@ -376,9 +379,14 @@ pStringOpt outputOptions = render outputOptions . toList . expressionsToOutputs 
 --
 -- __Other__
 --
--- Making sure the spacing after a string is correct
+-- Making sure the spacing after a string is correct.
 --
 -- >>> data Foo = Foo String Int deriving Show
 --
 -- >>> pPrintNoColor $ Foo "bar" 0
 -- Foo "bar" 0
+--
+-- Non-printable characters will get escaped.
+--
+-- >>> pPrintNoColor "this string has non-printable characters: \x8 and \x9"
+-- "this string has non-printable characters: \x8 and \x9"
