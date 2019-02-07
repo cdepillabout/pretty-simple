@@ -379,9 +379,14 @@ pStringOpt outputOptions = render outputOptions . toList . expressionsToOutputs 
 --
 -- __Other__
 --
--- Making sure the spacing after a string is correct
+-- Making sure the spacing after a string is correct.
 --
 -- >>> data Foo = Foo String Int deriving Show
 --
 -- >>> pPrintNoColor $ Foo "bar" 0
 -- Foo "bar" 0
+--
+-- Non-printable characters will get escaped.
+--
+-- >>> pPrintNoColor "this string has non-printable characters: \x8 and \x9"
+-- "this string has non-printable characters: \x8 and \x9"

@@ -136,12 +136,10 @@ renderOutput (Output _ (OutputStringLit string)) = do
     ]
   where
     process :: OutputOptions -> String -> String
-    process opts
-      | outputOptionsEscapeNonPrintable opts
-      = indentSubsequentLinesWith spaces . escapeNonPrintable . readStr
-
-      | otherwise
-      = indentSubsequentLinesWith spaces . readStr
+    process opts =
+      if outputOptionsEscapeNonPrintable opts
+        then indentSubsequentLinesWith spaces . escapeNonPrintable . readStr
+        else indentSubsequentLinesWith spaces . readStr
       where
         spaces :: String
         spaces = replicate (indentSpaces + 2) ' '
@@ -152,14 +150,29 @@ renderOutput (Output _ (OutputStringLit string)) = do
         readStr :: String -> String
         readStr s = fromMaybe s . readMaybe $ '"':s ++ "\""
 
-        escapeNonPrintable :: String -> String
-        escapeNonPrintable input = foldr escape "" input
+-- | Replace non-printable characters with hex escape sequences.
+--
+-- >>> escapeNonPrintable "\x1\x2"
+-- "\\x1\\x2"
+--
+-- Newlines will not be escaped.
+--
+-- >>> escapeNonPrintable "hello\nworld"
+-- "hello\nworld"
+--
+-- Printable characters will not be escaped.
+--
+-- >>> escapeNonPrintable "h\101llo"
+-- "hello"
+escapeNonPrintable :: String -> String
+escapeNonPrintable input = foldr escape "" input
 
-        -- Replace an unprintable character except a newline
-        -- with a hex escape sequence.
-        escape :: Char -> ShowS
-        escape c | isPrint c || c == '\n' = (c:)
-                | otherwise = ('\\':) . ('x':) . showHex (ord c)
+-- Replace an unprintable character except a newline
+-- with a hex escape sequence.
+escape :: Char -> ShowS
+escape c
+  | isPrint c || c == '\n' = (c:)
+  | otherwise = ('\\':) . ('x':) . showHex (ord c)
 
 -- |
 -- >>> indentSubsequentLinesWith "  " "aaa"
