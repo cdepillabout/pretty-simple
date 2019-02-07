@@ -78,7 +78,7 @@ import Control.Applicative
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Foldable (toList)
-import Data.Text.Lazy (Text, pack, unpack)
+import Data.Text.Lazy (Text)
 import Data.Text.Lazy.IO as LText
 
 import Text.Pretty.Simple.Internal
@@ -86,6 +86,9 @@ import Text.Pretty.Simple.Internal
         defaultColorOptionsLightBg, defaultOutputOptionsDarkBg,
         defaultOutputOptionsLightBg, defaultOutputOptionsNoColor,
         expressionParse, expressionsToOutputs, render)
+
+-- $setup
+-- >>> import Data.Text.Lazy (unpack)
 
 ----------------------------------------------------------
 -- functions for printing in color to a dark background --
