@@ -28,6 +28,19 @@ module Debug.Pretty.Simple
   , pTraceEventIO
   , pTraceMarker
   , pTraceMarkerIO
+    -- * Trace forcing color
+  , pTraceForceColor
+  , pTraceIdForceColor
+  , pTraceShowForceColor
+  , pTraceShowIdForceColor
+  , pTraceMForceColor
+  , pTraceShowMForceColor
+  , pTraceStackForceColor
+  , pTraceEventForceColor
+  , pTraceEventIOForceColor
+  , pTraceMarkerForceColor
+  , pTraceMarkerIOForceColor
+  , pTraceIOForceColor
     -- * Trace without color
   , pTraceNoColor
   , pTraceIdNoColor
@@ -43,16 +56,27 @@ module Debug.Pretty.Simple
   , pTraceIONoColor
   ) where
 
-import Data.Text.Lazy (unpack)
+import Control.Monad ((<=<))
+import Data.Text.Lazy (Text, unpack)
 import Debug.Trace
        (trace, traceEvent, traceEventIO, traceIO, traceM, traceMarker,
         traceMarkerIO, traceStack)
-import Text.Pretty.Simple (pShow, pShowNoColor, pString, pStringNoColor)
+import System.IO.Unsafe (unsafePerformIO)
+import Text.Pretty.Simple
+       (pShow, pShowNoColor, pString, pStringNoColor, pStringOpt, pShowOpt,
+       defaultOutputOptionsDarkBg, checkTTY)
 
 #if __GLASGOW_HASKELL__ < 710
 -- We don't need this import for GHC 7.10 as it exports all required functions
 -- from Prelude
 import Control.Applicative
+#endif
+
+#if __GLASGOW_HASKELL__ < 841
+(<&>) :: Functor f => f a -> (a -> b) -> f b
+(<&>) = flip fmap
+#else
+import Data.Functor ((<&>))
 #endif
 
 {-|
@@ -62,7 +86,7 @@ This sequences the output with respect to other IO actions.
 @since 2.0.1.0
 -}
 pTraceIO :: String -> IO ()
-pTraceIO = traceIO . unpack . pString
+pTraceIO = traceIO . unpack <=< pStringTTYIO
 
 {-|
 The 'pTrace' function pretty prints the trace message given as its first
@@ -80,7 +104,7 @@ trace message.
 @since 2.0.1.0
 -}
 pTrace :: String -> a -> a
-pTrace = trace . unpack . pString
+pTrace = trace . unpack . pStringTTY
 
 {-|
 Like 'pTrace' but returns the message instead of a third value.
@@ -106,7 +130,7 @@ variables @x@ and @z@:
 @since 2.0.1.0
 -}
 pTraceShow :: (Show a) => a -> b -> b
-pTraceShow = trace . unpack . pShow
+pTraceShow = trace . unpack . pShowTTY
 
 {-|
 Like 'pTraceShow' but returns the shown value instead of a third value.
@@ -114,7 +138,7 @@ Like 'pTraceShow' but returns the shown value instead of a third value.
 @since 2.0.1.0
 -}
 pTraceShowId :: (Show a) => a -> a
-pTraceShowId a = trace (unpack (pShow a)) a
+pTraceShowId a = trace (unpack (pShowTTY a)) a
 
 {-|
 Like 'pTrace' but returning unit in an arbitrary 'Applicative' context. Allows
@@ -140,7 +164,7 @@ pTraceM :: (Monad f) => String -> f ()
 #else
 pTraceM :: (Applicative f) => String -> f ()
 #endif
-pTraceM string = trace (unpack (pString string)) $ pure ()
+pTraceM string = trace (unpack (pStringTTY string)) $ pure ()
 
 {-|
 Like 'pTraceM', but uses 'show' on the argument to convert it to a 'String'.
@@ -158,7 +182,7 @@ pTraceShowM :: (Show a, Monad f) => a -> f ()
 #else
 pTraceShowM :: (Show a, Applicative f) => a -> f ()
 #endif
-pTraceShowM = traceM . unpack . pShow
+pTraceShowM = traceM . unpack . pShowTTY
 
 {-|
 like 'pTrace', but additionally prints a call stack if one is
@@ -173,7 +197,7 @@ stack correspond to @SCC@ annotations, so it is a good idea to use
 @since 2.0.1.0
 -}
 pTraceStack :: String -> a -> a
-pTraceStack = traceStack . unpack . pString
+pTraceStack = traceStack . unpack . pStringTTY
 
 {-|
 The 'pTraceEvent' function behaves like 'trace' with the difference that
@@ -190,7 +214,7 @@ that uses 'pTraceEvent'.
 @since 2.0.1.0
 -}
 pTraceEvent :: String -> a -> a
-pTraceEvent = traceEvent . unpack . pString
+pTraceEvent = traceEvent . unpack . pStringTTY
 
 {-|
 The 'pTraceEventIO' function emits a message to the eventlog, if eventlog
@@ -202,7 +226,7 @@ other IO actions.
 @since 2.0.1.0
 -}
 pTraceEventIO :: String -> IO ()
-pTraceEventIO = traceEventIO . unpack . pString
+pTraceEventIO = traceEventIO . unpack <=< pStringTTYIO
 
 -- | The 'pTraceMarker' function emits a marker to the eventlog, if eventlog
 -- profiling is available and enabled at runtime. The @String@ is the name of
@@ -218,7 +242,7 @@ pTraceEventIO = traceEventIO . unpack . pString
 --
 -- @since 2.0.1.0
 pTraceMarker :: String -> a -> a
-pTraceMarker = traceMarker . unpack . pString
+pTraceMarker = traceMarker . unpack . pStringTTY
 
 -- | The 'pTraceMarkerIO' function emits a marker to the eventlog, if eventlog
 -- profiling is available and enabled at runtime.
@@ -228,7 +252,83 @@ pTraceMarker = traceMarker . unpack . pString
 --
 -- @since 2.0.1.0
 pTraceMarkerIO :: String -> IO ()
-pTraceMarkerIO = traceMarkerIO . unpack . pString
+pTraceMarkerIO = traceMarkerIO . unpack <=< pStringTTYIO
+
+------------------------------------------
+-- Helpers
+------------------------------------------
+
+pStringTTYIO :: String -> IO Text
+pStringTTYIO v = checkTTY defaultOutputOptionsDarkBg <&> \o -> pStringOpt o v
+
+pStringTTY :: String -> Text
+pStringTTY = unsafePerformIO . pStringTTYIO
+
+pShowTTYIO :: Show a => a -> IO Text
+pShowTTYIO v = checkTTY defaultOutputOptionsDarkBg <&> \o -> pShowOpt o v
+
+pShowTTY :: Show a => a -> Text
+pShowTTY = unsafePerformIO . pShowTTYIO
+
+------------------------------------------
+-- Traces forcing color
+------------------------------------------
+
+-- | Similar to 'pTrace', but forcing color.
+pTraceForceColor :: String -> a -> a
+pTraceForceColor = trace . unpack . pString
+
+-- | Similar to 'pTraceId', but forcing color.
+pTraceIdForceColor :: String -> String
+pTraceIdForceColor a = pTraceForceColor a a
+
+-- | Similar to 'pTraceShow', but forcing color.
+pTraceShowForceColor :: (Show a) => a -> b -> b
+pTraceShowForceColor = trace . unpack . pShow
+
+-- | Similar to 'pTraceShowId', but forcing color.
+pTraceShowIdForceColor :: (Show a) => a -> a
+pTraceShowIdForceColor a = trace (unpack (pShow a)) a
+
+-- | Similar to 'pTraceM', but forcing color.
+#if __GLASGOW_HASKELL__ < 800
+pTraceMForceColor :: (Monad f) => String -> f ()
+#else
+pTraceMForceColor :: (Applicative f) => String -> f ()
+#endif
+pTraceMForceColor string = trace (unpack (pString string)) $ pure ()
+
+-- | Similar to 'pTraceShowM', but forcing color.
+#if __GLASGOW_HASKELL__ < 800
+pTraceShowMForceColor :: (Show a, Monad f) => a -> f ()
+#else
+pTraceShowMForceColor :: (Show a, Applicative f) => a -> f ()
+#endif
+pTraceShowMForceColor = traceM . unpack . pShow
+
+-- | Similar to 'pTraceStack', but forcing color.
+pTraceStackForceColor :: String -> a -> a
+pTraceStackForceColor = traceStack . unpack . pString
+
+-- | Similar to 'pTraceEvent', but forcing color.
+pTraceEventForceColor :: String -> a -> a
+pTraceEventForceColor = traceEvent . unpack . pString
+
+-- | Similar to 'pTraceEventIO', but forcing color.
+pTraceEventIOForceColor :: String -> IO ()
+pTraceEventIOForceColor = traceEventIO . unpack . pString
+
+-- | Similar to 'pTraceMarker', but forcing color.
+pTraceMarkerForceColor :: String -> a -> a
+pTraceMarkerForceColor = traceMarker . unpack . pString
+
+-- | Similar to 'pTraceMarkerIO', but forcing color.
+pTraceMarkerIOForceColor :: String -> IO ()
+pTraceMarkerIOForceColor = traceMarkerIO . unpack . pString
+
+-- | Similar to 'pTraceIO', but forcing color.
+pTraceIOForceColor :: String -> IO ()
+pTraceIOForceColor = traceIO . unpack . pString
 
 ------------------------------------------
 -- Traces without color
@@ -300,7 +400,7 @@ pTraceMNoColor :: (Monad f) => String -> f ()
 #else
 pTraceMNoColor :: (Applicative f) => String -> f ()
 #endif
-pTraceMNoColor string = trace (unpack (pString string)) $ pure ()
+pTraceMNoColor string = trace (unpack (pStringNoColor string)) $ pure ()
 
 -- | Similar to 'pTraceShowM', but without color.
 --
