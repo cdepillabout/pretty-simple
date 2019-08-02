@@ -26,6 +26,7 @@ module Text.Pretty.Simple.Internal.OutputPrinter
 import Control.Applicative
 #endif
 
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Reader (MonadReader(ask, reader), runReader)
 import Data.Char (isPrint, ord)
 import Numeric (showHex)
@@ -37,6 +38,7 @@ import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
 import Text.Read (readMaybe)
 import GHC.Generics (Generic)
+import System.IO (Handle, hIsTerminalDevice, stdout)
 
 import Text.Pretty.Simple.Internal.Color
        (ColorOptions(..), colorReset, defaultColorOptionsDarkBg,
@@ -91,6 +93,23 @@ defaultOutputOptionsNoColor =
   , outputOptionsColorOptions = Nothing
   , outputOptionsEscapeNonPrintable = True
   }
+
+-- | Given 'OutputOptions', disable colorful output if the standard output
+-- is not connected to a TTY.
+checkTTY :: MonadIO m => OutputOptions -> m OutputOptions
+checkTTY = hCheckTTY stdout
+
+-- | Given 'OutputOptions', disable colorful output if the given handle
+-- is not connected to a TTY.
+hCheckTTY :: MonadIO m => Handle -> OutputOptions -> m OutputOptions
+hCheckTTY h options = liftIO $ conv <$> tty
+  where
+    conv :: Bool -> OutputOptions
+    conv True = options
+    conv False = options { outputOptionsColorOptions = Nothing }
+
+    tty :: IO Bool
+    tty = hIsTerminalDevice h
 
 -- | Given 'OutputOptions' and a list of 'Output', turn the 'Output' into a
 -- lazy 'Text'.
