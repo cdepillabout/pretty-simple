@@ -16,6 +16,8 @@ Warning: This module also shares the same unsafety of "Debug.Trace" module.
 
 module Debug.Pretty.Simple
   ( -- * Trace with color on dark background
+    -- This determines whether to print in color by looking at whether 'stderr'
+    -- is a TTY device.
     pTrace
   , pTraceId
   , pTraceShow
