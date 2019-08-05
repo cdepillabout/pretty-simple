@@ -38,7 +38,7 @@ import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
 import Text.Read (readMaybe)
 import GHC.Generics (Generic)
-import System.IO (Handle, hIsTerminalDevice, stdout)
+import System.IO (Handle, hIsTerminalDevice)
 
 import Text.Pretty.Simple.Internal.Color
        (ColorOptions(..), colorReset, defaultColorOptionsDarkBg,
@@ -108,11 +108,6 @@ defaultOutputOptionsNoColor =
   , outputOptionsColorOptions = Nothing
   , outputOptionsEscapeNonPrintable = True
   }
-
--- | Given 'OutputOptions', disable colorful output if 'stdout' is not
--- connected to a TTY.
-checkTTY :: MonadIO m => OutputOptions -> m OutputOptions
-checkTTY = hCheckTTY stdout
 
 -- | Given 'OutputOptions', disable colorful output if the given handle
 -- is not connected to a TTY.

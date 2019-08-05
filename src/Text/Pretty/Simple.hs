@@ -74,7 +74,6 @@ module Text.Pretty.Simple
   , defaultOutputOptionsLightBg
   , defaultOutputOptionsNoColor
   , CheckColorTty(..)
-  , checkTTY
   , hCheckTTY
   -- * 'ColorOptions'
   -- $colorOptions
@@ -100,7 +99,7 @@ import Text.Pretty.Simple.Internal
        (CheckColorTty(..), OutputOptions(..), defaultColorOptionsDarkBg,
         defaultColorOptionsLightBg, defaultOutputOptionsDarkBg,
         defaultOutputOptionsLightBg, defaultOutputOptionsNoColor,
-        checkTTY, hCheckTTY, expressionParse, expressionsToOutputs, render)
+        hCheckTTY, expressionParse, expressionsToOutputs, render)
 
 -- $setup
 -- >>> import Data.Text.Lazy (unpack)

@@ -61,22 +61,16 @@ import Data.Text.Lazy (Text, unpack)
 import Debug.Trace
        (trace, traceEvent, traceEventIO, traceIO, traceM, traceMarker,
         traceMarkerIO, traceStack)
+import System.IO (stderr)
 import System.IO.Unsafe (unsafePerformIO)
 import Text.Pretty.Simple
-       (pShow, pShowNoColor, pString, pStringNoColor, pStringOpt, pShowOpt,
-       defaultOutputOptionsDarkBg, checkTTY)
+       (pShow, pShowNoColor, pString, pStringNoColor, pStringOpt,
+       defaultOutputOptionsDarkBg, hCheckTTY)
 
 #if __GLASGOW_HASKELL__ < 710
 -- We don't need this import for GHC 7.10 as it exports all required functions
 -- from Prelude
 import Control.Applicative
-#endif
-
-#if __GLASGOW_HASKELL__ < 841
-(<&>) :: Functor f => f a -> (a -> b) -> f b
-(<&>) = flip fmap
-#else
-import Data.Functor ((<&>))
 #endif
 
 {-|
@@ -259,13 +253,15 @@ pTraceMarkerIO = traceMarkerIO . unpack <=< pStringTTYIO
 ------------------------------------------
 
 pStringTTYIO :: String -> IO Text
-pStringTTYIO v = checkTTY defaultOutputOptionsDarkBg <&> \o -> pStringOpt o v
+pStringTTYIO v = do
+  realOutputOpts <- hCheckTTY stderr defaultOutputOptionsDarkBg
+  pure $ pStringOpt realOutputOpts v
 
 pStringTTY :: String -> Text
 pStringTTY = unsafePerformIO . pStringTTYIO
 
 pShowTTYIO :: Show a => a -> IO Text
-pShowTTYIO v = checkTTY defaultOutputOptionsDarkBg <&> \o -> pShowOpt o v
+pShowTTYIO = pStringTTYIO . show
 
 pShowTTY :: Show a => a -> Text
 pShowTTY = unsafePerformIO . pShowTTYIO
