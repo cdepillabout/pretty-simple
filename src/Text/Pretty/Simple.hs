@@ -39,22 +39,33 @@ module Text.Pretty.Simple
   (
   -- * Output with color on dark background
     pPrint
+  , pHPrint
+  , pPrintForceColor
+  , pHPrintForceColor
   , pShow
   , pString
   -- * Aliases for output with color on dark background
   , pPrintDarkBg
+  , pHPrintDarkBg
+  , pPrintForceColorDarkBg
+  , pHPrintForceColorDarkBg
   , pShowDarkBg
   , pStringDarkBg
   -- * Output with color on light background
   , pPrintLightBg
+  , pHPrintLightBg
+  , pPrintForceColorLightBg
+  , pHPrintForceColorLightBg
   , pShowLightBg
   , pStringLightBg
   -- * Output with NO color
   , pPrintNoColor
+  , pHPrintNoColor
   , pShowNoColor
   , pStringNoColor
   -- * Output With 'OutputOptions'
   , pPrintOpt
+  , pHPrintOpt
   , pShowOpt
   , pStringOpt
   -- * 'OutputOptions'
@@ -62,6 +73,7 @@ module Text.Pretty.Simple
   , defaultOutputOptionsDarkBg
   , defaultOutputOptionsLightBg
   , defaultOutputOptionsNoColor
+  , CheckColorTty(..)
   -- * 'ColorOptions'
   -- $colorOptions
   , defaultColorOptionsDarkBg
@@ -80,12 +92,13 @@ import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Foldable (toList)
 import Data.Text.Lazy (Text)
 import Data.Text.Lazy.IO as LText
+import System.IO (Handle, stdout)
 
 import Text.Pretty.Simple.Internal
-       (OutputOptions(..), defaultColorOptionsDarkBg,
+       (CheckColorTty(..), OutputOptions(..), defaultColorOptionsDarkBg,
         defaultColorOptionsLightBg, defaultOutputOptionsDarkBg,
         defaultOutputOptionsLightBg, defaultOutputOptionsNoColor,
-        expressionParse, expressionsToOutputs, render)
+        hCheckTTY, expressionParse, expressionsToOutputs, render)
 
 -- $setup
 -- >>> import Data.Text.Lazy (unpack)
@@ -103,12 +116,30 @@ import Text.Pretty.Simple.Internal
 --  pPrint :: Show a => a -> IO ()
 -- @
 --
--- This function is for printing to a dark background.
+-- This function will only use colors if it detects it's printing to a TTY.
+--
+-- This function is for printing to a dark background.  Use 'pPrintLightBg' for
+-- printing to a terminal with a light background.  Different colors are used.
+--
+-- Prints to 'stdout'.  Use 'pHPrint' to print to a different 'Handle'.
 pPrint :: (MonadIO m, Show a) => a -> m ()
-pPrint = pPrintOpt defaultOutputOptionsDarkBg
+pPrint = pPrintOpt CheckColorTty defaultOutputOptionsDarkBg
 
--- | Similar to 'pPrint', but just return the resulting pretty-printed data
--- type as a 'Text' instead of printing it to the screen.
+-- | Similar to 'pPrint', but take a 'Handle' to print to.
+pHPrint :: (MonadIO m, Show a) => Handle -> a -> m ()
+pHPrint = pHPrintOpt CheckColorTty defaultOutputOptionsDarkBg
+
+-- | Similar to 'pPrint', but print in color regardless of whether the output
+-- goes to a TTY or not.
+pPrintForceColor :: (MonadIO m, Show a) => a -> m ()
+pPrintForceColor = pPrintOpt NoCheckColorTty defaultOutputOptionsDarkBg
+
+-- | Similar to 'pPrintForceColor', but take a 'Handle' to print to.
+pHPrintForceColor :: (MonadIO m, Show a) => Handle -> a -> m ()
+pHPrintForceColor = pHPrintOpt NoCheckColorTty defaultOutputOptionsDarkBg
+
+-- | Similar to 'pPrintForceColor', but just return the resulting pretty-printed
+-- data type as a 'Text' instead of printing it to the screen.
 --
 -- This function is for printing to a dark background.
 pShow :: Show a => a -> Text
@@ -134,6 +165,18 @@ pString = pStringOpt defaultOutputOptionsDarkBg
 pPrintDarkBg :: (MonadIO m, Show a) => a -> m ()
 pPrintDarkBg = pPrint
 
+-- | Alias for 'pHPrint'.
+pHPrintDarkBg :: (MonadIO m, Show a) => Handle -> a -> m ()
+pHPrintDarkBg = pHPrint
+
+-- | Alias for 'pPrintForceColor'.
+pPrintForceColorDarkBg :: (MonadIO m, Show a) => a -> m ()
+pPrintForceColorDarkBg = pPrintForceColor
+
+-- | Alias for 'pHPrintForceColor'.
+pHPrintForceColorDarkBg :: (MonadIO m, Show a) => Handle -> a -> m ()
+pHPrintForceColorDarkBg = pHPrintForceColor
+
 -- | Alias for 'pShow'.
 pShowDarkBg :: Show a => a -> Text
 pShowDarkBg = pShow
@@ -148,7 +191,21 @@ pStringDarkBg = pString
 
 -- | Just like 'pPrintDarkBg', but for printing to a light background.
 pPrintLightBg :: (MonadIO m, Show a) => a -> m ()
-pPrintLightBg = pPrintOpt defaultOutputOptionsLightBg
+pPrintLightBg = pPrintOpt CheckColorTty defaultOutputOptionsLightBg
+
+-- | Just like 'pHPrintDarkBg', but for printing to a light background.
+pHPrintLightBg :: (MonadIO m, Show a) => Handle -> a -> m ()
+pHPrintLightBg = pHPrintOpt CheckColorTty defaultOutputOptionsLightBg
+
+-- | Just like 'pPrintForceColorDarkBg', but for printing to a light
+-- background.
+pPrintForceColorLightBg :: (MonadIO m, Show a) => a -> m ()
+pPrintForceColorLightBg = pPrintOpt NoCheckColorTty defaultOutputOptionsLightBg
+
+-- | Just like 'pHPrintForceColorDarkBg', but for printing to a light
+-- background.
+pHPrintForceColorLightBg :: (MonadIO m, Show a) => Handle -> a -> m ()
+pHPrintForceColorLightBg = pHPrintOpt NoCheckColorTty defaultOutputOptionsLightBg
 
 -- | Just like 'pShowDarkBg', but for printing to a light background.
 pShowLightBg :: Show a => a -> Text
@@ -171,7 +228,11 @@ pStringLightBg = pStringOpt defaultOutputOptionsLightBg
 --     , "bye"
 --     ]
 pPrintNoColor :: (MonadIO m, Show a) => a -> m ()
-pPrintNoColor = pPrintOpt defaultOutputOptionsNoColor
+pPrintNoColor = pPrintOpt NoCheckColorTty defaultOutputOptionsNoColor
+
+-- | Like 'pPrintNoColor', but take a 'Handle' to determine where to print to.
+pHPrintNoColor :: (MonadIO m, Show a) => Handle -> a -> m ()
+pHPrintNoColor = pHPrintOpt NoCheckColorTty defaultOutputOptionsNoColor
 
 -- | Like 'pShow', but without color.
 pShowNoColor :: Show a => a -> Text
@@ -193,7 +254,7 @@ pStringNoColor = pStringOpt defaultOutputOptionsNoColor
 --
 -- This is what the normal indentation looks like:
 --
--- >>> pPrintOpt defaultOutputOptionsNoColor $ Just ("hello", "bye")
+-- >>> pPrintOpt NoCheckColorTty defaultOutputOptionsNoColor $ Just ("hello", "bye")
 -- Just
 --     ( "hello"
 --     , "bye"
@@ -202,7 +263,7 @@ pStringNoColor = pStringOpt defaultOutputOptionsNoColor
 -- This is what smaller indentation looks like:
 --
 -- >>> let smallIndent = defaultOutputOptionsNoColor {outputOptionsIndentAmount = 1}
--- >>> pPrintOpt smallIndent $ Just ("hello", "bye")
+-- >>> pPrintOpt CheckColorTty smallIndent $ Just ("hello", "bye")
 -- Just
 --  ( "hello"
 --  , "bye"
@@ -210,7 +271,7 @@ pStringNoColor = pStringOpt defaultOutputOptionsNoColor
 --
 -- Lines in strings get indented
 --
--- >>> pPrintOpt defaultOutputOptionsNoColor (1, (2, "foo\nbar\nbaz", 3))
+-- >>> pPrintOpt NoCheckColorTty defaultOutputOptionsNoColor (1, (2, "foo\nbar\nbaz", 3))
 -- ( 1
 -- ,
 --     ( 2
@@ -225,7 +286,7 @@ pStringNoColor = pStringOpt defaultOutputOptionsNoColor
 --
 -- >>> data Foo = Foo
 -- >>> instance Show Foo where show _ = "foo\nbar\nbaz"
--- >>> pPrintOpt defaultOutputOptionsNoColor (1, (2, Foo, 3))
+-- >>> pPrintOpt CheckColorTty defaultOutputOptionsNoColor (1, (2, Foo, 3))
 -- ( 1
 -- ,
 --     ( 2
@@ -235,9 +296,39 @@ pStringNoColor = pStringOpt defaultOutputOptionsNoColor
 --     , 3
 --     )
 -- )
+--
+-- 'CheckColorTty' determines whether to test 'stdout' for whether or not it is
+-- connected to a TTY.
+--
+-- If set to 'NoCheckColorTty', then 'pPrintOpt' won't
+-- check if 'stdout' is a TTY.  It will print in color depending on the value
+-- of 'outputOptionsColorOptions'.
+--
+-- If set to 'CheckColorTty', then 'pPrintOpt' will check if 'stdout' is
+-- conneted to a TTY.  If 'stdout' is determined to be connected to a TTY, then
+-- it will print in color depending on the value of
+-- 'outputOptionsColorOptions'.  If 'stdout' is determined to NOT be connected
+-- to a TTY, then it will NOT print in color, regardless of the value of
+-- 'outputOptionsColorOptions'.
+pPrintOpt :: (MonadIO m, Show a) => CheckColorTty -> OutputOptions -> a -> m ()
+pPrintOpt checkColorTty outputOptions =
+  pHPrintOpt checkColorTty outputOptions stdout
 
-pPrintOpt :: (MonadIO m, Show a) => OutputOptions -> a -> m ()
-pPrintOpt outputOptions = liftIO . LText.putStrLn . pShowOpt outputOptions
+-- | Similar to 'pPrintOpt', but take a 'Handle' to determine where to print
+-- to.
+pHPrintOpt ::
+     (MonadIO m, Show a)
+  => CheckColorTty
+  -> OutputOptions
+  -> Handle
+  -> a
+  -> m ()
+pHPrintOpt checkColorTty outputOptions handle a = do
+  realOutputOpts <-
+    case checkColorTty of
+      CheckColorTty -> hCheckTTY handle outputOptions
+      NoCheckColorTty -> pure outputOptions
+  liftIO $ LText.hPutStrLn handle $ pShowOpt realOutputOpts a
 
 -- | Like 'pShow' but takes 'OutputOptions' to change how the
 -- pretty-printing is done.
@@ -247,7 +338,8 @@ pShowOpt outputOptions = pStringOpt outputOptions . show
 -- | Like 'pString' but takes 'OutputOptions' to change how the
 -- pretty-printing is done.
 pStringOpt :: OutputOptions -> String -> Text
-pStringOpt outputOptions = render outputOptions . toList . expressionsToOutputs . expressionParse 
+pStringOpt outputOptions =
+  render outputOptions . toList . expressionsToOutputs . expressionParse
 
 -- $colorOptions
 --
@@ -259,22 +351,16 @@ pStringOpt outputOptions = render outputOptions . toList . expressionsToOutputs 
 -- Here are some examples of using 'pPrint' on different data types.  You can
 -- look at these examples to get an idea of what 'pPrint' will output.
 --
--- The following examples are all using 'pPrintNoColor' instead of 'pPrint'
--- because their output is being checked using
--- <https://github.com/sol/doctest#readme doctest>.  'pPrint' outputs ANSI
--- escape codes in order to produce color, so the following examples would be
--- hard to read had 'pPrint' been used.
---
 -- __Simple Haskell data type__
 --
 -- >>> data Foo a = Foo a String deriving Show
 --
--- >>> pPrintNoColor $ Foo 3 "hello"
+-- >>> pPrint $ Foo 3 "hello"
 -- Foo 3 "hello"
 --
 -- __List__
 --
--- >>> pPrintNoColor $ [1,2,3]
+-- >>> pPrint $ [1,2,3]
 -- [ 1
 -- , 2
 -- , 3
@@ -282,14 +368,14 @@ pStringOpt outputOptions = render outputOptions . toList . expressionsToOutputs 
 --
 -- __Slightly more complicated list__
 --
--- >>> pPrintNoColor $ [ Foo [ (), () ] "hello" ]
+-- >>> pPrint $ [ Foo [ (), () ] "hello" ]
 -- [ Foo
 --     [ ()
 --     , ()
 --     ] "hello"
 -- ]
 --
--- >>> pPrintNoColor $ [ Foo [ "bar", "baz" ] "hello", Foo [] "bye" ]
+-- >>> pPrint $ [ Foo [ "bar", "baz" ] "hello", Foo [] "bye" ]
 -- [ Foo
 --     [ "bar"
 --     , "baz"
@@ -307,7 +393,7 @@ pStringOpt outputOptions = render outputOptions . toList . expressionsToOutputs 
 --   } deriving Show
 -- :}
 --
--- >>> pPrintNoColor $ Bar 1 [10, 11] [Foo 1.1 "", Foo 2.2 "hello"]
+-- >>> pPrint $ Bar 1 [10, 11] [Foo 1.1 "", Foo 2.2 "hello"]
 -- Bar
 --     { barInt = 1
 --     , barA =
@@ -324,7 +410,7 @@ pStringOpt outputOptions = render outputOptions . toList . expressionsToOutputs 
 --
 -- >>> newtype Baz = Baz { unBaz :: [String] } deriving Show
 --
--- >>> pPrintNoColor $ Baz ["hello", "bye"]
+-- >>> pPrint $ Baz ["hello", "bye"]
 -- Baz
 --     { unBaz =
 --         [ "hello"
@@ -336,20 +422,20 @@ pStringOpt outputOptions = render outputOptions . toList . expressionsToOutputs 
 --
 -- >>> data Foo = A | B Foo | C [Foo] [Foo] deriving Show
 --
--- >>> pPrintNoColor $ B ( B A )
+-- >>> pPrint $ B ( B A )
 -- B ( B A )
 --
--- >>> pPrintNoColor $ B ( B ( B A ) )
+-- >>> pPrint $ B ( B ( B A ) )
 -- B
 --     ( B ( B A ) )
 --
--- >>> pPrintNoColor $ B ( B ( B ( B A ) ) )
+-- >>> pPrint $ B ( B ( B ( B A ) ) )
 -- B
 --     ( B
 --         ( B ( B A ) )
 --     )
 --
--- >>> pPrintNoColor $ B ( C [A, A] [B A, B (B (B A))] )
+-- >>> pPrint $ B ( C [A, A] [B A, B (B (B A))] )
 -- B
 --     ( C
 --         [ A
@@ -368,7 +454,7 @@ pStringOpt outputOptions = render outputOptions . toList . expressionsToOutputs 
 --
 -- __Unicode__
 --
--- >>> pPrintNoColor $ Baz ["猫", "犬", "ヤギ"]
+-- >>> pPrint $ Baz ["猫", "犬", "ヤギ"]
 -- Baz
 --     { unBaz =
 --         [ "猫"
@@ -383,10 +469,10 @@ pStringOpt outputOptions = render outputOptions . toList . expressionsToOutputs 
 --
 -- >>> data Foo = Foo String Int deriving Show
 --
--- >>> pPrintNoColor $ Foo "bar" 0
+-- >>> pPrint $ Foo "bar" 0
 -- Foo "bar" 0
 --
 -- Non-printable characters will get escaped.
 --
--- >>> pPrintNoColor "this string has non-printable characters: \x8 and \x9"
+-- >>> pPrint "this string has non-printable characters: \x8 and \x9"
 -- "this string has non-printable characters: \x8 and \x9"

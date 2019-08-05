@@ -26,6 +26,7 @@ module Text.Pretty.Simple.Internal.OutputPrinter
 import Control.Applicative
 #endif
 
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Reader (MonadReader(ask, reader), runReader)
 import Data.Char (isPrint, ord)
 import Numeric (showHex)
@@ -37,12 +38,28 @@ import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
 import Text.Read (readMaybe)
 import GHC.Generics (Generic)
+import System.IO (Handle, hIsTerminalDevice)
 
 import Text.Pretty.Simple.Internal.Color
        (ColorOptions(..), colorReset, defaultColorOptionsDarkBg,
         defaultColorOptionsLightBg)
 import Text.Pretty.Simple.Internal.Output
        (NestLevel(..), Output(..), OutputType(..))
+
+-- | Determines whether pretty-simple should check if the output 'Handle' is a
+-- TTY device.  Normally, users only want to print in color if the output
+-- 'Handle' is a TTY device.
+data CheckColorTty
+  = CheckColorTty
+  -- ^ Check if the output 'Handle' is a TTY device.  If the output 'Handle' is
+  -- a TTY device, determine whether to print in color based on
+  -- 'outputOptionsColorOptions'. If not, then set 'outputOptionsColorOptions'
+  -- to 'Nothing' so the output does not get colorized.
+  | NoCheckColorTty
+  -- ^ Don't check if the output 'Handle' is a TTY device.  Determine whether to
+  -- colorize the output based solely on the value of
+  -- 'outputOptionsColorOptions'.
+  deriving (Eq, Generic, Show, Typeable)
 
 -- | Data-type wrapping up all the options available when rendering the list
 -- of 'Output's.
@@ -91,6 +108,18 @@ defaultOutputOptionsNoColor =
   , outputOptionsColorOptions = Nothing
   , outputOptionsEscapeNonPrintable = True
   }
+
+-- | Given 'OutputOptions', disable colorful output if the given handle
+-- is not connected to a TTY.
+hCheckTTY :: MonadIO m => Handle -> OutputOptions -> m OutputOptions
+hCheckTTY h options = liftIO $ conv <$> tty
+  where
+    conv :: Bool -> OutputOptions
+    conv True = options
+    conv False = options { outputOptionsColorOptions = Nothing }
+
+    tty :: IO Bool
+    tty = hIsTerminalDevice h
 
 -- | Given 'OutputOptions' and a list of 'Output', turn the 'Output' into a
 -- lazy 'Text'.
