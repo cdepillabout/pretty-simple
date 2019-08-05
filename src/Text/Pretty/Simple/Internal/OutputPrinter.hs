@@ -46,6 +46,21 @@ import Text.Pretty.Simple.Internal.Color
 import Text.Pretty.Simple.Internal.Output
        (NestLevel(..), Output(..), OutputType(..))
 
+-- | Determines whether pretty-simple should check if the output 'Handle' is a
+-- TTY device.  Normally, users only want to print in color if the output
+-- 'Handle' is a TTY device.
+data CheckColorTty
+  = CheckColorTty
+  -- ^ Check if the output 'Handle' is a TTY device.  If the output 'Handle' is
+  -- a TTY device, determine whether to print in color based on
+  -- 'outputOptionsColorOptions'. If not, then set 'outputOptionsColorOptions'
+  -- to 'Nothing' so the output does not get colorized.
+  | NoCheckColorTty
+  -- ^ Don't check if the output 'Handle' is a TTY device.  Determine whether to
+  -- colorize the output based solely on the value of
+  -- 'outputOptionsColorOptions'.
+  deriving (Eq, Generic, Show, Typeable)
+
 -- | Data-type wrapping up all the options available when rendering the list
 -- of 'Output's.
 data OutputOptions = OutputOptions
@@ -94,8 +109,8 @@ defaultOutputOptionsNoColor =
   , outputOptionsEscapeNonPrintable = True
   }
 
--- | Given 'OutputOptions', disable colorful output if the standard output
--- is not connected to a TTY.
+-- | Given 'OutputOptions', disable colorful output if 'stdout' is not
+-- connected to a TTY.
 checkTTY :: MonadIO m => OutputOptions -> m OutputOptions
 checkTTY = hCheckTTY stdout
 
