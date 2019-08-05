@@ -12,6 +12,8 @@
     output from `pPrint`!  Implemented in
     [#47](https://github.com/cdepillabout/pretty-simple/pull/47).  Thanks
     [metiulekm](https://github.com/metiulekm)!
+*   Add functions like `pHPrint` for specifying the `Handle` to output to.
+    Added in [#47](https://github.com/cdepillabout/pretty-simple/pull/47).
 
 ## 2.2.0.1
 *   Fixed a [bug](https://github.com/cdepillabout/pretty-simple/pull/41) where
