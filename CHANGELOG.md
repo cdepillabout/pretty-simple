@@ -1,11 +1,17 @@
 
-## next (major version bump)
+## 3.0.0.0
 
 *   pretty-simple now escapes non-printable characters by default.  A field
     called `outputOptionsEscapeNonPrintable` has been added to `OutputOptions`
     to control this behavior.  Implemented in
     [#44](https://github.com/cdepillabout/pretty-simple/pull/44). Thanks
     [dminuoso](https://github.com/dminuoso)!
+*   pretty-simple now checks the output `Handle` to determine whether to print
+    in color when using functions like `pPrint`.  This makes it so that you
+    can redirect output to a file on disk and still be able to read the
+    output from `pPrint`!  Implemented in
+    [#47](https://github.com/cdepillabout/pretty-simple/pull/47).  Thanks
+    [metiulekm](https://github.com/metiulekm)!
 
 ## 2.2.0.1
 *   Fixed a [bug](https://github.com/cdepillabout/pretty-simple/pull/41) where
