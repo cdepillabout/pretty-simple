@@ -74,7 +74,6 @@ module Text.Pretty.Simple
   , defaultOutputOptionsLightBg
   , defaultOutputOptionsNoColor
   , CheckColorTty(..)
-  , hCheckTTY
   -- * 'ColorOptions'
   -- $colorOptions
   , defaultColorOptionsDarkBg

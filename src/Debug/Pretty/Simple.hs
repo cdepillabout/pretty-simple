@@ -67,7 +67,8 @@ import System.IO (stderr)
 import System.IO.Unsafe (unsafePerformIO)
 import Text.Pretty.Simple
        (pShow, pShowNoColor, pString, pStringNoColor, pStringOpt,
-       defaultOutputOptionsDarkBg, hCheckTTY)
+       defaultOutputOptionsDarkBg)
+import Text.Pretty.Simple.Internal (hCheckTTY)
 
 #if __GLASGOW_HASKELL__ < 710
 -- We don't need this import for GHC 7.10 as it exports all required functions
