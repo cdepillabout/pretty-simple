@@ -20,6 +20,7 @@ module Text.Pretty.Simple.Internal.ExprParser
 
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
 import Control.Arrow (first)
+import Data.Char (isDigit)
 
 testString1, testString2 :: String
 testString1 = "Just [TextInput {textInputClass = Just (Class {unClass = \"class\"}), textInputId = Just (Id {unId = \"id\"}), textInputName = Just (Name {unName = \"name\"}), textInputValue = Just (Value {unValue = \"value\"}), textInputPlaceholder = Just (Placeholder {unPlaceholder = \"placeholder\"})}, TextInput {textInputClass = Just (Class {unClass = \"class\"}), textInputId = Just (Id {unId = \"id\"}), textInputName = Just (Name {unName = \"name\"}), textInputValue = Just (Value {unValue = \"value\"}), textInputPlaceholder = Just (Placeholder {unPlaceholder = \"placeholder\"})}]"
@@ -33,6 +34,7 @@ parseExpr ('(':rest) = first (Parens . CommaSeparated) $ parseCSep ')' rest
 parseExpr ('[':rest) = first (Brackets . CommaSeparated) $ parseCSep ']' rest
 parseExpr ('{':rest) = first (Braces . CommaSeparated) $ parseCSep '}' rest
 parseExpr ('"':rest) = first StringLit $ parseStringLit rest
+parseExpr (c:rest) | isDigit c = first IntegerLit $ parseIntegerLit c rest
 parseExpr other      = first Other $ parseOther other
 
 parseExprs :: String -> ([Expr], String)
@@ -63,8 +65,11 @@ parseStringLit ('\\':c:cs) = ('\\':c:cs', rest)
 parseStringLit (c:cs) = (c:cs', rest)
   where (cs', rest) = parseStringLit cs
 
+parseIntegerLit :: Char -> String -> (String, String)
+parseIntegerLit c = first (c :) . span isDigit
+
 parseOther :: String -> (String, String)
-parseOther = span . flip notElem $ ("{[()]}\"," :: String)
+parseOther = span $ \c -> notElem c ("{[()]}\"," :: String) && not (isDigit c)
 
 -- |
 -- Handle escaped characters correctly
