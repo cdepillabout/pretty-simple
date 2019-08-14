@@ -20,7 +20,7 @@ module Text.Pretty.Simple.Internal.ExprParser
 
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
 import Control.Arrow (first)
-import Data.Char (isDigit)
+import Data.Char (isAlpha, isDigit, isLower)
 
 testString1, testString2 :: String
 testString1 = "Just [TextInput {textInputClass = Just (Class {unClass = \"class\"}), textInputId = Just (Id {unId = \"id\"}), textInputName = Just (Name {unName = \"name\"}), textInputValue = Just (Value {unValue = \"value\"}), textInputPlaceholder = Just (Placeholder {unPlaceholder = \"placeholder\"})}, TextInput {textInputClass = Just (Class {unClass = \"class\"}), textInputId = Just (Id {unId = \"id\"}), textInputName = Just (Name {unName = \"name\"}), textInputValue = Just (Value {unValue = \"value\"}), textInputPlaceholder = Just (Placeholder {unPlaceholder = \"placeholder\"})}]"
@@ -68,8 +68,37 @@ parseStringLit (c:cs) = (c:cs', rest)
 parseIntegerLit :: Char -> String -> (String, String)
 parseIntegerLit c = first (c :) . span isDigit
 
+-- | This is almost the same as the function
+--
+-- > parseOtherSimple = span $ \c ->
+-- >   notElem c ("{[()]}\"," :: String) && not (isDigit c)
+--
+-- The behaviour of @parseOtherSimple@ here is to keep on going consuming input
+-- until we hit a special character or a digit.
+--
+-- The full behaviour of /this/ function can be described as: keep on going
+-- consuming input, stopping only when we hit a special character or a digit.
+-- However, if we appear to be in the middle of a Haskell-style identifier
+-- (e.g. @foo123@) and we hit a digit, then keep going anyway.
 parseOther :: String -> (String, String)
-parseOther = span $ \c -> notElem c ("{[()]}\"," :: String) && not (isDigit c)
+parseOther = go False
+  where
+    go :: Bool {-^ in an identifier? -} -> String -> (String, String)
+    go _ [] = ("", "")
+    go insideIdent cs@(c:cs')
+      | c `elem` ("{[()]}\"," :: String) = ("", cs)
+      | isDigit c && not insideIdent = ("", cs)
+      | insideIdent = first (c :) (go (isIdentRest c) cs')
+      | otherwise = first (c :) (go (isIdentBegin c) cs')
+
+    isIdentBegin :: Char -> Bool
+    isIdentBegin '_' = True
+    isIdentBegin c = isLower c
+
+    isIdentRest :: Char -> Bool
+    isIdentRest '_' = True
+    isIdentRest '\'' = True
+    isIdentRest c = isAlpha c || isDigit c
 
 -- |
 -- Handle escaped characters correctly
