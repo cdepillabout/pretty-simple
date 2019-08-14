@@ -34,7 +34,7 @@ parseExpr ('(':rest) = first (Parens . CommaSeparated) $ parseCSep ')' rest
 parseExpr ('[':rest) = first (Brackets . CommaSeparated) $ parseCSep ']' rest
 parseExpr ('{':rest) = first (Braces . CommaSeparated) $ parseCSep '}' rest
 parseExpr ('"':rest) = first StringLit $ parseStringLit rest
-parseExpr (c:rest) | isDigit c = first IntegerLit $ parseIntegerLit c rest
+parseExpr (c:rest) | isDigit c = first NumberLit $ parseNumberLit c rest
 parseExpr other      = first Other $ parseOther other
 
 parseExprs :: String -> ([Expr], String)
@@ -65,8 +65,17 @@ parseStringLit ('\\':c:cs) = ('\\':c:cs', rest)
 parseStringLit (c:cs) = (c:cs', rest)
   where (cs', rest) = parseStringLit cs
 
-parseIntegerLit :: Char -> String -> (String, String)
-parseIntegerLit c = first (c :) . span isDigit
+-- | Parses integers and reals, like @123@ and @45.67@.
+--
+-- To be more precise, any numbers matching the regex @\\d+(\\.\\d+)?@ should
+-- get parsed by this function.
+parseNumberLit :: Char -> String -> (String, String)
+parseNumberLit c rest1 =
+  case rest2 of
+    []        -> (c:base, "")
+    '.':rest3 -> first ((c :) . (base ++) . ('.' :)) (span isDigit rest3)
+    _         -> (c:base, rest2)
+  where (base, rest2) = span isDigit rest1
 
 -- | This is almost the same as the function
 --

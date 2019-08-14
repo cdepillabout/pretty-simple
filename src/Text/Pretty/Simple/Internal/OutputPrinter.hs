@@ -148,10 +148,10 @@ renderOutput (Output _ (OutputOther string)) = do
   let spaces = replicate (indentSpaces + 2) ' '
   -- TODO: This probably shouldn't be a string to begin with.
   pure $ fromString $ indentSubsequentLinesWith spaces string
-renderOutput (Output _ (OutputIntegerLit integer)) = do
+renderOutput (Output _ (OutputNumberLit number)) = do
   sequenceFold
     [ useColorNum
-    , pure (fromString integer)
+    , pure (fromString number)
     , useColorReset
     ]
 renderOutput (Output _ (OutputStringLit string)) = do
