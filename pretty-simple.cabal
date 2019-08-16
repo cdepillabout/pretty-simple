@@ -101,7 +101,7 @@ test-suite pretty-simple-doctest
   main-is:             DocTest.hs
   hs-source-dirs:      test
   build-depends:       base
-                     , doctest
+                     , doctest >= 0.13
                      , Glob
                      , QuickCheck
                      , template-haskell
