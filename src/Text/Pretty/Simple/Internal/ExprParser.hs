@@ -20,10 +20,15 @@ module Text.Pretty.Simple.Internal.ExprParser
 
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
 import Control.Arrow (first)
-import Data.Char (isAlpha, isDigit, isLower)
+import Data.Char (isAlpha, isDigit)
 
-testString1, testString2 :: String
+-- | 'testString1' and 'testString2' are convenient to use in GHCi when playing
+-- around with how parsing works.
+testString1 :: String
 testString1 = "Just [TextInput {textInputClass = Just (Class {unClass = \"class\"}), textInputId = Just (Id {unId = \"id\"}), textInputName = Just (Name {unName = \"name\"}), textInputValue = Just (Value {unValue = \"value\"}), textInputPlaceholder = Just (Placeholder {unPlaceholder = \"placeholder\"})}, TextInput {textInputClass = Just (Class {unClass = \"class\"}), textInputId = Just (Id {unId = \"id\"}), textInputName = Just (Name {unName = \"name\"}), textInputValue = Just (Value {unValue = \"value\"}), textInputPlaceholder = Just (Placeholder {unPlaceholder = \"placeholder\"})}]"
+
+-- | See 'testString1'.
+testString2 :: String
 testString2 = "some stuff (hello [\"dia\\x40iahello\", why wh, bye] ) (bye)"
 
 expressionParse :: String -> [Expr]
@@ -37,6 +42,12 @@ parseExpr ('"':rest) = first StringLit $ parseStringLit rest
 parseExpr (c:rest) | isDigit c = first NumberLit $ parseNumberLit c rest
 parseExpr other      = first Other $ parseOther other
 
+-- |
+--
+-- Handle escaped characters correctly
+--
+-- >>> parseExprs $ "Foo \"hello \\\"world!\""
+-- ([Other "Foo ",StringLit "hello \\\"world!"],"")
 parseExprs :: String -> ([Expr], String)
 parseExprs [] = ([], "")
 parseExprs s@(c:_)
@@ -69,30 +80,54 @@ parseStringLit (c:cs) = (c:cs', rest)
 --
 -- To be more precise, any numbers matching the regex @\\d+(\\.\\d+)?@ should
 -- get parsed by this function.
+--
+-- >>> parseNumberLit '3' "456hello world []"
+-- ("3456","hello world []")
+-- >>> parseNumberLit '0' ".12399880 foobar"
+-- ("0.12399880"," foobar")
 parseNumberLit :: Char -> String -> (String, String)
-parseNumberLit c rest1 =
+parseNumberLit firstDigit rest1 =
   case rest2 of
-    []        -> (c:base, "")
-    '.':rest3 -> first ((c :) . (base ++) . ('.' :)) (span isDigit rest3)
-    _         -> (c:base, rest2)
-  where (base, rest2) = span isDigit rest1
+    []        -> (firstDigit:remainingDigits, "")
+    '.':rest3 ->
+      let (digitsAfterDot, rest4) = span isDigit rest3
+      in ((firstDigit : remainingDigits) ++ ('.' : digitsAfterDot), rest4)
+    _         -> (firstDigit:remainingDigits, rest2)
+  where
+    remainingDigits :: String
+    rest2 :: String
+    (remainingDigits, rest2) = span isDigit rest1
 
--- | This is almost the same as the function
+-- | This function consumes input, stopping only when it hits a special
+-- character or a digit.  However, if the digit is in the middle of a
+-- Haskell-style identifier (e.g. @foo123@), then keep going
+-- anyway.
+--
+-- This is almost the same as the function
 --
 -- > parseOtherSimple = span $ \c ->
 -- >   notElem c ("{[()]}\"," :: String) && not (isDigit c)
 --
--- The behaviour of @parseOtherSimple@ here is to keep on going consuming input
--- until we hit a special character or a digit.
+-- except 'parseOther' ignores digits that appear in Haskell-like identifiers.
 --
--- The full behaviour of /this/ function can be described as: keep on going
--- consuming input, stopping only when we hit a special character or a digit.
--- However, if we appear to be in the middle of a Haskell-style identifier
--- (e.g. @foo123@) and we hit a digit, then keep going anyway.
+-- >>> parseOther "hello world []"
+-- ("hello world ","[]")
+-- >>> parseOther "hello234 world"
+-- ("hello234 world","")
+-- >>> parseOther "hello 234 world"
+-- ("hello ","234 world")
+-- >>> parseOther "hello{[ 234 world"
+-- ("hello","{[ 234 world")
+-- >>> parseOther "H3110 World"
+-- ("H3110 World","")
 parseOther :: String -> (String, String)
 parseOther = go False
   where
-    go :: Bool {-^ in an identifier? -} -> String -> (String, String)
+    go
+      :: Bool
+      -- ^ in an identifier?
+      -> String
+      -> (String, String)
     go _ [] = ("", "")
     go insideIdent cs@(c:cs')
       | c `elem` ("{[()]}\"," :: String) = ("", cs)
@@ -102,15 +137,9 @@ parseOther = go False
 
     isIdentBegin :: Char -> Bool
     isIdentBegin '_' = True
-    isIdentBegin c = isLower c
+    isIdentBegin c = isAlpha c
 
     isIdentRest :: Char -> Bool
     isIdentRest '_' = True
     isIdentRest '\'' = True
     isIdentRest c = isAlpha c || isDigit c
-
--- |
--- Handle escaped characters correctly
---
--- >>> parseExprs $ "Foo \"hello \\\"world!\""
--- ([Other "Foo ",StringLit "hello \\\"world!"],"")
