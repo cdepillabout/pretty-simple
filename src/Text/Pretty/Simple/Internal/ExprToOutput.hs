@@ -38,7 +38,9 @@ import GHC.Generics (Generic)
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
 import Text.Pretty.Simple.Internal.Output
        (NestLevel(..), Output(..), OutputType(..), unNestLevel)
+
 -- $setup
+-- >>> :set -XOverloadedStrings
 -- >>> import Control.Monad.State (State)
 -- >>> :{
 -- let test :: PrinterState -> State PrinterState [Output] -> [Output]
