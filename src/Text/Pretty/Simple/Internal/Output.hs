@@ -70,11 +70,13 @@ data OutputType
   -- of the other tokens.
   | OutputStringLit !String
   -- ^ This represents a string literal.  For instance, @\"foobar\"@.
+  | OutputNumberLit !String
+  -- ^ This represents a numeric literal.  For example, @12345@ or @3.14159@.
   deriving (Data, Eq, Generic, Read, Show, Typeable)
 
 -- | 'IsString' (and 'fromString') should generally only be used in tests and
--- debugging.  There is no way to represent 'OutputIndent' and
--- 'OutputStringLit'.
+-- debugging.  There is no way to represent 'OutputIndent', 'OutputNumberLit'
+-- and 'OutputStringLit'.
 instance IsString OutputType where
     fromString :: String -> OutputType
     fromString "}" = OutputCloseBrace

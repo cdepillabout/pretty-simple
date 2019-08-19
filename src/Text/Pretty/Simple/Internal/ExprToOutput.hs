@@ -38,7 +38,9 @@ import GHC.Generics (Generic)
 import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
 import Text.Pretty.Simple.Internal.Output
        (NestLevel(..), Output(..), OutputType(..), unNestLevel)
+
 -- $setup
+-- >>> :set -XOverloadedStrings
 -- >>> import Control.Monad.State (State)
 -- >>> :{
 -- let test :: PrinterState -> State PrinterState [Output] -> [Output]
@@ -225,6 +227,10 @@ putExpression (StringLit string) = do
   nest <- gets nestLevel
   when (nest < 0) $ addToNestLevel 1
   addOutputs [OutputStringLit string, OutputOther " "]
+putExpression (NumberLit integer) = do
+  nest <- gets nestLevel
+  when (nest < 0) $ addToNestLevel 1
+  (:[]) <$> (addOutput $ OutputNumberLit integer)
 putExpression (Other string) = do
   nest <- gets nestLevel
   when (nest < 0) $ addToNestLevel 1

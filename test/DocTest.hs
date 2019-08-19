@@ -1,40 +1,12 @@
+module Main where
 
-module Main (main) where
-
-import Prelude
-
-import Data.Monoid ((<>))
-import System.FilePath.Glob (glob)
+import Build_doctests (flags, pkgs, module_sources)
+-- import Data.Foldable (traverse_)
 import Test.DocTest (doctest)
 
 main :: IO ()
-main = glob "src/**/*.hs" >>= doDocTest
-
-doDocTest :: [String] -> IO ()
-doDocTest options = doctest $ options <> ghcExtensions
-
-ghcExtensions :: [String]
-ghcExtensions =
-    [
-    --   "-XConstraintKinds"
-    -- , "-XDataKinds"
-      "-XDeriveDataTypeable"
-    , "-XDeriveGeneric"
-    -- , "-XEmptyDataDecls"
-    , "-XFlexibleContexts"
-    -- , "-XFlexibleInstances"
-    -- , "-XGADTs"
-    -- , "-XGeneralizedNewtypeDeriving"
-    -- , "-XInstanceSigs"
-    -- , "-XMultiParamTypeClasses"
-    -- , "-XNoImplicitPrelude"
-    , "-XOverloadedStrings"
-    -- , "-XPolyKinds"
-    -- , "-XRankNTypes"
-    -- , "-XRecordWildCards"
-    , "-XScopedTypeVariables"
-    -- , "-XStandaloneDeriving"
-    -- , "-XTupleSections"
-    -- , "-XTypeFamilies"
-    -- , "-XTypeOperators"
-    ]
+main = do
+  -- traverse_ putStrLn args
+  doctest args
+  where
+    args = flags ++ pkgs ++ module_sources

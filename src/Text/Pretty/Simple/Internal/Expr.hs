@@ -36,5 +36,11 @@ data Expr
   | Braces !(CommaSeparated [Expr])
   | Parens !(CommaSeparated [Expr])
   | StringLit !String
+  | NumberLit !String
+  -- ^ We could store this as a 'Rational', say, instead of a 'String'.
+  -- However, we will never need to use its value for anything. Indeed, the
+  -- only thing we will be doing with it is turning it /back/ into a string
+  -- at some stage, so we might as well cut out the middle man and store it
+  -- directly like this.
   | Other !String
   deriving (Data, Eq, Generic, Show, Typeable)

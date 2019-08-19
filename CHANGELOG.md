@@ -1,4 +1,10 @@
 
+## 3.1.0.0
+
+*   Numbers are now highlighted in green by default.  Implemented in
+    [#51](https://github.com/cdepillabout/pretty-simple/pull/51).
+    Thanks [lawrencebell](https://github.com/lawrencebell)!
+
 ## 3.0.0.0
 
 *   pretty-simple now escapes non-printable characters by default.  A field

@@ -46,7 +46,7 @@ data ColorOptions = ColorOptions
   , colorError :: Builder
   -- ^ (currently not used)
   , colorNum :: Builder
-  -- ^ (currently not used)
+  -- ^ Color to use for numbers.
   , colorRainbowParens :: [Builder]
   -- ^ A list of 'Builder' colors to use for rainbow parenthesis output.  Use
   -- '[]' if you don't want rainbow parenthesis.  Use just a single item if you
