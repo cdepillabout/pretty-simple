@@ -44,6 +44,7 @@ module Text.Pretty.Simple
   , pHPrintForceColor
   , pShow
   , pString
+  , pPrintString
   -- * Aliases for output with color on dark background
   , pPrintDarkBg
   , pHPrintDarkBg
@@ -64,6 +65,8 @@ module Text.Pretty.Simple
   , pShowNoColor
   , pStringNoColor
   -- * Output With 'OutputOptions'
+  , pPrintStringOpt
+  , pHPrintStringOpt
   , pPrintOpt
   , pHPrintOpt
   , pShowOpt
@@ -156,6 +159,11 @@ pShow = pShowOpt defaultOutputOptionsDarkBg
 -- This function is for printing to a dark background.
 pString :: String -> Text
 pString = pStringOpt defaultOutputOptionsDarkBg
+
+-- | Similar to 'pPrint', but the first argument is a 'String' representing a
+-- data type that has already been 'show'ed.
+pPrintString :: MonadIO m => String -> m ()
+pPrintString = pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg
 
 --------------------------------------------------------
 -- aliases for printing in color to a dark background --
@@ -323,12 +331,8 @@ pHPrintOpt ::
   -> Handle
   -> a
   -> m ()
-pHPrintOpt checkColorTty outputOptions handle a = do
-  realOutputOpts <-
-    case checkColorTty of
-      CheckColorTty -> hCheckTTY handle outputOptions
-      NoCheckColorTty -> pure outputOptions
-  liftIO $ LText.hPutStrLn handle $ pShowOpt realOutputOpts a
+pHPrintOpt checkColorTty outputOptions handle a =
+  pHPrintStringOpt checkColorTty outputOptions handle $ show a
 
 -- | Like 'pShow' but takes 'OutputOptions' to change how the
 -- pretty-printing is done.
@@ -341,6 +345,27 @@ pStringOpt :: OutputOptions -> String -> Text
 pStringOpt outputOptions =
   render outputOptions . toList . expressionsToOutputs . expressionParse
 
+-- | Similar to 'pPrintOpt', but the last argument is a string representing a
+-- data structure that has already been 'show'ed.
+pPrintStringOpt :: MonadIO m => CheckColorTty -> OutputOptions -> String -> m ()
+pPrintStringOpt checkColorTty outputOptions =
+  pHPrintStringOpt checkColorTty outputOptions stdout
+
+-- | Similar to 'pPrintStringOpt', but take a 'Handle' to determine where to
+-- print to.
+pHPrintStringOpt ::
+     MonadIO m
+  => CheckColorTty
+  -> OutputOptions
+  -> Handle
+  -> String
+  -> m ()
+pHPrintStringOpt checkColorTty outputOptions handle str = do
+  realOutputOpts <-
+    case checkColorTty of
+      CheckColorTty -> hCheckTTY handle outputOptions
+      NoCheckColorTty -> pure outputOptions
+  liftIO $ LText.hPutStrLn handle $ pStringOpt realOutputOpts str
 -- $colorOptions
 --
 -- Additional settings for color options can be found in
