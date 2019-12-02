@@ -17,7 +17,7 @@ cabal-version:       >=1.10
 
 custom-setup
   setup-depends:     base
-                   , Cabal
+                   , Cabal >= 1.24
                    , cabal-doctest >=1.0.2
 
 flag buildexe
