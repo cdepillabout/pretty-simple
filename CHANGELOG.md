@@ -1,4 +1,11 @@
 
+## 3.1.1.0
+
+*   Added a `pPrintString` function for pretty-printing a `String` that is the
+    output of `show`.  Implemented in
+    [54](https://github.com/cdepillabout/pretty-simple/pull/54). Thanks
+    [sureyeaah](https://github.com/sureyeaah)!
+
 ## 3.1.0.0
 
 *   Numbers are now highlighted in green by default.  Implemented in

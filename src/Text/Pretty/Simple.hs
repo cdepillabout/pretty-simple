@@ -27,8 +27,15 @@ printing in color to a console with a light (white) background.  The variations
 'pPrintNoColor', 'pShowNoColor', and 'pStringNoColor' are for pretty-printing
 without using color.
 
+'pPrint' and 'pPrintLightBg' will intelligently decide whether or not to use
+ANSI escape codes for coloring depending on whether or not the output is
+a TTY.  This works in most cases.  If you want to force color output,
+you can use the 'pPrintForceColor' or 'pPrintForceColorLightBg' functions.
+
 The variations 'pPrintOpt', 'pShowOpt', and 'pStringOpt' are used when
 specifying the 'OutputOptions'.  Most users can ignore these.
+
+There are a few other functions available that are similar to 'pPrint'.
 
 See the Examples section at the end of this module for examples of acutally
 using 'pPrint'.  See the
@@ -40,32 +47,48 @@ module Text.Pretty.Simple
   -- * Output with color on dark background
     pPrint
   , pHPrint
+  , pPrintString
+  , pHPrintString
   , pPrintForceColor
   , pHPrintForceColor
+  , pPrintStringForceColor
+  , pHPrintStringForceColor
   , pShow
   , pString
   -- * Aliases for output with color on dark background
   , pPrintDarkBg
   , pHPrintDarkBg
+  , pPrintStringDarkBg
+  , pHPrintStringDarkBg
   , pPrintForceColorDarkBg
   , pHPrintForceColorDarkBg
+  , pPrintStringForceColorDarkBg
+  , pHPrintStringForceColorDarkBg
   , pShowDarkBg
   , pStringDarkBg
   -- * Output with color on light background
   , pPrintLightBg
   , pHPrintLightBg
+  , pPrintStringLightBg
+  , pHPrintStringLightBg
   , pPrintForceColorLightBg
   , pHPrintForceColorLightBg
+  , pPrintStringForceColorLightBg
+  , pHPrintStringForceColorLightBg
   , pShowLightBg
   , pStringLightBg
   -- * Output with NO color
   , pPrintNoColor
   , pHPrintNoColor
+  , pPrintStringNoColor
+  , pHPrintStringNoColor
   , pShowNoColor
   , pStringNoColor
   -- * Output With 'OutputOptions'
   , pPrintOpt
   , pHPrintOpt
+  , pPrintStringOpt
+  , pHPrintStringOpt
   , pShowOpt
   , pStringOpt
   -- * 'OutputOptions'
@@ -122,26 +145,85 @@ import Text.Pretty.Simple.Internal
 -- printing to a terminal with a light background.  Different colors are used.
 --
 -- Prints to 'stdout'.  Use 'pHPrint' to print to a different 'Handle'.
+--
+-- >>> pPrint [Just (1, "hello")]
+-- [ Just
+--     ( 1
+--     , "hello"
+--     )
+-- ]
 pPrint :: (MonadIO m, Show a) => a -> m ()
 pPrint = pPrintOpt CheckColorTty defaultOutputOptionsDarkBg
 
 -- | Similar to 'pPrint', but take a 'Handle' to print to.
+--
+-- >>> pHPrint stdout [Just (1, "hello")]
+-- [ Just
+--     ( 1
+--     , "hello"
+--     )
+-- ]
 pHPrint :: (MonadIO m, Show a) => Handle -> a -> m ()
 pHPrint = pHPrintOpt CheckColorTty defaultOutputOptionsDarkBg
 
+-- | Similar to 'pPrint', but the first argument is a 'String' representing a
+-- data type that has already been 'show'ed.
+--
+-- >>> pPrintString $ show [ Just (1, "hello"), Nothing ]
+-- [ Just
+--     ( 1
+--     , "hello"
+--     )
+-- , Nothing
+-- ]
+pPrintString :: MonadIO m => String -> m ()
+pPrintString = pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg
+
+-- | Similar to 'pHPrintString', but take a 'Handle' to print to.
+--
+-- >>> pHPrintString stdout $ show [ Just (1, "hello"), Nothing ]
+-- [ Just
+--     ( 1
+--     , "hello"
+--     )
+-- , Nothing
+-- ]
+pHPrintString :: MonadIO m => Handle -> String -> m ()
+pHPrintString = pHPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg
+
 -- | Similar to 'pPrint', but print in color regardless of whether the output
 -- goes to a TTY or not.
+--
+-- See 'pPrint' for an example of how to use this function.
 pPrintForceColor :: (MonadIO m, Show a) => a -> m ()
 pPrintForceColor = pPrintOpt NoCheckColorTty defaultOutputOptionsDarkBg
 
 -- | Similar to 'pPrintForceColor', but take a 'Handle' to print to.
+--
+-- See 'pHPrint' for an example of how to use this function.
 pHPrintForceColor :: (MonadIO m, Show a) => Handle -> a -> m ()
 pHPrintForceColor = pHPrintOpt NoCheckColorTty defaultOutputOptionsDarkBg
+
+-- | Similar to 'pPrintString', but print in color regardless of whether the
+-- output goes to a TTY or not.
+--
+-- See 'pPrintString' for an example of how to use this function.
+pPrintStringForceColor :: MonadIO m => String -> m ()
+pPrintStringForceColor = pPrintStringOpt NoCheckColorTty defaultOutputOptionsDarkBg
+
+-- | Similar to 'pHPrintString', but print in color regardless of whether the
+-- output goes to a TTY or not.
+--
+-- See 'pHPrintString' for an example of how to use this function.
+pHPrintStringForceColor :: MonadIO m => Handle -> String -> m ()
+pHPrintStringForceColor = pHPrintStringOpt NoCheckColorTty defaultOutputOptionsDarkBg
 
 -- | Similar to 'pPrintForceColor', but just return the resulting pretty-printed
 -- data type as a 'Text' instead of printing it to the screen.
 --
 -- This function is for printing to a dark background.
+--
+-- See 'pShowNoColor' for an example of how to use this function.
 pShow :: Show a => a -> Text
 pShow = pShowOpt defaultOutputOptionsDarkBg
 
@@ -154,6 +236,8 @@ pShow = pShowOpt defaultOutputOptionsDarkBg
 -- 'pString' will correctly pretty-print JSON.
 --
 -- This function is for printing to a dark background.
+--
+-- See 'pStringNoColor' for an example of how to use this function.
 pString :: String -> Text
 pString = pStringOpt defaultOutputOptionsDarkBg
 
@@ -169,6 +253,14 @@ pPrintDarkBg = pPrint
 pHPrintDarkBg :: (MonadIO m, Show a) => Handle -> a -> m ()
 pHPrintDarkBg = pHPrint
 
+-- | Alias for 'pPrintString'.
+pPrintStringDarkBg :: MonadIO m => String -> m ()
+pPrintStringDarkBg = pPrintString
+
+-- | Alias for 'pHPrintString'.
+pHPrintStringDarkBg :: MonadIO m => Handle -> String -> m ()
+pHPrintStringDarkBg = pHPrintString
+
 -- | Alias for 'pPrintForceColor'.
 pPrintForceColorDarkBg :: (MonadIO m, Show a) => a -> m ()
 pPrintForceColorDarkBg = pPrintForceColor
@@ -176,6 +268,14 @@ pPrintForceColorDarkBg = pPrintForceColor
 -- | Alias for 'pHPrintForceColor'.
 pHPrintForceColorDarkBg :: (MonadIO m, Show a) => Handle -> a -> m ()
 pHPrintForceColorDarkBg = pHPrintForceColor
+
+-- | Alias for 'pPrintStringForceColor'.
+pPrintStringForceColorDarkBg :: MonadIO m => String -> m ()
+pPrintStringForceColorDarkBg = pPrintStringForceColor
+
+-- | Alias for 'pHPrintStringForceColor'.
+pHPrintStringForceColorDarkBg :: MonadIO m => Handle -> String -> m ()
+pHPrintStringForceColorDarkBg = pHPrintStringForceColor
 
 -- | Alias for 'pShow'.
 pShowDarkBg :: Show a => a -> Text
@@ -197,6 +297,14 @@ pPrintLightBg = pPrintOpt CheckColorTty defaultOutputOptionsLightBg
 pHPrintLightBg :: (MonadIO m, Show a) => Handle -> a -> m ()
 pHPrintLightBg = pHPrintOpt CheckColorTty defaultOutputOptionsLightBg
 
+-- | Just like 'pPrintStringDarkBg', but for printing to a light background.
+pPrintStringLightBg :: MonadIO m => String -> m ()
+pPrintStringLightBg = pPrintStringOpt CheckColorTty defaultOutputOptionsLightBg
+
+-- | Just like 'pHPrintStringDarkBg', but for printing to a light background.
+pHPrintStringLightBg :: MonadIO m => Handle -> String -> m ()
+pHPrintStringLightBg = pHPrintStringOpt CheckColorTty defaultOutputOptionsLightBg
+
 -- | Just like 'pPrintForceColorDarkBg', but for printing to a light
 -- background.
 pPrintForceColorLightBg :: (MonadIO m, Show a) => a -> m ()
@@ -206,6 +314,16 @@ pPrintForceColorLightBg = pPrintOpt NoCheckColorTty defaultOutputOptionsLightBg
 -- background.
 pHPrintForceColorLightBg :: (MonadIO m, Show a) => Handle -> a -> m ()
 pHPrintForceColorLightBg = pHPrintOpt NoCheckColorTty defaultOutputOptionsLightBg
+
+-- | Just like 'pPrintStringForceColorDarkBg', but for printing to a light
+-- background.
+pPrintStringForceColorLightBg :: MonadIO m => String -> m ()
+pPrintStringForceColorLightBg = pPrintStringOpt NoCheckColorTty defaultOutputOptionsLightBg
+
+-- | Just like 'pHPrintStringForceColorDarkBg', but for printing to a light
+-- background.
+pHPrintStringForceColorLightBg :: MonadIO m => Handle -> String -> m ()
+pHPrintStringForceColorLightBg = pHPrintStringOpt NoCheckColorTty defaultOutputOptionsLightBg
 
 -- | Just like 'pShowDarkBg', but for printing to a light background.
 pShowLightBg :: Show a => a -> Text
@@ -231,14 +349,47 @@ pPrintNoColor :: (MonadIO m, Show a) => a -> m ()
 pPrintNoColor = pPrintOpt NoCheckColorTty defaultOutputOptionsNoColor
 
 -- | Like 'pPrintNoColor', but take a 'Handle' to determine where to print to.
+--
+-- >>> pHPrintNoColor stdout $ Just ["hello", "bye"]
+-- Just
+--     [ "hello"
+--     , "bye"
+--     ]
 pHPrintNoColor :: (MonadIO m, Show a) => Handle -> a -> m ()
 pHPrintNoColor = pHPrintOpt NoCheckColorTty defaultOutputOptionsNoColor
 
+-- | Similar to 'pPrintString', but doesn't print in color.  However, data types
+-- will still be indented nicely.
+--
+-- >>> pPrintStringNoColor $ show $ Just ["hello", "bye"]
+-- Just
+--     [ "hello"
+--     , "bye"
+--     ]
+pPrintStringNoColor :: MonadIO m => String -> m ()
+pPrintStringNoColor = pPrintStringOpt NoCheckColorTty defaultOutputOptionsNoColor
+
+-- | Like 'pPrintStringNoColor', but take a 'Handle' to determine where to print to.
+--
+-- >>> pHPrintStringNoColor stdout $ show $ Just ["hello", "bye"]
+-- Just
+--     [ "hello"
+--     , "bye"
+--     ]
+pHPrintStringNoColor :: MonadIO m => Handle -> String -> m ()
+pHPrintStringNoColor = pHPrintStringOpt NoCheckColorTty defaultOutputOptionsNoColor
+
 -- | Like 'pShow', but without color.
+--
+-- >>> pShowNoColor [ Nothing, Just (1, "hello") ]
+-- "[ Nothing\n, Just \n    ( 1\n    , \"hello\" \n    ) \n] "
 pShowNoColor :: Show a => a -> Text
 pShowNoColor = pShowOpt defaultOutputOptionsNoColor
 
 -- | LIke 'pString', but without color.
+--
+-- >>> pStringNoColor $ show [1, 2, 3]
+-- "[ 1\n, 2\n, 3\n] "
 pStringNoColor :: String -> Text
 pStringNoColor = pStringOpt defaultOutputOptionsNoColor
 
@@ -323,12 +474,50 @@ pHPrintOpt ::
   -> Handle
   -> a
   -> m ()
-pHPrintOpt checkColorTty outputOptions handle a = do
+pHPrintOpt checkColorTty outputOptions handle a =
+  pHPrintStringOpt checkColorTty outputOptions handle $ show a
+
+-- | Similar to 'pPrintOpt', but the last argument is a string representing a
+-- data structure that has already been 'show'ed.
+--
+-- >>> let foo = show (1, (2, "hello", 3))
+-- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsNoColor foo
+-- ( 1
+-- ,
+--     ( 2
+--     , "hello"
+--     , 3
+--     )
+-- )
+pPrintStringOpt :: MonadIO m => CheckColorTty -> OutputOptions -> String -> m ()
+pPrintStringOpt checkColorTty outputOptions =
+  pHPrintStringOpt checkColorTty outputOptions stdout
+
+-- | Similar to 'pPrintStringOpt', but take a 'Handle' to determine where to
+-- print to.
+--
+-- >>> let foo = show (1, (2, "hello", 3))
+-- >>> pHPrintStringOpt CheckColorTty defaultOutputOptionsNoColor stdout foo
+-- ( 1
+-- ,
+--     ( 2
+--     , "hello"
+--     , 3
+--     )
+-- )
+pHPrintStringOpt ::
+     MonadIO m
+  => CheckColorTty
+  -> OutputOptions
+  -> Handle
+  -> String
+  -> m ()
+pHPrintStringOpt checkColorTty outputOptions handle str = do
   realOutputOpts <-
     case checkColorTty of
       CheckColorTty -> hCheckTTY handle outputOptions
       NoCheckColorTty -> pure outputOptions
-  liftIO $ LText.hPutStrLn handle $ pShowOpt realOutputOpts a
+  liftIO $ LText.hPutStrLn handle $ pStringOpt realOutputOpts str
 
 -- | Like 'pShow' but takes 'OutputOptions' to change how the
 -- pretty-printing is done.
