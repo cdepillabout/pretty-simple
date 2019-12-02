@@ -5,6 +5,9 @@
     output of `show`.  Implemented in
     [54](https://github.com/cdepillabout/pretty-simple/pull/54). Thanks
     [sureyeaah](https://github.com/sureyeaah)!
+*   Fix build on GHC-7.10.3.
+    [#55](https://github.com/cdepillabout/pretty-simple/pull/55).  Thanks
+    [sjakobi](https://github.com/sjakobi).
 
 ## 3.1.0.0
 
