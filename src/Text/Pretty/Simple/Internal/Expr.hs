@@ -36,6 +36,7 @@ data Expr
   | Braces !(CommaSeparated [Expr])
   | Parens !(CommaSeparated [Expr])
   | StringLit !String
+  | CharLit !String
   | NumberLit !String
   -- ^ We could store this as a 'Rational', say, instead of a 'String'.
   -- However, we will never need to use its value for anything. Indeed, the

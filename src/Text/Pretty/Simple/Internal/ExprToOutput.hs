@@ -227,6 +227,10 @@ putExpression (StringLit string) = do
   nest <- gets nestLevel
   when (nest < 0) $ addToNestLevel 1
   addOutputs [OutputStringLit string, OutputOther " "]
+putExpression (CharLit string) = do
+  nest <- gets nestLevel
+  when (nest < 0) $ addToNestLevel 1
+  addOutputs [OutputCharLit string, OutputOther " "]
 putExpression (NumberLit integer) = do
   nest <- gets nestLevel
   when (nest < 0) $ addToNestLevel 1

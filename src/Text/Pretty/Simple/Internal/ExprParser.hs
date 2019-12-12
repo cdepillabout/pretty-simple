@@ -39,6 +39,7 @@ parseExpr ('(':rest) = first (Parens . CommaSeparated) $ parseCSep ')' rest
 parseExpr ('[':rest) = first (Brackets . CommaSeparated) $ parseCSep ']' rest
 parseExpr ('{':rest) = first (Braces . CommaSeparated) $ parseCSep '}' rest
 parseExpr ('"':rest) = first StringLit $ parseStringLit rest
+parseExpr ('\'':rest) = first CharLit $ parseCharLit rest
 parseExpr (c:rest) | isDigit c = first NumberLit $ parseNumberLit c rest
 parseExpr other      = first Other $ parseOther other
 
@@ -48,6 +49,8 @@ parseExpr other      = first Other $ parseOther other
 --
 -- >>> parseExprs $ "Foo \"hello \\\"world!\""
 -- ([Other "Foo ",StringLit "hello \\\"world!"],"")
+-- >>> parseExprs $ "'\\''"
+-- ([CharLit "\\'"],"")
 parseExprs :: String -> ([Expr], String)
 parseExprs [] = ([], "")
 parseExprs s@(c:_)
@@ -75,6 +78,14 @@ parseStringLit ('\\':c:cs) = ('\\':c:cs', rest)
   where (cs', rest) = parseStringLit cs
 parseStringLit (c:cs) = (c:cs', rest)
   where (cs', rest) = parseStringLit cs
+
+parseCharLit :: String -> (String, String)
+parseCharLit [] = ("", "")
+parseCharLit ('\'':rest) = ("", rest)
+parseCharLit ('\\':c:cs) = ('\\':c:cs', rest)
+  where (cs', rest) = parseCharLit cs
+parseCharLit (c:cs) = (c:cs', rest)
+  where (cs', rest) = parseCharLit cs
 
 -- | Parses integers and reals, like @123@ and @45.67@.
 --
