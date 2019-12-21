@@ -542,10 +542,10 @@ pStringOpt outputOptions =
 --
 -- __Simple Haskell data type__
 --
--- >>> data Foo a = Foo a String deriving Show
+-- >>> data Foo a = Foo a String Char deriving Show
 --
--- >>> pPrint $ Foo 3 "hello"
--- Foo 3 "hello"
+-- >>> pPrint $ Foo 3 "hello" 'a'
+-- Foo 3 "hello" 'a'
 --
 -- __List__
 --
@@ -557,19 +557,19 @@ pStringOpt outputOptions =
 --
 -- __Slightly more complicated list__
 --
--- >>> pPrint $ [ Foo [ (), () ] "hello" ]
+-- >>> pPrint $ [ Foo [ (), () ] "hello" 'b' ]
 -- [ Foo
 --     [ ()
 --     , ()
---     ] "hello"
+--     ] "hello" 'b'
 -- ]
 --
--- >>> pPrint $ [ Foo [ "bar", "baz" ] "hello", Foo [] "bye" ]
+-- >>> pPrint $ [ Foo [ "bar", "baz" ] "hello" 'a', Foo [] "bye" 'b' ]
 -- [ Foo
 --     [ "bar"
 --     , "baz"
---     ] "hello"
--- , Foo [] "bye"
+--     ] "hello" 'a'
+-- , Foo [] "bye" 'b'
 -- ]
 --
 -- __Record__
@@ -582,7 +582,7 @@ pStringOpt outputOptions =
 --   } deriving Show
 -- :}
 --
--- >>> pPrint $ Bar 1 [10, 11] [Foo 1.1 "", Foo 2.2 "hello"]
+-- >>> pPrint $ Bar 1 [10, 11] [Foo 1.1 "" 'a', Foo 2.2 "hello" 'b']
 -- Bar
 --     { barInt = 1
 --     , barA =
@@ -590,8 +590,8 @@ pStringOpt outputOptions =
 --         , 11
 --         ]
 --     , barList =
---         [ Foo 1.1 ""
---         , Foo 2.2 "hello"
+--         [ Foo 1.1 "" 'a'
+--         , Foo 2.2 "hello" 'b'
 --         ]
 --     }
 --

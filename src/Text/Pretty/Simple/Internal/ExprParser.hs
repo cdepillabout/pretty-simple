@@ -43,7 +43,10 @@ parseExpr ('\'':rest) = first CharLit $ parseCharLit rest
 parseExpr (c:rest) | isDigit c = first NumberLit $ parseNumberLit c rest
 parseExpr other      = first Other $ parseOther other
 
--- |
+-- | Parse multiple expressions.
+--
+-- >>> parseExprs "Just 'a'"
+-- ([Other "Just ",CharLit "a"],"")
 --
 -- Handle escaped characters correctly
 --
@@ -71,6 +74,15 @@ parseCSep end s@(c:cs)
                     (toParse, rest) = parseCSep end rest'
                  in (parsed : toParse, rest)
 
+-- | Parse string literals until a trailing double quote.
+--
+-- >>> parseStringLit "foobar\" baz"
+-- ("foobar"," baz")
+--
+-- Keep literal back slashes:
+--
+-- >>> parseStringLit "foobar\\\" baz\" after"
+-- ("foobar\\\" baz"," after")
 parseStringLit :: String -> (String, String)
 parseStringLit [] = ("", "")
 parseStringLit ('"':rest) = ("", rest)
@@ -79,6 +91,15 @@ parseStringLit ('\\':c:cs) = ('\\':c:cs', rest)
 parseStringLit (c:cs) = (c:cs', rest)
   where (cs', rest) = parseStringLit cs
 
+-- | Parse character literals until a trailing single quote.
+--
+-- >>> parseCharLit "a' foobar"
+-- ("a"," foobar")
+--
+-- Keep literal back slashes:
+--
+-- >>> parseCharLit "\\'' hello"
+-- ("\\'"," hello")
 parseCharLit :: String -> (String, String)
 parseCharLit [] = ("", "")
 parseCharLit ('\'':rest) = ("", rest)
@@ -141,7 +162,7 @@ parseOther = go False
       -> (String, String)
     go _ [] = ("", "")
     go insideIdent cs@(c:cs')
-      | c `elem` ("{[()]}\"," :: String) = ("", cs)
+      | c `elem` ("{[()]}\"'," :: String) = ("", cs)
       | isDigit c && not insideIdent = ("", cs)
       | insideIdent = first (c :) (go (isIdentRest c) cs')
       | otherwise = first (c :) (go (isIdentBegin c) cs')
