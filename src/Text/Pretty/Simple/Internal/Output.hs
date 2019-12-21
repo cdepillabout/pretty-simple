@@ -70,6 +70,8 @@ data OutputType
   -- of the other tokens.
   | OutputStringLit !String
   -- ^ This represents a string literal.  For instance, @\"foobar\"@.
+  | OutputCharLit !String
+  -- ^ This represents a char literal.  For example, @'x'@ or @'\b'@
   | OutputNumberLit !String
   -- ^ This represents a numeric literal.  For example, @12345@ or @3.14159@.
   deriving (Data, Eq, Generic, Read, Show, Typeable)

@@ -39,15 +39,21 @@ parseExpr ('(':rest) = first (Parens . CommaSeparated) $ parseCSep ')' rest
 parseExpr ('[':rest) = first (Brackets . CommaSeparated) $ parseCSep ']' rest
 parseExpr ('{':rest) = first (Braces . CommaSeparated) $ parseCSep '}' rest
 parseExpr ('"':rest) = first StringLit $ parseStringLit rest
+parseExpr ('\'':rest) = first CharLit $ parseCharLit rest
 parseExpr (c:rest) | isDigit c = first NumberLit $ parseNumberLit c rest
 parseExpr other      = first Other $ parseOther other
 
--- |
+-- | Parse multiple expressions.
+--
+-- >>> parseExprs "Just 'a'"
+-- ([Other "Just ",CharLit "a"],"")
 --
 -- Handle escaped characters correctly
 --
 -- >>> parseExprs $ "Foo \"hello \\\"world!\""
 -- ([Other "Foo ",StringLit "hello \\\"world!"],"")
+-- >>> parseExprs $ "'\\''"
+-- ([CharLit "\\'"],"")
 parseExprs :: String -> ([Expr], String)
 parseExprs [] = ([], "")
 parseExprs s@(c:_)
@@ -68,6 +74,15 @@ parseCSep end s@(c:cs)
                     (toParse, rest) = parseCSep end rest'
                  in (parsed : toParse, rest)
 
+-- | Parse string literals until a trailing double quote.
+--
+-- >>> parseStringLit "foobar\" baz"
+-- ("foobar"," baz")
+--
+-- Keep literal back slashes:
+--
+-- >>> parseStringLit "foobar\\\" baz\" after"
+-- ("foobar\\\" baz"," after")
 parseStringLit :: String -> (String, String)
 parseStringLit [] = ("", "")
 parseStringLit ('"':rest) = ("", rest)
@@ -75,6 +90,23 @@ parseStringLit ('\\':c:cs) = ('\\':c:cs', rest)
   where (cs', rest) = parseStringLit cs
 parseStringLit (c:cs) = (c:cs', rest)
   where (cs', rest) = parseStringLit cs
+
+-- | Parse character literals until a trailing single quote.
+--
+-- >>> parseCharLit "a' foobar"
+-- ("a"," foobar")
+--
+-- Keep literal back slashes:
+--
+-- >>> parseCharLit "\\'' hello"
+-- ("\\'"," hello")
+parseCharLit :: String -> (String, String)
+parseCharLit [] = ("", "")
+parseCharLit ('\'':rest) = ("", rest)
+parseCharLit ('\\':c:cs) = ('\\':c:cs', rest)
+  where (cs', rest) = parseCharLit cs
+parseCharLit (c:cs) = (c:cs', rest)
+  where (cs', rest) = parseCharLit cs
 
 -- | Parses integers and reals, like @123@ and @45.67@.
 --
@@ -130,7 +162,7 @@ parseOther = go False
       -> (String, String)
     go _ [] = ("", "")
     go insideIdent cs@(c:cs')
-      | c `elem` ("{[()]}\"," :: String) = ("", cs)
+      | c `elem` ("{[()]}\"'," :: String) = ("", cs)
       | isDigit c && not insideIdent = ("", cs)
       | insideIdent = first (c :) (go (isIdentRest c) cs')
       | otherwise = first (c :) (go (isIdentBegin c) cs')

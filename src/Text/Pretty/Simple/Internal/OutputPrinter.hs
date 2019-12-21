@@ -184,6 +184,18 @@ renderOutput (Output _ (OutputStringLit string)) = do
 
         readStr :: String -> String
         readStr s = fromMaybe s . readMaybe $ '"':s ++ "\""
+renderOutput (Output _ (OutputCharLit string)) = do
+  sequenceFold
+    [ useColorQuote
+    , pure "'"
+    , useColorReset
+    , useColorString
+    , pure (fromString string)
+    , useColorReset
+    , useColorQuote
+    , pure "'"
+    , useColorReset
+    ]
 
 -- | Replace non-printable characters with hex escape sequences.
 --
