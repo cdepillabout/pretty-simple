@@ -16,3 +16,5 @@ cabal.sandbox.config
 *.hp
 *.eventlog
 .stack-work/
+# Haskell IDE Engine config file
+/hie.yaml
