@@ -1,4 +1,10 @@
 
+## 3.2.1.0
+
+*   Added `pTraceOpt` functions to `Debug.Pretty.Simple`.
+    [#58](https://github.com/cdepillabout/pretty-simple/pull/58)
+    Thanks again [sureyeaah](https://github.com/sureyeaah)!
+
 ## 3.2.0.0
 
 *   Add support for pretty-printing Haskell character literals.
