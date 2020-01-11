@@ -132,17 +132,17 @@ render options = toLazyText . foldr foldFunc "" . modificationsOutputList
 -- | Render a single 'Output' as a 'Builder', using the options specified in
 -- the 'OutputOptions'.
 renderOutput :: MonadReader OutputOptions m => Output -> m Builder
-renderOutput (Output nest OutputCloseBrace) = renderRaibowParenFor nest "}"
-renderOutput (Output nest OutputCloseBracket) = renderRaibowParenFor nest "]"
-renderOutput (Output nest OutputCloseParen) = renderRaibowParenFor nest ")"
-renderOutput (Output nest OutputComma) = renderRaibowParenFor nest ","
+renderOutput (Output nest OutputCloseBrace) = renderRainbowParenFor nest "}"
+renderOutput (Output nest OutputCloseBracket) = renderRainbowParenFor nest "]"
+renderOutput (Output nest OutputCloseParen) = renderRainbowParenFor nest ")"
+renderOutput (Output nest OutputComma) = renderRainbowParenFor nest ","
 renderOutput (Output _ OutputIndent) = do
     indentSpaces <- reader outputOptionsIndentAmount
     pure . mconcat $ replicate indentSpaces " "
 renderOutput (Output _ OutputNewLine) = pure "\n"
-renderOutput (Output nest OutputOpenBrace) = renderRaibowParenFor nest "{"
-renderOutput (Output nest OutputOpenBracket) = renderRaibowParenFor nest "["
-renderOutput (Output nest OutputOpenParen) = renderRaibowParenFor nest "("
+renderOutput (Output nest OutputOpenBrace) = renderRainbowParenFor nest "{"
+renderOutput (Output nest OutputOpenBracket) = renderRainbowParenFor nest "["
+renderOutput (Output nest OutputOpenParen) = renderRainbowParenFor nest "("
 renderOutput (Output _ (OutputOther string)) = do
   indentSpaces <- reader outputOptionsIndentAmount
   let spaces = replicate (indentSpaces + 2) ' '
@@ -266,10 +266,10 @@ useColorReset = maybe "" (const colorReset) <$> reader outputOptionsColorOptions
 --
 -- If 'outputOptionsColorOptions' is 'Nothing', then just return the input
 -- character.  If it is 'Just', then return the input character colorized.
-renderRaibowParenFor
+renderRainbowParenFor
   :: MonadReader OutputOptions m
   => NestLevel -> Builder -> m Builder
-renderRaibowParenFor nest string =
+renderRainbowParenFor nest string =
   sequenceFold [useColorRainbowParens nest, pure string, useColorReset]
 
 useColorRainbowParens
