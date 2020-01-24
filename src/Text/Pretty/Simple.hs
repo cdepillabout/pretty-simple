@@ -382,14 +382,14 @@ pHPrintStringNoColor = pHPrintStringOpt NoCheckColorTty defaultOutputOptionsNoCo
 -- | Like 'pShow', but without color.
 --
 -- >>> pShowNoColor [ Nothing, Just (1, "hello") ]
--- "[ Nothing\n, Just \n    ( 1\n    , \"hello\" \n    ) \n] "
+-- "[ Nothing\n, Just\n    ( 1\n    , \"hello\"\n    )\n]"
 pShowNoColor :: Show a => a -> Text
 pShowNoColor = pShowOpt defaultOutputOptionsNoColor
 
 -- | LIke 'pString', but without color.
 --
 -- >>> pStringNoColor $ show [1, 2, 3]
--- "[ 1\n, 2\n, 3\n] "
+-- "[ 1\n, 2\n, 3\n]"
 pStringNoColor :: String -> Text
 pStringNoColor = pStringOpt defaultOutputOptionsNoColor
 
