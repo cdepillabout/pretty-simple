@@ -28,13 +28,13 @@ import Control.Applicative
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Reader (MonadReader(ask, reader), runReader)
-import Data.Char (isPrint, ord)
+import Data.Char (isPrint, isSpace, ord)
 import Numeric (showHex)
 import Data.Foldable (fold)
 import Data.Text.Lazy (Text)
 import Data.Text.Lazy.Builder (Builder, fromString, toLazyText)
 import Data.Typeable (Typeable)
-import Data.List (intercalate)
+import Data.List (dropWhileEnd, intercalate)
 import Data.Maybe (fromMaybe)
 import Text.Read (readMaybe)
 import GHC.Generics (Generic)
@@ -297,7 +297,8 @@ sequenceFold = fmap fold . sequence
 -- An sample of an optimization is 'removeStartingNewLine' which just removes a
 -- newline if it is the first item in an 'Output' list.
 modificationsOutputList :: [Output] -> [Output]
-modificationsOutputList = shrinkWhitespaceInOthers . compressOthers . removeStartingNewLine
+modificationsOutputList =
+  removeTrailingSpacesInOtherBeforeNewLine . shrinkWhitespaceInOthers . compressOthers . removeStartingNewLine
 
 -- | Remove a 'OutputNewLine' if it is the first item in the 'Output' list.
 --
@@ -306,6 +307,22 @@ modificationsOutputList = shrinkWhitespaceInOthers . compressOthers . removeStar
 removeStartingNewLine :: [Output] -> [Output]
 removeStartingNewLine ((Output _ OutputNewLine) : t) = t
 removeStartingNewLine outputs = outputs
+
+-- | Remove trailing spaces from the end of a 'OutputOther' token if it is
+-- followed by a 'OutputNewLine', or if it is the final 'Output' in the list.
+-- This function assumes that there is a single 'OutputOther' before any
+-- 'OutputNewLine' (and before the end of the list), so it must be run after
+-- running 'compressOthers'.
+--
+-- >>> removeTrailingSpacesInOtherBeforeNewLine [Output 2 (OutputOther "foo  "), Output 4 OutputNewLine]
+-- [Output {outputNestLevel = NestLevel {unNestLevel = 2}, outputOutputType = OutputOther "foo"},Output {outputNestLevel = NestLevel {unNestLevel = 4}, outputOutputType = OutputNewLine}]
+removeTrailingSpacesInOtherBeforeNewLine :: [Output] -> [Output]
+removeTrailingSpacesInOtherBeforeNewLine [] = []
+removeTrailingSpacesInOtherBeforeNewLine (Output nest (OutputOther string):[]) =
+  (Output nest (OutputOther $ dropWhileEnd isSpace string)):[]
+removeTrailingSpacesInOtherBeforeNewLine (Output nest (OutputOther string):nl@(Output _ OutputNewLine):t) =
+  (Output nest (OutputOther $ dropWhileEnd isSpace string)):nl:removeTrailingSpacesInOtherBeforeNewLine t
+removeTrailingSpacesInOtherBeforeNewLine (h:t) = h : removeTrailingSpacesInOtherBeforeNewLine t
 
 -- | If there are two subsequent 'OutputOther' tokens, combine them into just
 -- one 'OutputOther'.
