@@ -1,4 +1,10 @@
 
+## (next)
+
+*   Remove whitespace from the ends of lines.
+    [#62](https://github.com/cdepillabout/pretty-simple/pull/62)
+    Thanks Gaith Hallak ([@ghallak](https://github.com/ghallak))!
+
 ## 3.2.1.0
 
 *   Added `pTraceOpt` functions to `Debug.Pretty.Simple`.
