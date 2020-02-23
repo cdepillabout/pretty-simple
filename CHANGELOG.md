@@ -1,5 +1,5 @@
 
-## (next)
+## 3.2.2.0
 
 *   Remove whitespace from the ends of lines.
     [#62](https://github.com/cdepillabout/pretty-simple/pull/62)
