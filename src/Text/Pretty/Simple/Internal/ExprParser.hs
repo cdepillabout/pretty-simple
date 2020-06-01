@@ -138,9 +138,10 @@ parseNumberLit firstDigit rest1 =
 -- This is almost the same as the function
 --
 -- > parseOtherSimple = span $ \c ->
--- >   notElem c ("{[()]}\"," :: String) && not (isDigit c)
+-- >   notElem c ("{[()]}\"," :: String) && not (isDigit c) && (c /= '\'')
 --
--- except 'parseOther' ignores digits that appear in Haskell-like identifiers.
+-- except 'parseOther' ignores digits and single quotes that appear in
+-- Haskell-like identifiers.
 --
 -- >>> parseOther "hello world []"
 -- ("hello world ","[]")
@@ -152,6 +153,8 @@ parseNumberLit firstDigit rest1 =
 -- ("hello","{[ 234 world")
 -- >>> parseOther "H3110 World"
 -- ("H3110 World","")
+-- >>> parseOther "Node' (Leaf' 1) (Leaf' 2)"
+-- ("Node' ","(Leaf' 1) (Leaf' 2)")
 parseOther :: String -> (String, String)
 parseOther = go False
   where
@@ -162,8 +165,8 @@ parseOther = go False
       -> (String, String)
     go _ [] = ("", "")
     go insideIdent cs@(c:cs')
-      | c `elem` ("{[()]}\"'," :: String) = ("", cs)
-      | isDigit c && not insideIdent = ("", cs)
+      | c `elem` ("{[()]}\"," :: String) = ("", cs)
+      | ignoreInIdent c && not insideIdent = ("", cs)
       | insideIdent = first (c :) (go (isIdentRest c) cs')
       | otherwise = first (c :) (go (isIdentBegin c) cs')
 
@@ -174,4 +177,7 @@ parseOther = go False
     isIdentRest :: Char -> Bool
     isIdentRest '_' = True
     isIdentRest '\'' = True
-    isIdentRest c = isAlpha c || isDigit c
+    isIdentRest c = isAlpha c || ignoreInIdent c
+
+    ignoreInIdent :: Char -> Bool
+    ignoreInIdent x = isDigit x || x == '\''
