@@ -155,6 +155,10 @@ parseNumberLit firstDigit rest1 =
 -- ("H3110 World","")
 -- >>> parseOther "Node' (Leaf' 1) (Leaf' 2)"
 -- ("Node' ","(Leaf' 1) (Leaf' 2)")
+-- >>> parseOther "I'm One"
+-- ("I'm One","")
+-- >>> parseOther "I'm 2"
+-- ("I'm ","2")
 parseOther :: String -> (String, String)
 parseOther = go False
   where
