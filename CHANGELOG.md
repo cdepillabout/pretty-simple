@@ -1,4 +1,11 @@
 
+## 3.2.3.0
+
+*   Fix a bug that messes up printing identifiers with `'` in the name.
+    Now identifiers like `data Don't = Don't` show up properly.
+    [#65](https://github.com/cdepillabout/pretty-simple/pull/65)
+    Thanks George Thomas ([@georgefst](https://github.com/georgefst))!
+
 ## 3.2.2.0
 
 *   Remove whitespace from the ends of lines.
