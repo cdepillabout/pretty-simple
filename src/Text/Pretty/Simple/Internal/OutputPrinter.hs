@@ -37,7 +37,7 @@ import Data.List (dropWhileEnd)
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Data.Maybe (fromMaybe)
 import Prettyprinter
-  (line', PageWidth(AvailablePerLine), layoutPageWidth, nest, hsep,
+  (indent, line', PageWidth(AvailablePerLine), layoutPageWidth, nest, hsep,
     concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions,
     enclose, hcat, layoutSmart, line, unAnnotateS, pretty)
 import Data.Typeable (Typeable)
@@ -102,6 +102,8 @@ data OutputOptions = OutputOptions
   -- ^ Use less vertical (and more horizontal) space.
   , outputOptionsCompactParens :: Bool
   -- ^ Group closing parentheses on to a single line.
+  , outputOptionsInitialIndent :: Int
+  -- ^ Indent the whole output by this amount.
   , outputOptionsColorOptions :: Maybe ColorOptions
   -- ^ If this is 'Nothing', then don't colorize the output.  If this is
   -- @'Just' colorOptions@, then use @colorOptions@ to colorize the output.
@@ -173,6 +175,7 @@ defaultOutputOptionsNoColor =
   , outputOptionsPageWidth = 80
   , outputOptionsCompact = False
   , outputOptionsCompactParens = False
+  , outputOptionsInitialIndent = 0
   , outputOptionsColorOptions = Nothing
   , outputOptionsStringStyle = EscapeNonPrintable
   }
@@ -206,7 +209,8 @@ layoutString opts =
 prettyExprs' :: OutputOptions -> [Expr] -> Doc Annotation
 prettyExprs' opts = \case
   [] -> mempty
-  x : xs -> prettyExpr opts x <> prettyExprs opts xs
+  x : xs -> indent (outputOptionsInitialIndent opts)
+    $ prettyExpr opts x <> prettyExprs opts xs
 
 -- | Construct a 'Doc' from multiple 'Expr's.
 prettyExprs :: OutputOptions -> [Expr] -> Doc Annotation
