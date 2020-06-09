@@ -211,6 +211,7 @@ exprsToDoc opts = exprs False . preprocess opts
       (getList -> Just [[e]]) -> isSimple e
       (getList -> Just (_:_)) -> False
       StringLit s -> '\n' `notElem` s
+      Other s -> '\n' `notElem` s
       _ -> True
     getList = \case
       Brackets (CommaSeparated xs) -> Just xs
