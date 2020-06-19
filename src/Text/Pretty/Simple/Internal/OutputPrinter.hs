@@ -61,6 +61,20 @@ data CheckColorTty
   -- 'outputOptionsColorOptions'.
   deriving (Eq, Generic, Show, Typeable)
 
+data StringOutputStyle
+  = Literal
+  -- ^ Output string literals by printing the source characters exactly.
+  --
+  -- For examples: without this option the printer will insert a newline in
+  -- place of @"\n"@, with this options the printer will output @'\'@ and
+  -- @'n'@. Similarly the exact escape codes used in the input string will be
+  -- replicated, so @"\65"@ will be printed as @"\65"@ and not @"A"@.
+  | EscapeNonPrintable
+  -- ^ Replace non-printable characters with hexadecimal escape sequences.
+  | DoNotEscapeNonPrintable
+  -- ^ Output non-printable characters without modification.
+  deriving (Eq, Generic, Show, Typeable)
+
 -- | Data-type wrapping up all the options available when rendering the list
 -- of 'Output's.
 data OutputOptions = OutputOptions
@@ -71,19 +85,8 @@ data OutputOptions = OutputOptions
   -- ^ If this is 'Nothing', then don't colorize the output.  If this is
   -- @'Just' colorOptions@, then use @colorOptions@ to colorize the output.
   --
-  , outputOptionsEscapeNonPrintable :: Bool
-  -- ^ Whether to replace non-printable characters with hexadecimal escape
-  -- sequences.
-  , outputOptionsPrintStringLitsLiterally :: Bool
-  -- ^ Output string literals by printing the source characters exactly.
-  --
-  -- For examples: without this option the printer will insert a newline in
-  -- place of @"\n"@, with this options the printer will output @'\'@ and
-  -- @'n'@. Similarly the exact escape codes used in the input string will be
-  -- replicated, so @"\65"@ will be printed as @"\65"@ and not @"A"@.
-  --
-  -- When this is enabled the value of 'outputOptionsEscapeNonPrintable' is
-  -- unused.
+  , outputOptionsStringStyle :: StringOutputStyle
+  -- ^ Controls how string literals are output
   } deriving (Eq, Generic, Show, Typeable)
 
 -- | Default values for 'OutputOptions' when printing to a console with a dark
@@ -94,8 +97,7 @@ defaultOutputOptionsDarkBg =
   OutputOptions
   { outputOptionsIndentAmount = 4
   , outputOptionsColorOptions = Just defaultColorOptionsDarkBg
-  , outputOptionsEscapeNonPrintable = True
-  , outputOptionsPrintStringLitsLiterally = False
+  , outputOptionsStringStyle = EscapeNonPrintable
   }
 
 -- | Default values for 'OutputOptions' when printing to a console with a light
@@ -106,8 +108,7 @@ defaultOutputOptionsLightBg =
   OutputOptions
   { outputOptionsIndentAmount = 4
   , outputOptionsColorOptions = Just defaultColorOptionsLightBg
-  , outputOptionsEscapeNonPrintable = True
-  , outputOptionsPrintStringLitsLiterally = False
+  , outputOptionsStringStyle = EscapeNonPrintable
   }
 
 -- | Default values for 'OutputOptions' when printing using using ANSI escape
@@ -118,8 +119,7 @@ defaultOutputOptionsNoColor =
   OutputOptions
   { outputOptionsIndentAmount = 4
   , outputOptionsColorOptions = Nothing
-  , outputOptionsEscapeNonPrintable = True
-  , outputOptionsPrintStringLitsLiterally = False
+  , outputOptionsStringStyle = EscapeNonPrintable
   }
 
 -- | Given 'OutputOptions', disable colorful output if the given handle
@@ -184,12 +184,11 @@ renderOutput (Output _ (OutputStringLit string)) = do
     ]
   where
     process :: OutputOptions -> String -> String
-    process opts =
-      if outputOptionsPrintStringLitsLiterally opts
-        then id
-        else if outputOptionsEscapeNonPrintable opts
-          then indentSubsequentLinesWith spaces . escapeNonPrintable . readStr
-          else indentSubsequentLinesWith spaces . readStr
+    process opts = case outputOptionsStringStyle opts of
+      Literal -> id
+      EscapeNonPrintable
+        -> indentSubsequentLinesWith spaces . escapeNonPrintable . readStr
+      DoNotEscapeNonPrintable -> indentSubsequentLinesWith spaces . readStr
       where
         spaces :: String
         spaces = replicate (indentSpaces + 2) ' '
