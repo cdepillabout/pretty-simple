@@ -93,6 +93,7 @@ module Text.Pretty.Simple
   , pStringOpt
   -- * 'OutputOptions'
   , OutputOptions(..)
+  , StringOutputStyle(..)
   , defaultOutputOptionsDarkBg
   , defaultOutputOptionsLightBg
   , defaultOutputOptionsNoColor
@@ -118,10 +119,11 @@ import Data.Text.Lazy.IO as LText
 import System.IO (Handle, stdout)
 
 import Text.Pretty.Simple.Internal
-       (CheckColorTty(..), OutputOptions(..), defaultColorOptionsDarkBg,
-        defaultColorOptionsLightBg, defaultOutputOptionsDarkBg,
-        defaultOutputOptionsLightBg, defaultOutputOptionsNoColor,
-        hCheckTTY, expressionParse, expressionsToOutputs, render)
+       (CheckColorTty(..), OutputOptions(..), StringOutputStyle(..),
+        defaultColorOptionsDarkBg, defaultColorOptionsLightBg,
+        defaultOutputOptionsDarkBg, defaultOutputOptionsLightBg,
+        defaultOutputOptionsNoColor, hCheckTTY, expressionParse,
+        expressionsToOutputs, render)
 
 -- $setup
 -- >>> import Data.Text.Lazy (unpack)
@@ -669,8 +671,8 @@ pStringOpt outputOptions =
 -- If outputOptionsPrintStringLitsLiterally is set strings are
 -- replicated faithfully.
 --
--- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsPrintStringLitsLiterally = False } "\"Several encodings of A: A \\65 \\065 \\x41 \\n\""
+-- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsStringStyle = EscapeNonPrintable } "\"Several encodings of A: A \\65 \\065 \\x41 \\n\""
 -- "Several encodings of A: A A A A "
 --
--- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsPrintStringLitsLiterally = True } "\"Several encodings of A: A \\65 \\065 \\x41 \\n\""
+-- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsStringStyle = Literal } "\"Several encodings of A: A \\65 \\065 \\x41 \\n\""
 -- "Several encodings of A: A \65 \065 \x41 \n"
