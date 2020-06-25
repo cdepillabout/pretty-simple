@@ -1,4 +1,12 @@
 
+## 3.3.0.0
+
+*   Add an output option to print escaped and non-printable characters
+    literally when outputting strings.
+    [#68](https://github.com/cdepillabout/pretty-simple/pull/68) and
+    [#69](https://github.com/cdepillabout/pretty-simple/pull/69)
+    Thanks Joe Hermaszewski ([@expipiplus1](https://github.com/expipiplus1))!
+
 ## 3.2.3.0
 
 *   Fix a bug that messes up printing identifiers with `'` in the name.

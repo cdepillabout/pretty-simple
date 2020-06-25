@@ -93,6 +93,7 @@ module Text.Pretty.Simple
   , pStringOpt
   -- * 'OutputOptions'
   , OutputOptions(..)
+  , StringOutputStyle(..)
   , defaultOutputOptionsDarkBg
   , defaultOutputOptionsLightBg
   , defaultOutputOptionsNoColor
@@ -118,10 +119,11 @@ import Data.Text.Lazy.IO as LText
 import System.IO (Handle, stdout)
 
 import Text.Pretty.Simple.Internal
-       (CheckColorTty(..), OutputOptions(..), defaultColorOptionsDarkBg,
-        defaultColorOptionsLightBg, defaultOutputOptionsDarkBg,
-        defaultOutputOptionsLightBg, defaultOutputOptionsNoColor,
-        hCheckTTY, expressionParse, expressionsToOutputs, render)
+       (CheckColorTty(..), OutputOptions(..), StringOutputStyle(..),
+        defaultColorOptionsDarkBg, defaultColorOptionsLightBg,
+        defaultOutputOptionsDarkBg, defaultOutputOptionsLightBg,
+        defaultOutputOptionsNoColor, hCheckTTY, expressionParse,
+        expressionsToOutputs, render)
 
 -- $setup
 -- >>> import Data.Text.Lazy (unpack)
@@ -665,3 +667,6 @@ pStringOpt outputOptions =
 --
 -- >>> pPrint "this string has non-printable characters: \x8 and \x9"
 -- "this string has non-printable characters: \x8 and \x9"
+--
+-- If you don't want non-printable characters to be escaped, take a look at
+-- 'outputOptionsStringStyle' and 'StringOutputStyle'.
