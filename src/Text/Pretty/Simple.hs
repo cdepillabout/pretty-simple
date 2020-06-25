@@ -620,14 +620,12 @@ pStringOpt outputOptions = renderLazy . layoutString outputOptions
 --
 -- >>> pPrint $ B ( B ( B A ) )
 -- B
---     ( B ( B A )
---     )
+--     ( B ( B A ) )
 --
 -- >>> pPrint $ B ( B ( B ( B A ) ) )
 -- B
 --     ( B
---         ( B ( B A )
---         )
+--         ( B ( B A ) )
 --     )
 --
 -- >>> pPrint $ B ( C [A, A] [B A, B (B (B A))] )
@@ -638,8 +636,7 @@ pStringOpt outputOptions = renderLazy . layoutString outputOptions
 --         ]
 --         [ B A
 --         , B
---             ( B ( B A )
---             )
+--             ( B ( B A ) )
 --         ]
 --     )
 --

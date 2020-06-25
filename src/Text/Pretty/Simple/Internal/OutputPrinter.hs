@@ -30,14 +30,12 @@ import Control.Applicative
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad (join)
 import Control.Monad.State (MonadState, evalState, modify, gets)
-import Data.Bool (bool)
 import Data.Char (isPrint, isSpace, ord)
-import Data.List (intersperse)
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Data.Maybe (fromMaybe)
 import Data.Text.Prettyprint.Doc
-  (Doc, SimpleDocStream, annotate, defaultLayoutOptions, enclose, flatAlt,
-    group, hcat, indent, layoutPretty, line, line', unAnnotateS, pretty)
+  (concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions, enclose,
+    hcat, indent, layoutPretty, line, unAnnotateS, pretty)
 import Data.Text.Prettyprint.Doc.Render.Terminal (AnsiStyle)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
@@ -192,37 +190,56 @@ exprsToDocStream :: OutputOptions -> [Expr] -> SimpleDocStream AnsiStyle
 exprsToDocStream opts = annotateAnsi opts . layoutPretty defaultLayoutOptions . exprsToDoc opts
 
 exprsToDoc :: OutputOptions -> [Expr] -> Doc Annotation
-exprsToDoc opts = exprs False . preprocess opts
+exprsToDoc opts = exprsWrapped opts . preprocess opts
+
+-- | Whether this expression should be contracted on to one line
+isSimple :: Expr -> Bool
+isSimple = \case
+  (getList -> Just [[e]]) -> isSimple e
+  (getList -> Just (_:_)) -> False
+  StringLit s -> '\n' `notElem` s
+  Other s -> '\n' `notElem` s
+  _ -> True
   where
-    list open close (CommaSeparated es) = annotate Open open <>
-        hcat (intersperse (line <> annotate Comma ",")
-          (map (exprs True) es)) <> l <> annotate Close close
-      where l = if null es then line' else line
-    exprs nested = \case -- 'nested' is True unless this is the very top level
-      [] -> mempty
-      x : xs -> expr nested x <> hcat (map (expr True) xs)
-    expr nested x = applyWhen (isSimple x) group $
-      applyWhen nested ((line <>) . flatAlt (indent indentAmount (go x))) $ go x
-    isSimple = \case -- should this expression be contracted on to one line?
-      (getList -> Just [[e]]) -> isSimple e
-      (getList -> Just (_:_)) -> False
-      StringLit s -> '\n' `notElem` s
-      Other s -> '\n' `notElem` s
-      _ -> True
     getList = \case
       Brackets (CommaSeparated xs) -> Just xs
       Braces (CommaSeparated xs) -> Just xs
       Parens (CommaSeparated xs) -> Just xs
       _ -> Nothing
-    go = \case
-      Brackets xss -> list "[" "]" xss
-      Braces xss -> list "{" "}" xss
-      Parens xss -> list "(" ")" xss
-      StringLit s -> join enclose (annotate Quote "\"") $ annotate String $ pretty s
-      CharLit s -> join enclose (annotate Quote "'") $ annotate String $ pretty s
-      Other s -> pretty s
-      NumberLit n -> annotate Num $ pretty n
-    indentAmount = outputOptionsIndentAmount opts
+
+-- | Non-nested
+exprsWrapped :: OutputOptions -> [Expr] -> Doc Annotation
+exprsWrapped opts = \case
+  [] -> mempty
+  x : xs ->
+    expr opts x <> exprs opts xs
+
+exprs :: OutputOptions -> [Expr] -> Doc Annotation
+exprs opts = hcat . map (exprWrapped opts)
+
+exprWrapped :: OutputOptions -> Expr -> Doc Annotation
+exprWrapped opts x =
+  if isSimple x then
+    space <> expr opts x
+  else
+    line <> indent (outputOptionsIndentAmount opts) (expr opts x)
+
+expr :: OutputOptions -> Expr -> Doc Annotation
+expr opts = \case
+  Brackets xss -> list "[" "]" xss
+  Braces xss -> list "{" "}" xss
+  Parens xss -> list "(" ")" xss
+  StringLit s -> join enclose (annotate Quote "\"") $ annotate String $ pretty s
+  CharLit s -> join enclose (annotate Quote "'") $ annotate String $ pretty s
+  Other s -> pretty s
+  NumberLit n -> annotate Num $ pretty n
+  where
+    list open close (CommaSeparated xss) =
+      enclose (annotate Open open) (annotate Close close) $ case xss of
+        [] -> mempty
+        [xs] | all isSimple xs -> space <> exprsWrapped opts xs <> space
+        _ -> concatWith lineAndCommaSep (map (exprs opts) xss) <> line
+    lineAndCommaSep x y = x <> line <> annotate Comma "," <> y
 
 preprocess :: OutputOptions -> [Expr] -> [Expr]
 preprocess opts = map one . removeEmptyOther
@@ -247,9 +264,6 @@ removeEmptyOther :: [Expr] -> [Expr]
 removeEmptyOther = filter $ \case
   Other s -> any (not . isSpace) s
   _ -> True
-
-applyWhen :: Bool -> (a -> a) -> a -> a
-applyWhen = flip $ bool id
 
 -- | Traverse the stream, using a 'Tape' to keep track of the current color.
 annotateAnsi :: OutputOptions -> SimpleDocStream Annotation
