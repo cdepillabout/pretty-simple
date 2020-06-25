@@ -46,6 +46,9 @@ import Text.Pretty.Simple.Internal.Color
 import Text.Pretty.Simple.Internal.Output
        (NestLevel(..), Output(..), OutputType(..))
 
+-- $setup
+-- >>> import Text.Pretty.Simple (pPrintString, pPrintStringOpt)
+
 -- | Determines whether pretty-simple should check if the output 'Handle' is a
 -- TTY device.  Normally, users only want to print in color if the output
 -- 'Handle' is a TTY device.
@@ -61,6 +64,10 @@ data CheckColorTty
   -- 'outputOptionsColorOptions'.
   deriving (Eq, Generic, Show, Typeable)
 
+-- | Control how escaped and non-printable are output for strings.
+--
+-- See 'outputOptionsStringStyle' for what the output looks like with each of
+-- these options.
 data StringOutputStyle
   = Literal
   -- ^ Output string literals by printing the source characters exactly.
@@ -86,7 +93,42 @@ data OutputOptions = OutputOptions
   -- @'Just' colorOptions@, then use @colorOptions@ to colorize the output.
   --
   , outputOptionsStringStyle :: StringOutputStyle
-  -- ^ Controls how string literals are output
+  -- ^ Controls how string literals are output.
+  --
+  -- By default, the pPrint functions escape non-printable characters, but
+  -- print all printable characters:
+  --
+  -- >>> pPrintString "\"A \\x42 Ä \\xC4 \\x1 \\n\""
+  -- "A B Ä Ä \x1 "
+  --
+  -- Here, you can see that the character @A@ has been printed as-is.  @\x42@
+  -- has been printed in the non-escaped version, @B@.  The non-printable
+  -- character @\x1@ has been printed as @\x1@.  Newlines will be removed to
+  -- make the output easier to read.
+  --
+  -- This corresponds to the 'StringOutputStyle' called 'EscapeNonPrintable'.
+  --
+  -- (Note that in the above and following examples, the characters have to be
+  -- double-escaped, which makes it somewhat confusing...)
+  --
+  -- Another output style is 'DoNotEscapeNonPrintable'.  This is similar
+  -- to 'EscapeNonPrintable', except that non-printable characters get printed
+  -- out literally to the screen.
+  --
+  -- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsStringStyle = DoNotEscapeNonPrintable } "\"A \\x42 Ä \\xC4 \\n\""
+  -- "A B Ä Ä "
+  --
+  -- If you change the above example to contain @\x1@, you can see that it is
+  -- output as a literal, non-escaped character.  Newlines are still removed
+  -- for readability.
+  --
+  -- Another output style is 'Literal'.  This just outputs all escape characters.
+  --
+  -- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsStringStyle = Literal } "\"A \\x42 Ä \\xC4 \\x1 \\n\""
+  -- "A \x42 Ä \xC4 \x1 \n"
+  --
+  -- You can see that all the escape characters get output literally, including
+  -- newline.
   } deriving (Eq, Generic, Show, Typeable)
 
 -- | Default values for 'OutputOptions' when printing to a console with a dark
@@ -186,8 +228,8 @@ renderOutput (Output _ (OutputStringLit string)) = do
     process :: OutputOptions -> String -> String
     process opts = case outputOptionsStringStyle opts of
       Literal -> id
-      EscapeNonPrintable
-        -> indentSubsequentLinesWith spaces . escapeNonPrintable . readStr
+      EscapeNonPrintable ->
+        indentSubsequentLinesWith spaces . escapeNonPrintable . readStr
       DoNotEscapeNonPrintable -> indentSubsequentLinesWith spaces . readStr
       where
         spaces :: String

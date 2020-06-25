@@ -668,11 +668,5 @@ pStringOpt outputOptions =
 -- >>> pPrint "this string has non-printable characters: \x8 and \x9"
 -- "this string has non-printable characters: \x8 and \x9"
 --
--- If outputOptionsPrintStringLitsLiterally is set strings are
--- replicated faithfully.
---
--- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsStringStyle = EscapeNonPrintable } "\"Several encodings of A: A \\65 \\065 \\x41 \\n\""
--- "Several encodings of A: A A A A "
---
--- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsStringStyle = Literal } "\"Several encodings of A: A \\65 \\065 \\x41 \\n\""
--- "Several encodings of A: A \65 \065 \x41 \n"
+-- If you don't want non-printable characters to be escaped, take a look at
+-- 'outputOptionsStringStyle' and 'StringOutputStyle'.
