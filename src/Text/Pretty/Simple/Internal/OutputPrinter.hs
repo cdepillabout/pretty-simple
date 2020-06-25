@@ -3,8 +3,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -29,16 +29,13 @@ import Control.Applicative
 #endif
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Control.Monad.Reader (join)
-import Control.Monad.Trans.State (evalState, gets, state)
+import Control.Monad (join)
+import Control.Monad.State (MonadState, evalState, modify, gets)
 import Data.Bool (bool)
 import Data.Char (isPrint, isSpace, ord)
 import Data.List (intersperse)
-import Data.List.NonEmpty (NonEmpty)
-import qualified Data.List.NonEmpty as NE (nonEmpty, toList)
+import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Data.Maybe (fromMaybe)
-import Data.Stream ((<:>), Stream(Cons))
-import qualified Data.Stream as Stream (cycle, head, repeat)
 import Data.Text.Prettyprint.Doc
   (Doc, SimpleDocStream, annotate, defaultLayoutOptions, enclose, flatAlt,
     group, hcat, indent, layoutPretty, line, line', unAnnotateS, pretty)
@@ -195,12 +192,12 @@ layoutString opts = exprsToDocStream opts . expressionParse
 exprsToDocStream :: OutputOptions -> [Expr] -> SimpleDocStream AnsiStyle
 exprsToDocStream opts = annotateAnsi opts . layoutPretty defaultLayoutOptions . exprsToDoc opts
 
-exprsToDoc :: OutputOptions -> [Expr] -> Doc Ann
+exprsToDoc :: OutputOptions -> [Expr] -> Doc Annotation
 exprsToDoc opts = exprs False . preprocess opts
   where
-    list open close (CommaSeparated es) = annotate AnnOpen open <>
-        hcat (intersperse (line <> annotate AnnComma ",")
-          (map (exprs True) es)) <> l <> annotate AnnClose close
+    list open close (CommaSeparated es) = annotate Open open <>
+        hcat (intersperse (line <> annotate Comma ",")
+          (map (exprs True) es)) <> l <> annotate Close close
       where l = if null es then line' else line
     exprs nested = \case -- 'nested' is True unless this is the very top level
       [] -> mempty
@@ -222,10 +219,10 @@ exprsToDoc opts = exprs False . preprocess opts
       Brackets xss -> list "[" "]" xss
       Braces xss -> list "{" "}" xss
       Parens xss -> list "(" ")" xss
-      StringLit s -> join enclose (annotate AnnQuote "\"") $ annotate AnnString $ pretty s
-      CharLit s -> join enclose (annotate AnnQuote "'") $ annotate AnnString $ pretty s
+      StringLit s -> join enclose (annotate Quote "\"") $ annotate String $ pretty s
+      CharLit s -> join enclose (annotate Quote "'") $ annotate String $ pretty s
       Other s -> pretty s
-      NumberLit n -> annotate AnnNum $ pretty n
+      NumberLit n -> annotate Num $ pretty n
     indentAmount = outputOptionsIndentAmount opts
 
 preprocess :: OutputOptions -> [Expr] -> [Expr]
@@ -255,53 +252,37 @@ removeEmptyOther = filter $ \case
 applyWhen :: Bool -> (a -> a) -> a -> a
 applyWhen = flip $ bool id
 
-annotateAnsi :: OutputOptions -> SimpleDocStream Ann
+-- | Traverse the stream, using a 'Tape' to keep track of the current color.
+annotateAnsi :: OutputOptions -> SimpleDocStream Annotation
   -> SimpleDocStream AnsiStyle
-annotateAnsi opts = case outputOptionsColorOptions opts of
-  Nothing -> unAnnotateS
-  Just co -> flip evalState (newD (colorError co) rainbowParensColor) .
-    traverse f
+annotateAnsi opts ds = case outputOptionsColorOptions opts of
+  Nothing -> unAnnotateS ds
+  Just ColorOptions {..} -> evalState (traverse style ds) initialTape
     where
-      f = \case
-        AnnOpen -> state advanceD >> gets getD
-        AnnClose -> state $ retreatD
-        AnnComma -> gets getD
-        AnnQuote -> pure $ colorQuote co
-        AnnString -> pure $ colorString co
-        AnnNum -> pure $ colorNum co
-      rainbowParensColor = fromMaybe (pure mempty) $ NE.nonEmpty $
-        colorRainbowParens co
+      style :: MonadState (Tape AnsiStyle) m => Annotation -> m AnsiStyle
+      style = \case
+        Open -> modify moveR *> gets tapeHead
+        Close -> gets tapeHead <* modify moveL
+        Comma -> gets tapeHead
+        Quote -> pure colorQuote
+        String -> pure colorString
+        Num -> pure colorNum
+      initialTape = Tape
+        { tapeLeft = streamRepeat colorError
+        , tapeHead = colorError
+        , tapeRight = streamCycle $ fromMaybe (pure mempty)
+            $ nonEmpty $ colorRainbowParens
+        }
 
-data Ann
-  = AnnOpen
-  | AnnClose
-  | AnnComma
-  | AnnQuote
-  | AnnString
-  | AnnNum
-
-data D a = D
-  -- constant
-  { initD :: NonEmpty a
-
-  -- complete history, supplemented by infinite errors, for when we go back too far
-  , pastD :: Stream a
-
-  -- still to come
-  , futureD :: Stream a
-  }
-newD :: a -> NonEmpty a -> D a
-newD err xs = D xs (Stream.repeat err) $ err <:> Stream.cycle (NE.toList xs)
-getD :: D a -> a
-getD = Stream.head . futureD
-advanceD :: D a -> (a, D a)
-advanceD D{initD, pastD, futureD} =
-  (x, D{initD, futureD = xs, pastD = x <:> pastD})
-  where Cons x xs = futureD
-retreatD :: D a -> (a, D a)
-retreatD D{initD, pastD, futureD} =
-  (Stream.head futureD, D{initD, pastD = xs, futureD = x <:> futureD})
-  where Cons x xs = pastD
+-- | An abstract annotation type, representing the various elements
+-- we may want to highlight.
+data Annotation
+  = Open
+  | Close
+  | Comma
+  | Quote
+  | String
+  | Num
 
 -- | Replace non-printable characters with hex escape sequences.
 --
@@ -334,3 +315,28 @@ shrinkWhitespace "" = ""
 
 strip :: String -> String
 strip = dropWhile isSpace . reverse . dropWhile isSpace . reverse
+
+-- | A bidirectional Turing-machine tape:
+-- infinite in both directions, with a head pointing to one element.
+data Tape a = Tape
+  { tapeLeft  :: Stream a -- ^ the side of the 'Tape' left of 'tapeHead'
+  , tapeHead  :: a        -- ^ the focused element
+  , tapeRight :: Stream a -- ^ the side of the 'Tape' right of 'tapeHead'
+  } deriving Show
+-- | Move the head left
+moveL :: Tape a -> Tape a
+moveL (Tape (l :.. ls) c rs) = Tape ls l (c :.. rs)
+-- | Move the head right
+moveR :: Tape a -> Tape a
+moveR (Tape ls c (r :.. rs)) = Tape (c :.. ls) r rs
+
+-- | An infinite list
+data Stream a = a :.. Stream a deriving Show
+-- | Analogous to 'repeat'
+streamRepeat :: t -> Stream t
+streamRepeat x = x :.. streamRepeat x
+-- | Analogous to 'cycle'
+-- While the inferred signature here is more general,
+-- it would diverge on an empty structure
+streamCycle :: NonEmpty a -> Stream a
+streamCycle xs = foldr (:..) (streamCycle xs) xs
