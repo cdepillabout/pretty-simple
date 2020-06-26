@@ -34,7 +34,7 @@ import Data.Char (isPrint, isSpace, ord)
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Data.Maybe (fromMaybe)
 import Data.Text.Prettyprint.Doc
-  (concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions, enclose,
+  (hsep, concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions, enclose,
     hcat, indent, layoutPretty, line, unAnnotateS, pretty)
 import Data.Text.Prettyprint.Doc.Render.Terminal (AnsiStyle)
 import Data.Typeable (Typeable)
@@ -187,12 +187,20 @@ layoutString :: OutputOptions -> String -> SimpleDocStream AnsiStyle
 layoutString opts = exprsToDocStream opts . expressionParse
 
 exprsToDocStream :: OutputOptions -> [Expr] -> SimpleDocStream AnsiStyle
-exprsToDocStream opts = annotateAnsi opts . layoutPretty defaultLayoutOptions . exprsToDoc opts
+exprsToDocStream opts =
+  annotateAnsi opts
+    . layoutPretty defaultLayoutOptions
+    . prettyExprs' opts
+    . preprocess opts
 
-exprsToDoc :: OutputOptions -> [Expr] -> Doc Annotation
-exprsToDoc opts = exprsWrapped opts . preprocess opts
+-- | Slight adjustment of 'prettyExprs' for the outermost level,
+-- to avoid indenting everything.
+prettyExprs' :: OutputOptions -> [Expr] -> Doc Annotation
+prettyExprs' opts = \case
+  [] -> mempty
+  x : xs -> prettyExpr opts x <> prettyExprs opts xs
 
--- | Whether this expression should be contracted on to one line
+-- | Whether this expression should be displayed on a single line
 isSimple :: Expr -> Bool
 isSimple = \case
   (getList -> Just [[e]]) -> isSimple e
@@ -207,25 +215,21 @@ isSimple = \case
       Parens (CommaSeparated xs) -> Just xs
       _ -> Nothing
 
--- | Non-nested
-exprsWrapped :: OutputOptions -> [Expr] -> Doc Annotation
-exprsWrapped opts = \case
-  [] -> mempty
-  x : xs ->
-    expr opts x <> exprs opts xs
+prettyExprs :: OutputOptions -> [Expr] -> Doc Annotation
+prettyExprs opts = hcat . map subExpr
+  where
+    subExpr x =
+      let doc = prettyExpr opts x
+      in
+        if isSimple x then
+          -- keep the expression on the current line
+          space <> doc
+        else
+          -- put the expression on a new line, indented
+          line <> indent (outputOptionsIndentAmount opts) doc
 
-exprs :: OutputOptions -> [Expr] -> Doc Annotation
-exprs opts = hcat . map (exprWrapped opts)
-
-exprWrapped :: OutputOptions -> Expr -> Doc Annotation
-exprWrapped opts x =
-  if isSimple x then
-    space <> expr opts x
-  else
-    line <> indent (outputOptionsIndentAmount opts) (expr opts x)
-
-expr :: OutputOptions -> Expr -> Doc Annotation
-expr opts = \case
+prettyExpr :: OutputOptions -> Expr -> Doc Annotation
+prettyExpr opts = \case
   Brackets xss -> list "[" "]" xss
   Braces xss -> list "{" "}" xss
   Parens xss -> list "(" ")" xss
@@ -237,8 +241,9 @@ expr opts = \case
     list open close (CommaSeparated xss) =
       enclose (annotate Open open) (annotate Close close) $ case xss of
         [] -> mempty
-        [xs] | all isSimple xs -> space <> exprsWrapped opts xs <> space
-        _ -> concatWith lineAndCommaSep (map (exprs opts) xss) <> line
+        [xs] | all isSimple xs ->
+          space <> hsep (map (prettyExpr opts) xs) <> space
+        _ -> concatWith lineAndCommaSep (map (prettyExprs opts) xss) <> line
     lineAndCommaSep x y = x <> line <> annotate Comma "," <> y
 
 preprocess :: OutputOptions -> [Expr] -> [Expr]
