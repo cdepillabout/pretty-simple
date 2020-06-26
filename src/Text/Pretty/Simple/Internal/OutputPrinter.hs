@@ -184,14 +184,12 @@ hCheckTTY h options = liftIO $ conv <$> tty
 -- suitable for passing to any /prettyprinter/ backend.
 -- Used by 'Simple.pString' etc.
 layoutString :: OutputOptions -> String -> SimpleDocStream AnsiStyle
-layoutString opts = exprsToDocStream opts . expressionParse
-
-exprsToDocStream :: OutputOptions -> [Expr] -> SimpleDocStream AnsiStyle
-exprsToDocStream opts =
+layoutString opts =
   annotateAnsi opts
     . layoutPretty defaultLayoutOptions
     . prettyExprs' opts
     . preprocess opts
+    . expressionParse
 
 -- | Slight adjustment of 'prettyExprs' for the outermost level,
 -- to avoid indenting everything.
@@ -200,21 +198,7 @@ prettyExprs' opts = \case
   [] -> mempty
   x : xs -> prettyExpr opts x <> prettyExprs opts xs
 
--- | Whether this expression should be displayed on a single line
-isSimple :: Expr -> Bool
-isSimple = \case
-  (getList -> Just [[e]]) -> isSimple e
-  (getList -> Just (_:_)) -> False
-  StringLit s -> '\n' `notElem` s
-  Other s -> '\n' `notElem` s
-  _ -> True
-  where
-    getList = \case
-      Brackets (CommaSeparated xs) -> Just xs
-      Braces (CommaSeparated xs) -> Just xs
-      Parens (CommaSeparated xs) -> Just xs
-      _ -> Nothing
-
+-- | Construct a 'Doc' from multiple 'Expr's.
 prettyExprs :: OutputOptions -> [Expr] -> Doc Annotation
 prettyExprs opts = hcat . map subExpr
   where
@@ -228,6 +212,7 @@ prettyExprs opts = hcat . map subExpr
           -- put the expression on a new line, indented
           line <> indent (outputOptionsIndentAmount opts) doc
 
+-- | Construct a 'Doc' from a single 'Expr'.
 prettyExpr :: OutputOptions -> Expr -> Doc Annotation
 prettyExpr opts = \case
   Brackets xss -> list "[" "]" xss
@@ -238,6 +223,8 @@ prettyExpr opts = \case
   Other s -> pretty s
   NumberLit n -> annotate Num $ pretty n
   where
+    list :: Doc Annotation -> Doc Annotation -> CommaSeparated [Expr]
+      -> Doc Annotation
     list open close (CommaSeparated xss) =
       enclose (annotate Open open) (annotate Close close) $ case xss of
         [] -> mempty
@@ -246,29 +233,20 @@ prettyExpr opts = \case
         _ -> concatWith lineAndCommaSep (map (prettyExprs opts) xss) <> line
     lineAndCommaSep x y = x <> line <> annotate Comma "," <> y
 
-preprocess :: OutputOptions -> [Expr] -> [Expr]
-preprocess opts = map one . removeEmptyOther
-  where
-    one = \case
-      Brackets xss -> Brackets $ cs xss
-      Braces xss -> Braces $ cs xss
-      Parens xss -> Parens $ cs xss
-      StringLit s -> StringLit $
-        case outputOptionsStringStyle opts of
-          Literal -> s
-          EscapeNonPrintable -> escapeNonPrintable $ readStr s
-          DoNotEscapeNonPrintable -> readStr s
-      CharLit s -> CharLit s
-      Other s -> Other $ shrinkWhitespace $ strip s
-      NumberLit n -> NumberLit n
-    cs (CommaSeparated ess) = CommaSeparated $ map (preprocess opts) ess
-    readStr :: String -> String
-    readStr s = fromMaybe s . readMaybe $ '"': s ++ "\""
-
-removeEmptyOther :: [Expr] -> [Expr]
-removeEmptyOther = filter $ \case
-  Other s -> any (not . isSpace) s
+-- | Determine whether this expression should be displayed on a single line.
+isSimple :: Expr -> Bool
+isSimple = \case
+  (getList -> Just [[e]]) -> isSimple e
+  (getList -> Just (_:_)) -> False
+  StringLit s -> '\n' `notElem` s
+  Other s -> '\n' `notElem` s
   _ -> True
+  where
+    getList = \case
+      Brackets (CommaSeparated xs) -> Just xs
+      Braces (CommaSeparated xs) -> Just xs
+      Parens (CommaSeparated xs) -> Just xs
+      _ -> Nothing
 
 -- | Traverse the stream, using a 'Tape' to keep track of the current color.
 annotateAnsi :: OutputOptions -> SimpleDocStream Annotation
@@ -302,6 +280,33 @@ data Annotation
   | String
   | Num
 
+-- | Apply various transformations to clean up the 'Expr's.
+preprocess :: OutputOptions -> [Expr] -> [Expr]
+preprocess opts = map processExpr . removeEmptyOthers
+  where
+    processExpr = \case
+      Brackets xss -> Brackets $ cs xss
+      Braces xss -> Braces $ cs xss
+      Parens xss -> Parens $ cs xss
+      StringLit s -> StringLit $
+        case outputOptionsStringStyle opts of
+          Literal -> s
+          EscapeNonPrintable -> escapeNonPrintable $ readStr s
+          DoNotEscapeNonPrintable -> readStr s
+      CharLit s -> CharLit s
+      Other s -> Other $ shrinkWhitespace $ strip s
+      NumberLit n -> NumberLit n
+    cs (CommaSeparated ess) = CommaSeparated $ map (preprocess opts) ess
+    readStr :: String -> String
+    readStr s = fromMaybe s . readMaybe $ '"': s ++ "\""
+
+-- | Remove any 'Other' 'Expr's which contain only spaces.
+-- These provide no value, but mess up formatting if left in.
+removeEmptyOthers :: [Expr] -> [Expr]
+removeEmptyOthers = filter $ \case
+  Other s -> not $ all isSpace s
+  _ -> True
+
 -- | Replace non-printable characters with hex escape sequences.
 --
 -- >>> escapeNonPrintable "\x1\x2"
@@ -326,11 +331,19 @@ escape c
   | isPrint c || c == '\n' = (c:)
   | otherwise = ('\\':) . ('x':) . showHex (ord c)
 
+-- | Compress multiple whitespaces to just one whitespace.
+--
+-- >>> shrinkWhitespace "  hello    there  "
+-- " hello there "
 shrinkWhitespace :: String -> String
 shrinkWhitespace (' ':' ':t) = shrinkWhitespace (' ':t)
 shrinkWhitespace (h:t) = h : shrinkWhitespace t
 shrinkWhitespace "" = ""
 
+-- | Remove trailing and leading whitespace (see 'Data.Text.strip').
+--
+-- >>> strip "  hello    there  "
+-- "hello    there"
 strip :: String -> String
 strip = dropWhile isSpace . reverse . dropWhile isSpace . reverse
 
