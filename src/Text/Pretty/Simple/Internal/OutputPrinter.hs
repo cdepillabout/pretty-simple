@@ -21,10 +21,13 @@ Portability : POSIX
 module Text.Pretty.Simple.Internal.OutputPrinter
   where
 
+-- We don't need these imports for later GHCs as all required functions
+-- are exported from Prelude
 #if __GLASGOW_HASKELL__ < 710
--- We don't need this import for GHC 7.10 as it exports all required functions
--- from Prelude
 import Control.Applicative
+#endif
+#if __GLASGOW_HASKELL__ < 84
+import Data.Monoid ((<>))
 #endif
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
