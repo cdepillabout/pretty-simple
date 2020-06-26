@@ -26,7 +26,7 @@ module Text.Pretty.Simple.Internal.OutputPrinter
 #if __GLASGOW_HASKELL__ < 710
 import Control.Applicative
 #endif
-#if __GLASGOW_HASKELL__ < 84
+#if __GLASGOW_HASKELL__ < 804
 import Data.Monoid ((<>))
 #endif
 
