@@ -327,7 +327,7 @@ removeEmptyOthers = filter $ \case
 escapeNonPrintable :: String -> String
 escapeNonPrintable input = foldr escape "" input
 
--- Replace an unprintable character except a newline
+-- | Replace an unprintable character except a newline
 -- with a hex escape sequence.
 escape :: Char -> ShowS
 escape c
