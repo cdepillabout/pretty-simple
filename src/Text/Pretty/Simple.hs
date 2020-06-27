@@ -427,10 +427,9 @@ pStringNoColor = pStringOpt defaultOutputOptionsNoColor
 -- ( 1
 -- ,
 --     ( 2
---     ,
---         "foo
---         bar
---         baz"
+--     , "foo
+--       bar
+--       baz"
 --     , 3
 --     )
 -- )
@@ -443,10 +442,9 @@ pStringNoColor = pStringOpt defaultOutputOptionsNoColor
 -- ( 1
 -- ,
 --     ( 2
---     ,
---         foo
---         bar
---         baz
+--     , foo
+--       bar
+--       baz
 --     , 3
 --     )
 -- )

@@ -106,7 +106,8 @@ data OutputOptions = OutputOptions
   -- print all printable characters:
   --
   -- >>> pPrintString "\"A \\x42 Ä \\xC4 \\x1 \\n\""
-  -- "A B Ä Ä \x1 "
+  -- "A B Ä Ä \x1
+  -- "
   --
   -- Here, you can see that the character @A@ has been printed as-is.  @\x42@
   -- has been printed in the non-escaped version, @B@.  The non-printable
@@ -123,7 +124,8 @@ data OutputOptions = OutputOptions
   -- out literally to the screen.
   --
   -- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsStringStyle = DoNotEscapeNonPrintable } "\"A \\x42 Ä \\xC4 \\n\""
-  -- "A B Ä Ä "
+  -- "A B Ä Ä
+  -- "
   --
   -- If you change the above example to contain @\x1@, you can see that it is
   -- output as a literal, non-escaped character.  Newlines are still removed
@@ -210,7 +212,7 @@ prettyExprs opts = hcat . map subExpr
       in
         if isSimple x then
           -- keep the expression on the current line
-          space <> doc
+          indent 1 doc
         else
           -- put the expression on a new line, indented
           line <> indent (outputOptionsIndentAmount opts) doc
@@ -241,8 +243,6 @@ isSimple :: Expr -> Bool
 isSimple = \case
   (getList -> Just [[e]]) -> isSimple e
   (getList -> Just (_:_)) -> False
-  StringLit s -> '\n' `notElem` s
-  Other s -> '\n' `notElem` s
   _ -> True
   where
     getList = \case
