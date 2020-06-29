@@ -22,7 +22,7 @@ import Data.Text.Encoding (decodeUtf8)
 import qualified Data.Text.IO as TextIO (putStrLn)
 import qualified Data.Text.Lazy as LText (Text)
 import qualified Data.Text.Lazy.IO as LTextIO (putStrLn)
-import Text.Pretty.Simple (pString)
+import Text.Pretty.Simple (pPrintString)
 
 import Example.Data (Foo, Bar, bar)
 
@@ -34,7 +34,7 @@ main = do
   putStrLn "\nThe following normal \"Data.Aeson.encode\" output:\n"
   putLazyByteStringLn $ encode bar
   putStrLn "\ngets turned into this (using \"Text.Pretty.Simple.pString\"):\n"
-  LTextIO.putStrLn . pString . lazyByteStringToString $ encode bar
+  pPrintString . lazyByteStringToString $ encode bar
 
 -- | Convert a 'LByteString.ByteString' to a 'Text.Text' by utf8-encoding it.
 lazyByteStringToText :: LByteString.ByteString -> Text.Text
