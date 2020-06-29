@@ -38,7 +38,7 @@ import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Data.Maybe (fromMaybe)
 import Data.Text.Prettyprint.Doc
   (hsep, concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions, enclose,
-    hcat, indent, layoutPretty, line, unAnnotateS, pretty)
+    hcat, indent, layoutSmart, line, unAnnotateS, pretty)
 import Data.Text.Prettyprint.Doc.Render.Terminal (AnsiStyle)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
@@ -191,7 +191,7 @@ hCheckTTY h options = liftIO $ conv <$> tty
 layoutString :: OutputOptions -> String -> SimpleDocStream AnsiStyle
 layoutString opts =
   annotateAnsi opts
-    . layoutPretty defaultLayoutOptions
+    . layoutSmart defaultLayoutOptions
     . prettyExprs' opts
     . preprocess opts
     . expressionParse
