@@ -7,7 +7,6 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE ViewPatterns #-}
 
 {-|
 Module      : Text.Pretty.Simple.Internal.OutputPrinter
@@ -242,15 +241,14 @@ prettyExpr opts = \case
 -- | Determine whether this expression should be displayed on a single line.
 isSimple :: Expr -> Bool
 isSimple = \case
-  (getList -> Just [[e]]) -> isSimple e
-  (getList -> Just (_:_)) -> False
+  Brackets (CommaSeparated xs) -> isListSimple xs
+  Braces (CommaSeparated xs) -> isListSimple xs
+  Parens (CommaSeparated xs) -> isListSimple xs
   _ -> True
   where
-    getList = \case
-      Brackets (CommaSeparated xs) -> Just xs
-      Braces (CommaSeparated xs) -> Just xs
-      Parens (CommaSeparated xs) -> Just xs
-      _ -> Nothing
+    isListSimple = \case
+      [[e]] -> isSimple e
+      _:_ -> False
 
 -- | Traverse the stream, using a 'Tape' to keep track of the current color.
 annotateAnsi :: OutputOptions -> SimpleDocStream Annotation
