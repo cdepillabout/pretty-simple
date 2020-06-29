@@ -269,7 +269,7 @@ annotateAnsi opts ds = case outputOptionsColorOptions opts of
         { tapeLeft = streamRepeat colorError
         , tapeHead = colorError
         , tapeRight = streamCycle $ fromMaybe (pure mempty)
-            $ nonEmpty $ colorRainbowParens
+            $ nonEmpty colorRainbowParens
         }
 
 -- | An abstract annotation type, representing the various elements
