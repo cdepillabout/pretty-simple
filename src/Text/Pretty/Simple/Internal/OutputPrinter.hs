@@ -34,6 +34,7 @@ import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad (join)
 import Control.Monad.State (MonadState, evalState, modify, gets)
 import Data.Char (isPrint, isSpace, ord)
+import Data.List (dropWhileEnd)
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Data.Maybe (fromMaybe)
 import Data.Text.Prettyprint.Doc
@@ -348,7 +349,7 @@ shrinkWhitespace "" = ""
 -- >>> strip "  hello    there  "
 -- "hello    there"
 strip :: String -> String
-strip = dropWhile isSpace . reverse . dropWhile isSpace . reverse
+strip = dropWhile isSpace . dropWhileEnd isSpace
 
 -- | A bidirectional Turing-machine tape:
 -- infinite in both directions, with a head pointing to one element.
