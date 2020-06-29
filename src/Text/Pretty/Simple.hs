@@ -115,8 +115,7 @@ import Control.Applicative
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Text.Lazy (Text)
 import System.IO (Handle, stdout)
-import Data.Text.Prettyprint.Doc.Render.Terminal (renderIO)
-import Data.Text.Prettyprint.Doc.Render.Text (renderLazy)
+import Data.Text.Prettyprint.Doc.Render.Terminal (renderIO, renderLazy)
 
 import Text.Pretty.Simple.Internal
        (CheckColorTty(..), OutputOptions(..), StringOutputStyle(..),

@@ -31,7 +31,7 @@ import Options.Applicative
        , option, progDesc, readerError, short, showDefaultWith, str, value, (<**>))
 import Data.Monoid ((<>))
 import Text.Pretty.Simple 
-       ( CheckColorTty(CheckColorTty), pPrintStringOpt, OutputOptions
+       ( pStringOpt, OutputOptions
        , defaultOutputOptionsDarkBg
        , defaultOutputOptionsLightBg
        , defaultOutputOptionsNoColor
@@ -67,7 +67,8 @@ main = do
   args' <- execParser opts
   input <- T.getContents
   let printOpt = getPrintOpt $ color args'
-  pPrintStringOpt CheckColorTty printOpt $ unpack input
+      output = pStringOpt printOpt $ unpack input
+  LT.putStr output
   where
     opts = info (args <**> helper)
       ( fullDesc
