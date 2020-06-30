@@ -2,6 +2,8 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -113,9 +115,18 @@ import Control.Applicative
 #endif
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Monad.RWS (RWS, execRWS, get, modify, put, tell)
+import qualified Data.Text as T
 import Data.Text.Lazy (Text)
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Builder as TLB
+import Data.Text.Prettyprint.Doc (SimpleDocStream(..))
+import Data.Text.Prettyprint.Doc.Render.Terminal
+       (AnsiStyle, renderIO)
+import Data.Text.Prettyprint.Doc.Render.Terminal.Internal (styleToRawText)
+import Data.Text.Prettyprint.Doc.Render.Util.Panic
+       (panicPeekedEmpty, panicUncaughtFail)
 import System.IO (Handle, stdout)
-import Data.Text.Prettyprint.Doc.Render.Terminal (renderIO, renderLazy)
 
 import Text.Pretty.Simple.Internal
        (CheckColorTty(..), OutputOptions(..), StringOutputStyle(..),
@@ -669,3 +680,44 @@ pStringOpt outputOptions = renderLazy . layoutString outputOptions
 --
 -- If you don't want non-printable characters to be escaped, take a look at
 -- 'outputOptionsStringStyle' and 'StringOutputStyle'.
+
+
+-- | Straightforward modification of 'Data.Text.Prettyprint.Doc.Render.Terminal'
+-- , in order to make it actually lazy
+renderLazy :: SimpleDocStream AnsiStyle -> TL.Text
+renderLazy sdoc =
+    let push x = modify (x :)
+        unsafePeek = get >>= \case
+            []  -> panicPeekedEmpty
+            x:_ -> pure x
+        unsafePop = get >>= \case
+            []   -> panicPeekedEmpty
+            x:xs -> put xs >> pure x
+        writeOutput x = tell x
+
+        go :: SimpleDocStream AnsiStyle -> RWS () TLB.Builder [AnsiStyle] ()
+        go = \case
+            SFail -> panicUncaughtFail
+            SEmpty -> pure ()
+            SChar c rest -> do
+                writeOutput (TLB.singleton c)
+                go rest
+            SText _ t rest -> do
+                writeOutput (TLB.fromText t)
+                go rest
+            SLine i rest -> do
+                writeOutput (TLB.singleton '\n' <> TLB.fromText (T.replicate i " "))
+                go rest
+            SAnnPush style rest -> do
+                currentStyle <- unsafePeek
+                let newStyle = style <> currentStyle
+                push newStyle
+                writeOutput (TLB.fromText (styleToRawText newStyle))
+                go rest
+            SAnnPop rest -> do
+                _currentStyle <- unsafePop
+                newStyle <- unsafePeek
+                writeOutput (TLB.fromText (styleToRawText newStyle))
+                go rest
+
+    in  TLB.toLazyText . snd $ execRWS (go sdoc) () [mempty]
