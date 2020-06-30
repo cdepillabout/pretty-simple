@@ -249,6 +249,7 @@ isSimple = \case
     isListSimple = \case
       [[e]] -> isSimple e
       _:_ -> False
+      [] -> True
 
 -- | Traverse the stream, using a 'Tape' to keep track of the current color.
 annotateAnsi :: OutputOptions -> SimpleDocStream Annotation
