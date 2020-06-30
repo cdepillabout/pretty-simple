@@ -681,9 +681,9 @@ pStringOpt outputOptions = renderLazy . layoutString outputOptions
 -- If you don't want non-printable characters to be escaped, take a look at
 -- 'outputOptionsStringStyle' and 'StringOutputStyle'.
 
-
--- | Straightforward modification of 'Data.Text.Prettyprint.Doc.Render.Terminal'
--- , in order to make it actually lazy
+-- | Straightforward modification of
+-- 'Data.Text.Prettyprint.Doc.Render.Terminal.renderLazy',
+-- in order to make it actually lazy.
 renderLazy :: SimpleDocStream AnsiStyle -> TL.Text
 renderLazy sdoc =
     let push x = modify (x :)
