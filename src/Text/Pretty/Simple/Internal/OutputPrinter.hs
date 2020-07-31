@@ -36,10 +36,10 @@ import Data.Char (isPrint, isSpace, ord)
 import Data.List (dropWhileEnd)
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Data.Maybe (fromMaybe)
-import Data.Text.Prettyprint.Doc
+import Prettyprinter
   (hsep, concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions, enclose,
     hcat, indent, layoutSmart, line, unAnnotateS, pretty)
-import Data.Text.Prettyprint.Doc.Render.Terminal (AnsiStyle)
+import Prettyprinter.Render.Terminal (AnsiStyle)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Numeric (showHex)

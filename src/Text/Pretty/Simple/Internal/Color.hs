@@ -25,7 +25,7 @@ module Text.Pretty.Simple.Internal.Color
 import Control.Applicative
 #endif
 
-import Data.Text.Prettyprint.Doc.Render.Terminal
+import Prettyprinter.Render.Terminal
   (AnsiStyle, Color(..), bold, colorDull, color)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)

@@ -116,7 +116,7 @@ import Control.Applicative
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Text.Lazy (Text)
-import Data.Text.Prettyprint.Doc.Render.Terminal (renderLazy, renderIO)
+import Prettyprinter.Render.Terminal (renderLazy, renderIO)
 import System.IO (Handle, stdout)
 
 import Text.Pretty.Simple.Internal

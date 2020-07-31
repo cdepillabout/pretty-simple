@@ -40,7 +40,7 @@ library
   build-depends:       base >= 4.8 && < 5
                      , containers
                      , mtl >= 2.2
-                     , prettyprinter >= 1.6.1
+                     , prettyprinter >= 1.7.0
                      , prettyprinter-ansi-terminal >= 1.1.2
                      , text >= 1.2
                      , transformers >= 0.4
