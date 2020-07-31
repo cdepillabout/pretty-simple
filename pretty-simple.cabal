@@ -38,7 +38,6 @@ library
                      , Text.Pretty.Simple.Internal.ExprParser
                      , Text.Pretty.Simple.Internal.OutputPrinter
   build-depends:       base >= 4.8 && < 5
-                     , ansi-terminal >= 0.6
                      , containers
                      , mtl >= 2.2
                      , prettyprinter >= 1.6.1
