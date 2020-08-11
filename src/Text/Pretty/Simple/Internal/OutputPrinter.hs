@@ -2,11 +2,11 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 {-|
 Module      : Text.Pretty.Simple.Internal.OutputPrinter
@@ -20,31 +20,38 @@ Portability : POSIX
 module Text.Pretty.Simple.Internal.OutputPrinter
   where
 
+-- We don't need these imports for later GHCs as all required functions
+-- are exported from Prelude
 #if __GLASGOW_HASKELL__ < 710
--- We don't need this import for GHC 7.10 as it exports all required functions
--- from Prelude
 import Control.Applicative
+#endif
+#if __GLASGOW_HASKELL__ < 804
+import Data.Monoid ((<>))
 #endif
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Control.Monad.Reader (MonadReader(ask, reader), runReader)
+import Control.Monad (join)
+import Control.Monad.State (MonadState, evalState, modify, gets)
 import Data.Char (isPrint, isSpace, ord)
-import Numeric (showHex)
-import Data.Foldable (fold)
-import Data.Text.Lazy (Text)
-import Data.Text.Lazy.Builder (Builder, fromString, toLazyText)
-import Data.Typeable (Typeable)
-import Data.List (dropWhileEnd, intercalate)
+import Data.List (dropWhileEnd)
+import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Data.Maybe (fromMaybe)
-import Text.Read (readMaybe)
+import Prettyprinter
+  (hsep, concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions, enclose,
+    hcat, indent, layoutSmart, line, unAnnotateS, pretty)
+import Prettyprinter.Render.Terminal (AnsiStyle)
+import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
+import Numeric (showHex)
 import System.IO (Handle, hIsTerminalDevice)
+import Text.Read (readMaybe)
 
+import Text.Pretty.Simple.Internal.Expr
+  (Expr(..), CommaSeparated(CommaSeparated))
+import Text.Pretty.Simple.Internal.ExprParser (expressionParse)
 import Text.Pretty.Simple.Internal.Color
-       (ColorOptions(..), colorReset, defaultColorOptionsDarkBg,
+       (ColorOptions(..), defaultColorOptionsDarkBg,
         defaultColorOptionsLightBg)
-import Text.Pretty.Simple.Internal.Output
-       (NestLevel(..), Output(..), OutputType(..))
 
 -- $setup
 -- >>> import Text.Pretty.Simple (pPrintString, pPrintStringOpt)
@@ -99,7 +106,8 @@ data OutputOptions = OutputOptions
   -- print all printable characters:
   --
   -- >>> pPrintString "\"A \\x42 Ä \\xC4 \\x1 \\n\""
-  -- "A B Ä Ä \x1 "
+  -- "A B Ä Ä \x1
+  -- "
   --
   -- Here, you can see that the character @A@ has been printed as-is.  @\x42@
   -- has been printed in the non-escaped version, @B@.  The non-printable
@@ -116,7 +124,8 @@ data OutputOptions = OutputOptions
   -- out literally to the screen.
   --
   -- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsStringStyle = DoNotEscapeNonPrintable } "\"A \\x42 Ä \\xC4 \\n\""
-  -- "A B Ä Ä "
+  -- "A B Ä Ä
+  -- "
   --
   -- If you change the above example to contain @\x1@, you can see that it is
   -- output as a literal, non-escaped character.  Newlines are still removed
@@ -176,82 +185,130 @@ hCheckTTY h options = liftIO $ conv <$> tty
     tty :: IO Bool
     tty = hIsTerminalDevice h
 
--- | Given 'OutputOptions' and a list of 'Output', turn the 'Output' into a
--- lazy 'Text'.
-render :: OutputOptions -> [Output] -> Text
-render options = toLazyText . foldr foldFunc "" . modificationsOutputList
+-- | Parse a string, and generate an intermediate representation,
+-- suitable for passing to any /prettyprinter/ backend.
+-- Used by 'Simple.pString' etc.
+layoutString :: OutputOptions -> String -> SimpleDocStream AnsiStyle
+layoutString opts =
+  annotateAnsi opts
+    . layoutSmart defaultLayoutOptions
+    . prettyExprs' opts
+    . preprocess opts
+    . expressionParse
+
+-- | Slight adjustment of 'prettyExprs' for the outermost level,
+-- to avoid indenting everything.
+prettyExprs' :: OutputOptions -> [Expr] -> Doc Annotation
+prettyExprs' opts = \case
+  [] -> mempty
+  x : xs -> prettyExpr opts x <> prettyExprs opts xs
+
+-- | Construct a 'Doc' from multiple 'Expr's.
+prettyExprs :: OutputOptions -> [Expr] -> Doc Annotation
+prettyExprs opts = hcat . map subExpr
   where
-    foldFunc :: Output -> Builder -> Builder
-    foldFunc output accum = runReader (renderOutput output) options `mappend` accum
+    subExpr x =
+      let doc = prettyExpr opts x
+      in
+        if isSimple x then
+          -- keep the expression on the current line
+          indent 1 doc
+        else
+          -- put the expression on a new line, indented
+          line <> indent (outputOptionsIndentAmount opts) doc
 
--- | Render a single 'Output' as a 'Builder', using the options specified in
--- the 'OutputOptions'.
-renderOutput :: MonadReader OutputOptions m => Output -> m Builder
-renderOutput (Output nest OutputCloseBrace) = renderRainbowParenFor nest "}"
-renderOutput (Output nest OutputCloseBracket) = renderRainbowParenFor nest "]"
-renderOutput (Output nest OutputCloseParen) = renderRainbowParenFor nest ")"
-renderOutput (Output nest OutputComma) = renderRainbowParenFor nest ","
-renderOutput (Output _ OutputIndent) = do
-    indentSpaces <- reader outputOptionsIndentAmount
-    pure . mconcat $ replicate indentSpaces " "
-renderOutput (Output _ OutputNewLine) = pure "\n"
-renderOutput (Output nest OutputOpenBrace) = renderRainbowParenFor nest "{"
-renderOutput (Output nest OutputOpenBracket) = renderRainbowParenFor nest "["
-renderOutput (Output nest OutputOpenParen) = renderRainbowParenFor nest "("
-renderOutput (Output _ (OutputOther string)) = do
-  indentSpaces <- reader outputOptionsIndentAmount
-  let spaces = replicate (indentSpaces + 2) ' '
-  -- TODO: This probably shouldn't be a string to begin with.
-  pure $ fromString $ indentSubsequentLinesWith spaces string
-renderOutput (Output _ (OutputNumberLit number)) = do
-  sequenceFold
-    [ useColorNum
-    , pure (fromString number)
-    , useColorReset
-    ]
-renderOutput (Output _ (OutputStringLit string)) = do
-  options <- ask
-
-  sequenceFold
-    [ useColorQuote
-    , pure "\""
-    , useColorReset
-    , useColorString
-    -- TODO: This probably shouldn't be a string to begin with.
-    , pure (fromString (process options string))
-    , useColorReset
-    , useColorQuote
-    , pure "\""
-    , useColorReset
-    ]
+-- | Construct a 'Doc' from a single 'Expr'.
+prettyExpr :: OutputOptions -> Expr -> Doc Annotation
+prettyExpr opts = \case
+  Brackets xss -> list "[" "]" xss
+  Braces xss -> list "{" "}" xss
+  Parens xss -> list "(" ")" xss
+  StringLit s -> join enclose (annotate Quote "\"") $ annotate String $ pretty s
+  CharLit s -> join enclose (annotate Quote "'") $ annotate String $ pretty s
+  Other s -> pretty s
+  NumberLit n -> annotate Num $ pretty n
   where
-    process :: OutputOptions -> String -> String
-    process opts = case outputOptionsStringStyle opts of
-      Literal -> id
-      EscapeNonPrintable ->
-        indentSubsequentLinesWith spaces . escapeNonPrintable . readStr
-      DoNotEscapeNonPrintable -> indentSubsequentLinesWith spaces . readStr
-      where
-        spaces :: String
-        spaces = replicate (indentSpaces + 2) ' '
+    list :: Doc Annotation -> Doc Annotation -> CommaSeparated [Expr]
+      -> Doc Annotation
+    list open close (CommaSeparated xss) =
+      enclose (annotate Open open) (annotate Close close) $ case xss of
+        [] -> mempty
+        [xs] | all isSimple xs ->
+          space <> hsep (map (prettyExpr opts) xs) <> space
+        _ -> concatWith lineAndCommaSep (map (prettyExprs opts) xss) <> line
+    lineAndCommaSep x y = x <> line <> annotate Comma "," <> y
 
-        indentSpaces :: Int
-        indentSpaces =  outputOptionsIndentAmount opts
+-- | Determine whether this expression should be displayed on a single line.
+isSimple :: Expr -> Bool
+isSimple = \case
+  Brackets (CommaSeparated xs) -> isListSimple xs
+  Braces (CommaSeparated xs) -> isListSimple xs
+  Parens (CommaSeparated xs) -> isListSimple xs
+  _ -> True
+  where
+    isListSimple = \case
+      [[e]] -> isSimple e
+      _:_ -> False
+      [] -> True
 
-        readStr :: String -> String
-        readStr s = fromMaybe s . readMaybe $ '"':s ++ "\""
-renderOutput (Output _ (OutputCharLit string)) = do
-  sequenceFold
-    [ useColorQuote
-    , pure "'"
-    , useColorReset
-    , useColorString
-    , pure (fromString string)
-    , useColorReset
-    , useColorQuote
-    , pure "'"
-    , useColorReset
-    ]
+-- | Traverse the stream, using a 'Tape' to keep track of the current color.
+annotateAnsi :: OutputOptions -> SimpleDocStream Annotation
+  -> SimpleDocStream AnsiStyle
+annotateAnsi opts ds = case outputOptionsColorOptions opts of
+  Nothing -> unAnnotateS ds
+  Just ColorOptions {..} -> evalState (traverse style ds) initialTape
+    where
+      style :: MonadState (Tape AnsiStyle) m => Annotation -> m AnsiStyle
+      style = \case
+        Open -> modify moveR *> gets tapeHead
+        Close -> gets tapeHead <* modify moveL
+        Comma -> gets tapeHead
+        Quote -> pure colorQuote
+        String -> pure colorString
+        Num -> pure colorNum
+      initialTape = Tape
+        { tapeLeft = streamRepeat colorError
+        , tapeHead = colorError
+        , tapeRight = streamCycle $ fromMaybe (pure mempty)
+            $ nonEmpty colorRainbowParens
+        }
+
+-- | An abstract annotation type, representing the various elements
+-- we may want to highlight.
+data Annotation
+  = Open
+  | Close
+  | Comma
+  | Quote
+  | String
+  | Num
+
+-- | Apply various transformations to clean up the 'Expr's.
+preprocess :: OutputOptions -> [Expr] -> [Expr]
+preprocess opts = map processExpr . removeEmptyOthers
+  where
+    processExpr = \case
+      Brackets xss -> Brackets $ cs xss
+      Braces xss -> Braces $ cs xss
+      Parens xss -> Parens $ cs xss
+      StringLit s -> StringLit $
+        case outputOptionsStringStyle opts of
+          Literal -> s
+          EscapeNonPrintable -> escapeNonPrintable $ readStr s
+          DoNotEscapeNonPrintable -> readStr s
+      CharLit s -> CharLit s
+      Other s -> Other $ shrinkWhitespace $ strip s
+      NumberLit n -> NumberLit n
+    cs (CommaSeparated ess) = CommaSeparated $ map (preprocess opts) ess
+    readStr :: String -> String
+    readStr s = fromMaybe s . readMaybe $ '"': s ++ "\""
+
+-- | Remove any 'Other' 'Expr's which contain only spaces.
+-- These provide no value, but mess up formatting if left in.
+removeEmptyOthers :: [Expr] -> [Expr]
+removeEmptyOthers = filter $ \case
+  Other s -> not $ all isSpace s
+  _ -> True
 
 -- | Replace non-printable characters with hex escape sequences.
 --
@@ -270,141 +327,50 @@ renderOutput (Output _ (OutputCharLit string)) = do
 escapeNonPrintable :: String -> String
 escapeNonPrintable input = foldr escape "" input
 
--- Replace an unprintable character except a newline
+-- | Replace an unprintable character except a newline
 -- with a hex escape sequence.
 escape :: Char -> ShowS
 escape c
   | isPrint c || c == '\n' = (c:)
   | otherwise = ('\\':) . ('x':) . showHex (ord c)
 
--- |
--- >>> indentSubsequentLinesWith "  " "aaa"
--- "aaa"
+-- | Compress multiple whitespaces to just one whitespace.
 --
--- >>> indentSubsequentLinesWith "  " "aaa\nbbb\nccc"
--- "aaa\n  bbb\n  ccc"
---
--- >>> indentSubsequentLinesWith "  " ""
--- ""
-indentSubsequentLinesWith :: String -> String -> String
-indentSubsequentLinesWith indent input =
-  intercalate "\n" $ (start ++) $ map (indent ++) $ end
-  where (start, end) = splitAt 1 $ lines input
-
--- | Produce a 'Builder' corresponding to the ANSI escape sequence for the
--- color for the @\"@, based on whether or not 'outputOptionsColorOptions' is
--- 'Just' or 'Nothing', and the value of 'colorQuote'.
-useColorQuote :: forall m. MonadReader OutputOptions m => m Builder
-useColorQuote = maybe "" colorQuote <$> reader outputOptionsColorOptions
-
--- | Produce a 'Builder' corresponding to the ANSI escape sequence for the
--- color for the characters of a string, based on whether or not
--- 'outputOptionsColorOptions' is 'Just' or 'Nothing', and the value of
--- 'colorString'.
-useColorString :: forall m. MonadReader OutputOptions m => m Builder
-useColorString = maybe "" colorString <$> reader outputOptionsColorOptions
-
-useColorError :: forall m. MonadReader OutputOptions m => m Builder
-useColorError = maybe "" colorError <$> reader outputOptionsColorOptions
-
-useColorNum :: forall m. MonadReader OutputOptions m => m Builder
-useColorNum = maybe "" colorNum <$> reader outputOptionsColorOptions
-
--- | Produce a 'Builder' corresponding to the ANSI escape sequence for
--- resetting the console color back to the default. Produces an empty 'Builder'
--- if 'outputOptionsColorOptions' is 'Nothing'.
-useColorReset :: forall m. MonadReader OutputOptions m => m Builder
-useColorReset = maybe "" (const colorReset) <$> reader outputOptionsColorOptions
-
--- | Produce a 'Builder' representing the ANSI escape sequence for the color of
--- the rainbow parenthesis, given an input 'NestLevel' and 'Builder' to use as
--- the input character.
---
--- If 'outputOptionsColorOptions' is 'Nothing', then just return the input
--- character.  If it is 'Just', then return the input character colorized.
-renderRainbowParenFor
-  :: MonadReader OutputOptions m
-  => NestLevel -> Builder -> m Builder
-renderRainbowParenFor nest string =
-  sequenceFold [useColorRainbowParens nest, pure string, useColorReset]
-
-useColorRainbowParens
-  :: forall m.
-     MonadReader OutputOptions m
-  => NestLevel -> m Builder
-useColorRainbowParens nest = do
-  maybeOutputColor <- reader outputOptionsColorOptions
-  pure $
-    case maybeOutputColor of
-      Just ColorOptions {colorRainbowParens} -> do
-        let choicesLen = length colorRainbowParens
-        if choicesLen == 0
-          then ""
-          else colorRainbowParens !! (unNestLevel nest `mod` choicesLen)
-      Nothing -> ""
-
--- | This is simply @'fmap' 'fold' '.' 'sequence'@.
-sequenceFold :: (Monad f, Monoid a, Traversable t) => t (f a) -> f a
-sequenceFold = fmap fold . sequence
-
--- | A function that performs optimizations and modifications to a list of
--- input 'Output's.
---
--- An sample of an optimization is 'removeStartingNewLine' which just removes a
--- newline if it is the first item in an 'Output' list.
-modificationsOutputList :: [Output] -> [Output]
-modificationsOutputList =
-  removeTrailingSpacesInOtherBeforeNewLine . shrinkWhitespaceInOthers . compressOthers . removeStartingNewLine
-
--- | Remove a 'OutputNewLine' if it is the first item in the 'Output' list.
---
--- >>> removeStartingNewLine [Output 3 OutputNewLine, Output 3 OutputComma]
--- [Output {outputNestLevel = NestLevel {unNestLevel = 3}, outputOutputType = OutputComma}]
-removeStartingNewLine :: [Output] -> [Output]
-removeStartingNewLine ((Output _ OutputNewLine) : t) = t
-removeStartingNewLine outputs = outputs
-
--- | Remove trailing spaces from the end of a 'OutputOther' token if it is
--- followed by a 'OutputNewLine', or if it is the final 'Output' in the list.
--- This function assumes that there is a single 'OutputOther' before any
--- 'OutputNewLine' (and before the end of the list), so it must be run after
--- running 'compressOthers'.
---
--- >>> removeTrailingSpacesInOtherBeforeNewLine [Output 2 (OutputOther "foo  "), Output 4 OutputNewLine]
--- [Output {outputNestLevel = NestLevel {unNestLevel = 2}, outputOutputType = OutputOther "foo"},Output {outputNestLevel = NestLevel {unNestLevel = 4}, outputOutputType = OutputNewLine}]
-removeTrailingSpacesInOtherBeforeNewLine :: [Output] -> [Output]
-removeTrailingSpacesInOtherBeforeNewLine [] = []
-removeTrailingSpacesInOtherBeforeNewLine (Output nest (OutputOther string):[]) =
-  (Output nest (OutputOther $ dropWhileEnd isSpace string)):[]
-removeTrailingSpacesInOtherBeforeNewLine (Output nest (OutputOther string):nl@(Output _ OutputNewLine):t) =
-  (Output nest (OutputOther $ dropWhileEnd isSpace string)):nl:removeTrailingSpacesInOtherBeforeNewLine t
-removeTrailingSpacesInOtherBeforeNewLine (h:t) = h : removeTrailingSpacesInOtherBeforeNewLine t
-
--- | If there are two subsequent 'OutputOther' tokens, combine them into just
--- one 'OutputOther'.
---
--- >>> compressOthers [Output 0 (OutputOther "foo"), Output 0 (OutputOther "bar")]
--- [Output {outputNestLevel = NestLevel {unNestLevel = 0}, outputOutputType = OutputOther "foobar"}]
-compressOthers :: [Output] -> [Output]
-compressOthers [] = []
-compressOthers (Output _ (OutputOther string1):(Output nest (OutputOther string2)):t) =
-  compressOthers ((Output nest (OutputOther (string1 `mappend` string2))) : t)
-compressOthers (h:t) = h : compressOthers t
-
--- | In each 'OutputOther' token, compress multiple whitespaces to just one
--- whitespace.
---
--- >>> shrinkWhitespaceInOthers [Output 0 (OutputOther "  hello  ")]
--- [Output {outputNestLevel = NestLevel {unNestLevel = 0}, outputOutputType = OutputOther " hello "}]
-shrinkWhitespaceInOthers :: [Output] -> [Output]
-shrinkWhitespaceInOthers = fmap shrinkWhitespaceInOther
-
-shrinkWhitespaceInOther :: Output -> Output
-shrinkWhitespaceInOther (Output nest (OutputOther string)) =
-  Output nest . OutputOther $ shrinkWhitespace string
-shrinkWhitespaceInOther other = other
-
+-- >>> shrinkWhitespace "  hello    there  "
+-- " hello there "
 shrinkWhitespace :: String -> String
 shrinkWhitespace (' ':' ':t) = shrinkWhitespace (' ':t)
 shrinkWhitespace (h:t) = h : shrinkWhitespace t
 shrinkWhitespace "" = ""
+
+-- | Remove trailing and leading whitespace (see 'Data.Text.strip').
+--
+-- >>> strip "  hello    there  "
+-- "hello    there"
+strip :: String -> String
+strip = dropWhile isSpace . dropWhileEnd isSpace
+
+-- | A bidirectional Turing-machine tape:
+-- infinite in both directions, with a head pointing to one element.
+data Tape a = Tape
+  { tapeLeft  :: Stream a -- ^ the side of the 'Tape' left of 'tapeHead'
+  , tapeHead  :: a        -- ^ the focused element
+  , tapeRight :: Stream a -- ^ the side of the 'Tape' right of 'tapeHead'
+  } deriving Show
+-- | Move the head left
+moveL :: Tape a -> Tape a
+moveL (Tape (l :.. ls) c rs) = Tape ls l (c :.. rs)
+-- | Move the head right
+moveR :: Tape a -> Tape a
+moveR (Tape ls c (r :.. rs)) = Tape (c :.. ls) r rs
+
+-- | An infinite list
+data Stream a = a :.. Stream a deriving Show
+-- | Analogous to 'repeat'
+streamRepeat :: t -> Stream t
+streamRepeat x = x :.. streamRepeat x
+-- | Analogous to 'cycle'
+-- While the inferred signature here is more general,
+-- it would diverge on an empty structure
+streamCycle :: NonEmpty a -> Stream a
+streamCycle xs = foldr (:..) (streamCycle xs) xs

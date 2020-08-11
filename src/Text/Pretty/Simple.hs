@@ -2,6 +2,8 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -113,17 +115,15 @@ import Control.Applicative
 #endif
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.Foldable (toList)
 import Data.Text.Lazy (Text)
-import Data.Text.Lazy.IO as LText
+import Prettyprinter.Render.Terminal (renderLazy, renderIO)
 import System.IO (Handle, stdout)
 
 import Text.Pretty.Simple.Internal
        (CheckColorTty(..), OutputOptions(..), StringOutputStyle(..),
         defaultColorOptionsDarkBg, defaultColorOptionsLightBg,
         defaultOutputOptionsDarkBg, defaultOutputOptionsLightBg,
-        defaultOutputOptionsNoColor, hCheckTTY, expressionParse,
-        expressionsToOutputs, render)
+        defaultOutputOptionsNoColor, hCheckTTY, layoutString)
 
 -- $setup
 -- >>> import Data.Text.Lazy (unpack)
@@ -519,7 +519,9 @@ pHPrintStringOpt checkColorTty outputOptions handle str = do
     case checkColorTty of
       CheckColorTty -> hCheckTTY handle outputOptions
       NoCheckColorTty -> pure outputOptions
-  liftIO $ LText.hPutStrLn handle $ pStringOpt realOutputOpts str
+  liftIO $ do
+    renderIO handle $ layoutString realOutputOpts str
+    putStrLn ""
 
 -- | Like 'pShow' but takes 'OutputOptions' to change how the
 -- pretty-printing is done.
@@ -529,8 +531,7 @@ pShowOpt outputOptions = pStringOpt outputOptions . show
 -- | Like 'pString' but takes 'OutputOptions' to change how the
 -- pretty-printing is done.
 pStringOpt :: OutputOptions -> String -> Text
-pStringOpt outputOptions =
-  render outputOptions . toList . expressionsToOutputs . expressionParse
+pStringOpt outputOptions = renderLazy . layoutString outputOptions
 
 -- $colorOptions
 --

@@ -25,12 +25,10 @@ module Text.Pretty.Simple.Internal.Color
 import Control.Applicative
 #endif
 
-import Data.Text.Lazy.Builder (Builder, fromString)
+import Prettyprinter.Render.Terminal
+  (AnsiStyle, Color(..), bold, colorDull, color)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
-import System.Console.ANSI
-       (Color(..), ColorIntensity(..), ConsoleIntensity(..),
-        ConsoleLayer(..), SGR(..), setSGRCode)
 
 -- | These options are for colorizing the output of functions like 'pPrint'.
 --
@@ -39,15 +37,15 @@ import System.Console.ANSI
 --
 -- If you don't want to use a color for one of the options, use 'colorNull'.
 data ColorOptions = ColorOptions
-  { colorQuote :: Builder
+  { colorQuote :: AnsiStyle
   -- ^ Color to use for quote characters (@\"@) around strings.
-  , colorString :: Builder
+  , colorString :: AnsiStyle
   -- ^ Color to use for strings.
-  , colorError :: Builder
-  -- ^ (currently not used)
-  , colorNum :: Builder
+  , colorError :: AnsiStyle
+  -- ^ Color for errors, e.g. unmatched brackets.
+  , colorNum :: AnsiStyle
   -- ^ Color to use for numbers.
-  , colorRainbowParens :: [Builder]
+  , colorRainbowParens :: [AnsiStyle]
   -- ^ A list of 'Builder' colors to use for rainbow parenthesis output.  Use
   -- '[]' if you don't want rainbow parenthesis.  Use just a single item if you
   -- want all the rainbow parenthesis to be colored the same.
@@ -75,26 +73,26 @@ defaultColorOptionsDarkBg =
 
 -- | Default color for 'colorQuote' for dark backgrounds. This is
 -- 'colorVividWhiteBold'.
-defaultColorQuoteDarkBg :: Builder
+defaultColorQuoteDarkBg :: AnsiStyle
 defaultColorQuoteDarkBg = colorVividWhiteBold
 
 -- | Default color for 'colorString' for dark backgrounds. This is
 -- 'colorVividBlueBold'.
-defaultColorStringDarkBg :: Builder
+defaultColorStringDarkBg :: AnsiStyle
 defaultColorStringDarkBg = colorVividBlueBold
 
 -- | Default color for 'colorError' for dark backgrounds.  This is
 -- 'colorVividRedBold'.
-defaultColorErrorDarkBg :: Builder
+defaultColorErrorDarkBg :: AnsiStyle
 defaultColorErrorDarkBg = colorVividRedBold
 
 -- | Default color for 'colorNum' for dark backgrounds.  This is
 -- 'colorVividGreenBold'.
-defaultColorNumDarkBg :: Builder
+defaultColorNumDarkBg :: AnsiStyle
 defaultColorNumDarkBg = colorVividGreenBold
 
 -- | Default colors for 'colorRainbowParens' for dark backgrounds.
-defaultColorRainbowParensDarkBg :: [Builder]
+defaultColorRainbowParensDarkBg :: [AnsiStyle]
 defaultColorRainbowParensDarkBg =
   [ colorVividMagentaBold
   , colorVividCyanBold
@@ -132,26 +130,26 @@ defaultColorOptionsLightBg =
 
 -- | Default color for 'colorQuote' for light backgrounds. This is
 -- 'colorVividWhiteBold'.
-defaultColorQuoteLightBg :: Builder
+defaultColorQuoteLightBg :: AnsiStyle
 defaultColorQuoteLightBg = colorVividBlackBold
 
 -- | Default color for 'colorString' for light backgrounds. This is
 -- 'colorVividBlueBold'.
-defaultColorStringLightBg :: Builder
+defaultColorStringLightBg :: AnsiStyle
 defaultColorStringLightBg = colorVividBlueBold
 
 -- | Default color for 'colorError' for light backgrounds.  This is
 -- 'colorVividRedBold'.
-defaultColorErrorLightBg :: Builder
+defaultColorErrorLightBg :: AnsiStyle
 defaultColorErrorLightBg = colorVividRedBold
 
 -- | Default color for 'colorNum' for light backgrounds.  This is
 -- 'colorVividGreenBold'.
-defaultColorNumLightBg :: Builder
+defaultColorNumLightBg :: AnsiStyle
 defaultColorNumLightBg = colorVividGreenBold
 
 -- | Default colors for 'colorRainbowParens' for light backgrounds.
-defaultColorRainbowParensLightBg :: [Builder]
+defaultColorRainbowParensLightBg :: [AnsiStyle]
 defaultColorRainbowParensLightBg =
   [ colorVividMagentaBold
   , colorVividCyanBold
@@ -167,141 +165,122 @@ defaultColorRainbowParensLightBg =
 -- Vivid Bold Colors --
 -----------------------
 
-colorVividBlackBold :: Builder
+colorVividBlackBold :: AnsiStyle
 colorVividBlackBold = colorBold `mappend` colorVividBlack
 
-colorVividBlueBold :: Builder
+colorVividBlueBold :: AnsiStyle
 colorVividBlueBold = colorBold `mappend` colorVividBlue
 
-colorVividCyanBold :: Builder
+colorVividCyanBold :: AnsiStyle
 colorVividCyanBold = colorBold `mappend` colorVividCyan
 
-colorVividGreenBold :: Builder
+colorVividGreenBold :: AnsiStyle
 colorVividGreenBold = colorBold `mappend` colorVividGreen
 
-colorVividMagentaBold :: Builder
+colorVividMagentaBold :: AnsiStyle
 colorVividMagentaBold = colorBold `mappend` colorVividMagenta
 
-colorVividRedBold :: Builder
+colorVividRedBold :: AnsiStyle
 colorVividRedBold = colorBold `mappend` colorVividRed
 
-colorVividWhiteBold :: Builder
+colorVividWhiteBold :: AnsiStyle
 colorVividWhiteBold = colorBold `mappend` colorVividWhite
 
-colorVividYellowBold :: Builder
+colorVividYellowBold :: AnsiStyle
 colorVividYellowBold = colorBold `mappend` colorVividYellow
 
 -----------------------
 -- Dull Bold Colors --
 -----------------------
 
-colorDullBlackBold :: Builder
+colorDullBlackBold :: AnsiStyle
 colorDullBlackBold = colorBold `mappend` colorDullBlack
 
-colorDullBlueBold :: Builder
+colorDullBlueBold :: AnsiStyle
 colorDullBlueBold = colorBold `mappend` colorDullBlue
 
-colorDullCyanBold :: Builder
+colorDullCyanBold :: AnsiStyle
 colorDullCyanBold = colorBold `mappend` colorDullCyan
 
-colorDullGreenBold :: Builder
+colorDullGreenBold :: AnsiStyle
 colorDullGreenBold = colorBold `mappend` colorDullGreen
 
-colorDullMagentaBold :: Builder
+colorDullMagentaBold :: AnsiStyle
 colorDullMagentaBold = colorBold `mappend` colorDullMagenta
 
-colorDullRedBold :: Builder
+colorDullRedBold :: AnsiStyle
 colorDullRedBold = colorBold `mappend` colorDullRed
 
-colorDullWhiteBold :: Builder
+colorDullWhiteBold :: AnsiStyle
 colorDullWhiteBold = colorBold `mappend` colorDullWhite
 
-colorDullYellowBold :: Builder
+colorDullYellowBold :: AnsiStyle
 colorDullYellowBold = colorBold `mappend` colorDullYellow
 
 ------------------
 -- Vivid Colors --
 ------------------
 
-colorVividBlack :: Builder
-colorVividBlack = colorHelper Vivid Black
+colorVividBlack :: AnsiStyle
+colorVividBlack = color Black
 
-colorVividBlue :: Builder
-colorVividBlue = colorHelper Vivid Blue
+colorVividBlue :: AnsiStyle
+colorVividBlue = color Blue
 
-colorVividCyan :: Builder
-colorVividCyan = colorHelper Vivid Cyan
+colorVividCyan :: AnsiStyle
+colorVividCyan = color Cyan
 
-colorVividGreen :: Builder
-colorVividGreen = colorHelper Vivid Green
+colorVividGreen :: AnsiStyle
+colorVividGreen = color Green
 
-colorVividMagenta :: Builder
-colorVividMagenta = colorHelper Vivid Magenta
+colorVividMagenta :: AnsiStyle
+colorVividMagenta = color Magenta
 
-colorVividRed :: Builder
-colorVividRed = colorHelper Vivid Red
+colorVividRed :: AnsiStyle
+colorVividRed = color Red
 
-colorVividWhite :: Builder
-colorVividWhite = colorHelper Vivid White
+colorVividWhite :: AnsiStyle
+colorVividWhite = color White
 
-colorVividYellow :: Builder
-colorVividYellow = colorHelper Vivid Yellow
+colorVividYellow :: AnsiStyle
+colorVividYellow = color Yellow
 
 ------------------
 -- Dull Colors --
 ------------------
 
-colorDullBlack :: Builder
-colorDullBlack = colorHelper Dull Black
+colorDullBlack :: AnsiStyle
+colorDullBlack = colorDull Black
 
-colorDullBlue :: Builder
-colorDullBlue = colorHelper Dull Blue
+colorDullBlue :: AnsiStyle
+colorDullBlue = colorDull Blue
 
-colorDullCyan :: Builder
-colorDullCyan = colorHelper Dull Cyan
+colorDullCyan :: AnsiStyle
+colorDullCyan = colorDull Cyan
 
-colorDullGreen :: Builder
-colorDullGreen = colorHelper Dull Green
+colorDullGreen :: AnsiStyle
+colorDullGreen = colorDull Green
 
-colorDullMagenta :: Builder
-colorDullMagenta = colorHelper Dull Magenta
+colorDullMagenta :: AnsiStyle
+colorDullMagenta = colorDull Magenta
 
-colorDullRed :: Builder
-colorDullRed = colorHelper Dull Red
+colorDullRed :: AnsiStyle
+colorDullRed = colorDull Red
 
-colorDullWhite :: Builder
-colorDullWhite = colorHelper Dull White
+colorDullWhite :: AnsiStyle
+colorDullWhite = colorDull White
 
-colorDullYellow :: Builder
-colorDullYellow = colorHelper Dull Yellow
+colorDullYellow :: AnsiStyle
+colorDullYellow = colorDull Yellow
 
 --------------------
 -- Special Colors --
 --------------------
 
 -- | Change the intensity to 'BoldIntensity'.
-colorBold :: Builder
-colorBold = setSGRCodeBuilder [SetConsoleIntensity BoldIntensity]
-
--- | 'Reset' the console color back to normal.
-colorReset :: Builder
-colorReset = setSGRCodeBuilder [Reset]
+colorBold :: AnsiStyle
+colorBold = bold
 
 -- | Empty string.
-colorNull :: Builder
-colorNull = ""
-
--------------
--- Helpers --
--------------
-
--- | Helper for creating a 'Builder' for an ANSI escape sequence color based on
--- a 'ColorIntensity' and a 'Color'.
-colorHelper :: ColorIntensity -> Color -> Builder
-colorHelper colorIntensity color =
-  setSGRCodeBuilder [SetColor Foreground colorIntensity color]
-
--- | Convert a list of 'SGR' to a 'Builder'.
-setSGRCodeBuilder :: [SGR] -> Builder
-setSGRCodeBuilder = fromString . setSGRCode
-
+colorNull :: AnsiStyle
+colorNull = mempty

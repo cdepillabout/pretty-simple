@@ -36,13 +36,12 @@ library
                      , Text.Pretty.Simple.Internal.Color
                      , Text.Pretty.Simple.Internal.Expr
                      , Text.Pretty.Simple.Internal.ExprParser
-                     , Text.Pretty.Simple.Internal.ExprToOutput
-                     , Text.Pretty.Simple.Internal.Output
                      , Text.Pretty.Simple.Internal.OutputPrinter
   build-depends:       base >= 4.8 && < 5
-                     , ansi-terminal >= 0.6
                      , containers
                      , mtl >= 2.2
+                     , prettyprinter >= 1.7.0
+                     , prettyprinter-ansi-terminal >= 1.1.2
                      , text >= 1.2
                      , transformers >= 0.4
   default-language:    Haskell2010
