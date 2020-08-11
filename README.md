@@ -2,7 +2,7 @@
 Text.Pretty.Simple
 ==================
 
-[![Build Status](https://secure.travis-ci.org/cdepillabout/pretty-simple.svg)](http://travis-ci.org/cdepillabout/pretty-simple)
+[![Build Status](https://github.com/cdepillabout/pretty-simple/workflows/CI/badge.svg)](https://github.com/cdepillabout/pretty-simple/actions)
 [![Hackage](https://img.shields.io/hackage/v/pretty-simple.svg)](https://hackage.haskell.org/package/pretty-simple)
 [![Stackage LTS](http://stackage.org/package/pretty-simple/badge/lts)](http://stackage.org/lts/package/pretty-simple)
 [![Stackage Nightly](http://stackage.org/package/pretty-simple/badge/nightly)](http://stackage.org/nightly/package/pretty-simple)
