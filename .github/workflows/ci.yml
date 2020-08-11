@@ -69,7 +69,7 @@ jobs:
 
     - name: Build
       run: |
-        stack build --test --bench --no-run-tests --no-run-benchmarks
+        stack build --test --bench --no-run-tests --no-run-benchmarks --flag pretty-simple:buildexe --flag pretty-simple:buildexample
 
     - name: Test
       run: |
