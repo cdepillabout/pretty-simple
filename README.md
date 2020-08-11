@@ -198,3 +198,4 @@ Feel free to open an
 [issue](https://github.com/cdepillabout/pretty-simple/issues) or
 [PR](https://github.com/cdepillabout/pretty-simple/pulls) for any
 bugs/problems/suggestions/improvements.
+
