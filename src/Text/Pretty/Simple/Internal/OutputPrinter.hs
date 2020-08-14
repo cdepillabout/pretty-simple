@@ -37,7 +37,8 @@ import Data.List (dropWhileEnd)
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Data.Maybe (fromMaybe)
 import Prettyprinter
-  (nest, hsep, concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions,
+  (line', flatAlt, PageWidth(AvailablePerLine), layoutPageWidth, nest, hsep,
+    concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions,
     enclose, hcat, layoutSmart, line, unAnnotateS, pretty)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
@@ -51,6 +52,7 @@ import Text.Pretty.Simple.Internal.ExprParser (expressionParse)
 import Text.Pretty.Simple.Internal.Color
        (colorNull, Style, ColorOptions(..), defaultColorOptionsDarkBg,
         defaultColorOptionsLightBg)
+import Prettyprinter (group)
 
 -- $setup
 -- >>> import Text.Pretty.Simple (pPrintString, pPrintStringOpt)
@@ -94,6 +96,12 @@ data OutputOptions = OutputOptions
   { outputOptionsIndentAmount :: Int
   -- ^ Number of spaces to use when indenting.  It should probably be either 2
   -- or 4.
+  , outputOptionsPageWidth :: Int
+  -- ^ The maximum number of characters to fit on to one line.
+  , outputOptionsCompact :: Bool
+  -- ^ Use less vertical (and more horizontal) space.
+  , outputOptionsCompactParens :: Bool
+  -- ^ Group closing parentheses on to a single line.
   , outputOptionsColorOptions :: Maybe ColorOptions
   -- ^ If this is 'Nothing', then don't colorize the output.  If this is
   -- @'Just' colorOptions@, then use @colorOptions@ to colorize the output.
@@ -144,22 +152,16 @@ data OutputOptions = OutputOptions
 -- 'outputOptionsColorOptions' is 'defaultColorOptionsDarkBg'.
 defaultOutputOptionsDarkBg :: OutputOptions
 defaultOutputOptionsDarkBg =
-  OutputOptions
-  { outputOptionsIndentAmount = 4
-  , outputOptionsColorOptions = Just defaultColorOptionsDarkBg
-  , outputOptionsStringStyle = EscapeNonPrintable
-  }
+  defaultOutputOptionsNoColor
+  { outputOptionsColorOptions = Just defaultColorOptionsDarkBg }
 
 -- | Default values for 'OutputOptions' when printing to a console with a light
 -- background.  'outputOptionsIndentAmount' is 4, and
 -- 'outputOptionsColorOptions' is 'defaultColorOptionsLightBg'.
 defaultOutputOptionsLightBg :: OutputOptions
 defaultOutputOptionsLightBg =
-  OutputOptions
-  { outputOptionsIndentAmount = 4
-  , outputOptionsColorOptions = Just defaultColorOptionsLightBg
-  , outputOptionsStringStyle = EscapeNonPrintable
-  }
+  defaultOutputOptionsNoColor
+  { outputOptionsColorOptions = Just defaultColorOptionsLightBg }
 
 -- | Default values for 'OutputOptions' when printing using using ANSI escape
 -- sequences for color.  'outputOptionsIndentAmount' is 4, and
@@ -168,6 +170,9 @@ defaultOutputOptionsNoColor :: OutputOptions
 defaultOutputOptionsNoColor =
   OutputOptions
   { outputOptionsIndentAmount = 4
+  , outputOptionsPageWidth = 80
+  , outputOptionsCompact = False
+  , outputOptionsCompactParens = False
   , outputOptionsColorOptions = Nothing
   , outputOptionsStringStyle = EscapeNonPrintable
   }
@@ -191,6 +196,7 @@ layoutString :: OutputOptions -> String -> SimpleDocStream Style
 layoutString opts =
   annotateStyle opts
     . layoutSmart defaultLayoutOptions
+      {layoutPageWidth = AvailablePerLine (outputOptionsPageWidth opts) 1}
     . prettyExprs' opts
     . preprocess opts
     . expressionParse
@@ -213,12 +219,12 @@ prettyExprs opts = hcat . map subExpr
           -- keep the expression on the current line
           nest 2 $ space <> doc
         else
-          -- put the expression on a new line, indented
-          nest (outputOptionsIndentAmount opts) $ line <> doc
+          -- put the expression on a new line, indented (unless grouped)
+          flatAlt (nest (outputOptionsIndentAmount opts) $ line <> doc) (line <> doc)
 
 -- | Construct a 'Doc' from a single 'Expr'.
 prettyExpr :: OutputOptions -> Expr -> Doc Annotation
-prettyExpr opts = \case
+prettyExpr opts = (if outputOptionsCompact opts then group else id) . \case
   Brackets xss -> list "[" "]" xss
   Braces xss -> list "{" "}" xss
   Parens xss -> list "(" ")" xss
@@ -234,8 +240,9 @@ prettyExpr opts = \case
         [] -> mempty
         [xs] | all isSimple xs ->
           space <> hsep (map (prettyExpr opts) xs) <> space
-        _ -> concatWith lineAndCommaSep (map (prettyExprs opts) xss) <> line
-    lineAndCommaSep x y = x <> line <> annotate Comma "," <> y
+        _ -> concatWith lineAndCommaSep (map (prettyExprs opts) xss)
+          <> if outputOptionsCompactParens opts then space else line
+    lineAndCommaSep x y = x <> line' <> annotate Comma "," <> y
 
 -- | Determine whether this expression should be displayed on a single line.
 isSimple :: Expr -> Bool
