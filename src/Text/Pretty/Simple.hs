@@ -101,9 +101,15 @@ module Text.Pretty.Simple
   , defaultOutputOptionsNoColor
   , CheckColorTty(..)
   -- * 'ColorOptions'
-  -- $colorOptions
   , defaultColorOptionsDarkBg
   , defaultColorOptionsLightBg
+  , ColorOptions(..)
+  , Style(..)
+  , Color(..)
+  , Intensity(..)
+  , color
+  , colorBold
+  , colorNull
   -- * Examples
   -- $examples
   ) where
@@ -116,11 +122,16 @@ import Control.Applicative
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Text.Lazy (Text)
-import Prettyprinter.Render.Terminal (renderLazy, renderIO)
+import Prettyprinter (SimpleDocStream)
+import Prettyprinter.Render.Terminal
+      (Color (..), Intensity(Vivid,Dull), AnsiStyle,
+       renderLazy, renderIO)
 import System.IO (Handle, stdout)
 
 import Text.Pretty.Simple.Internal
-       (CheckColorTty(..), OutputOptions(..), StringOutputStyle(..),
+       (ColorOptions(..), Style(..), CheckColorTty(..),
+        OutputOptions(..), StringOutputStyle(..),
+        convertStyle, colorNull, color, colorBold,
         defaultColorOptionsDarkBg, defaultColorOptionsLightBg,
         defaultOutputOptionsDarkBg, defaultOutputOptionsLightBg,
         defaultOutputOptionsNoColor, hCheckTTY, layoutString)
@@ -520,7 +531,7 @@ pHPrintStringOpt checkColorTty outputOptions handle str = do
       CheckColorTty -> hCheckTTY handle outputOptions
       NoCheckColorTty -> pure outputOptions
   liftIO $ do
-    renderIO handle $ layoutString realOutputOpts str
+    renderIO handle $ layoutStringAnsi realOutputOpts str
     putStrLn ""
 
 -- | Like 'pShow' but takes 'OutputOptions' to change how the
@@ -531,12 +542,10 @@ pShowOpt outputOptions = pStringOpt outputOptions . show
 -- | Like 'pString' but takes 'OutputOptions' to change how the
 -- pretty-printing is done.
 pStringOpt :: OutputOptions -> String -> Text
-pStringOpt outputOptions = renderLazy . layoutString outputOptions
+pStringOpt outputOptions = renderLazy . layoutStringAnsi outputOptions
 
--- $colorOptions
---
--- Additional settings for color options can be found in
--- "Text.Pretty.Simple.Internal.Color".
+layoutStringAnsi :: OutputOptions -> String -> SimpleDocStream AnsiStyle
+layoutStringAnsi opts = fmap convertStyle . layoutString opts
 
 -- $examples
 --
