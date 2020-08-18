@@ -37,9 +37,8 @@ import Data.List (dropWhileEnd)
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Data.Maybe (fromMaybe)
 import Prettyprinter
-  (hsep, concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions, enclose,
-    hcat, indent, layoutSmart, line, unAnnotateS, pretty)
-import Prettyprinter.Render.Terminal (AnsiStyle)
+  (nest, hsep, concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions,
+    enclose, hcat, layoutSmart, line, unAnnotateS, pretty)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Numeric (showHex)
@@ -50,7 +49,7 @@ import Text.Pretty.Simple.Internal.Expr
   (Expr(..), CommaSeparated(CommaSeparated))
 import Text.Pretty.Simple.Internal.ExprParser (expressionParse)
 import Text.Pretty.Simple.Internal.Color
-       (ColorOptions(..), defaultColorOptionsDarkBg,
+       (colorNull, Style, ColorOptions(..), defaultColorOptionsDarkBg,
         defaultColorOptionsLightBg)
 
 -- $setup
@@ -188,9 +187,9 @@ hCheckTTY h options = liftIO $ conv <$> tty
 -- | Parse a string, and generate an intermediate representation,
 -- suitable for passing to any /prettyprinter/ backend.
 -- Used by 'Simple.pString' etc.
-layoutString :: OutputOptions -> String -> SimpleDocStream AnsiStyle
+layoutString :: OutputOptions -> String -> SimpleDocStream Style
 layoutString opts =
-  annotateAnsi opts
+  annotateStyle opts
     . layoutSmart defaultLayoutOptions
     . prettyExprs' opts
     . preprocess opts
@@ -212,10 +211,10 @@ prettyExprs opts = hcat . map subExpr
       in
         if isSimple x then
           -- keep the expression on the current line
-          indent 1 doc
+          nest 2 $ space <> doc
         else
           -- put the expression on a new line, indented
-          line <> indent (outputOptionsIndentAmount opts) doc
+          nest (outputOptionsIndentAmount opts) $ line <> doc
 
 -- | Construct a 'Doc' from a single 'Expr'.
 prettyExpr :: OutputOptions -> Expr -> Doc Annotation
@@ -251,14 +250,14 @@ isSimple = \case
       _:_ -> False
       [] -> True
 
--- | Traverse the stream, using a 'Tape' to keep track of the current color.
-annotateAnsi :: OutputOptions -> SimpleDocStream Annotation
-  -> SimpleDocStream AnsiStyle
-annotateAnsi opts ds = case outputOptionsColorOptions opts of
+-- | Traverse the stream, using a 'Tape' to keep track of the current style.
+annotateStyle :: OutputOptions -> SimpleDocStream Annotation
+  -> SimpleDocStream Style
+annotateStyle opts ds = case outputOptionsColorOptions opts of
   Nothing -> unAnnotateS ds
   Just ColorOptions {..} -> evalState (traverse style ds) initialTape
     where
-      style :: MonadState (Tape AnsiStyle) m => Annotation -> m AnsiStyle
+      style :: MonadState (Tape Style) m => Annotation -> m Style
       style = \case
         Open -> modify moveR *> gets tapeHead
         Close -> gets tapeHead <* modify moveL
@@ -269,7 +268,7 @@ annotateAnsi opts ds = case outputOptionsColorOptions opts of
       initialTape = Tape
         { tapeLeft = streamRepeat colorError
         , tapeHead = colorError
-        , tapeRight = streamCycle $ fromMaybe (pure mempty)
+        , tapeRight = streamCycle $ fromMaybe (pure colorNull)
             $ nonEmpty colorRainbowParens
         }
 
