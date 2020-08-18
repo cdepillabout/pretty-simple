@@ -103,33 +103,32 @@ colorNull :: Style
 colorNull = Style
   { styleColor = Nothing
   , styleBold = False
-  , styleIntensity = Dull
+  , styleItalic = False
+  , styleUnderlined = False
   }
 
 data Style = Style
-  { styleColor :: Maybe Color
+  { styleColor :: Maybe (Color, Intensity)
   , styleBold :: Bool
-  , styleIntensity :: Intensity
+  , styleItalic :: Bool
+  , styleUnderlined :: Bool
   }
   deriving (Eq, Show)
 
-color' :: Bool -> Intensity -> Color -> Style
-color' b i c = Style
-  { styleColor = Just c
-  , styleBold = b
-  , styleIntensity = i
-  }
-
 color :: Intensity -> Color -> Style
-color = color' False
+color i c = colorNull {styleColor = Just (c, i)}
 
 colorBold :: Intensity -> Color -> Style
-colorBold = color' True
+colorBold i c = (color i c) {styleBold = True}
 
 convertStyle :: Style -> AnsiStyle
 convertStyle Style {..} =
-  (if styleBold then Ansi.bold else mempty)
-    <> maybe mempty (col styleIntensity) styleColor
+  mconcat
+    [ maybe mempty (uncurry $ flip col) styleColor
+    , if styleBold then Ansi.bold else mempty
+    , if styleItalic then Ansi.italicized else mempty
+    , if styleUnderlined then Ansi.underlined else mempty
+    ]
   where
     col = \case
       Vivid -> Ansi.color
