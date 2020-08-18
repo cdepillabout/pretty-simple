@@ -107,8 +107,6 @@ module Text.Pretty.Simple
   , Style(..)
   , Color(..)
   , Intensity(..)
-  , color
-  , colorBold
   , colorNull
   -- * Examples
   -- $examples
@@ -131,7 +129,7 @@ import System.IO (Handle, stdout)
 import Text.Pretty.Simple.Internal
        (ColorOptions(..), Style(..), CheckColorTty(..),
         OutputOptions(..), StringOutputStyle(..),
-        convertStyle, colorNull, color, colorBold,
+        convertStyle, colorNull,
         defaultColorOptionsDarkBg, defaultColorOptionsLightBg,
         defaultOutputOptionsDarkBg, defaultOutputOptionsLightBg,
         defaultOutputOptionsNoColor, hCheckTTY, layoutString)

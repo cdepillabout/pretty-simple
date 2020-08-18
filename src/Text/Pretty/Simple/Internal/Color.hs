@@ -35,9 +35,6 @@ import qualified Prettyprinter.Render.Terminal as Ansi
 
 -- | These options are for colorizing the output of functions like 'pPrint'.
 --
--- For example, if you set 'colorQuote' to something like 'colorBold Vivid Blue',
--- then the quote character (@\"@) will be output as bright blue in bold.
---
 -- If you don't want to use a color for one of the options, use 'colorNull'.
 data ColorOptions = ColorOptions
   { colorQuote :: Style
@@ -107,6 +104,7 @@ colorNull = Style
   , styleUnderlined = False
   }
 
+-- | Ways to style terminal output.
 data Style = Style
   { styleColor :: Maybe (Color, Intensity)
   , styleBold :: Bool
