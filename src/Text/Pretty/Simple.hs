@@ -685,6 +685,7 @@ layoutStringAnsi opts = fmap convertStyle . layoutString opts
 --             ( B ( B A ) ) ] )
 --
 -- __Initial indent__
+--
 -- >>> pPrintOpt CheckColorTty defaultOutputOptionsDarkBg {outputOptionsInitialIndent = 3} $ B ( B ( B ( B A ) ) )
 --    B
 --        ( B
