@@ -662,6 +662,28 @@ layoutStringAnsi opts = fmap convertStyle . layoutString opts
 --         ]
 --     }
 --
+-- __Compactness options__
+--
+-- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg {outputOptionsCompact = True} "AST [] [Def ((3,1),(5,30)) (Id \"fact'\" \"fact'\") [] (Forall ((3,9),(3,26)) [((Id \"n\" \"n_0\"),KPromote (TyCon (Id \"Nat\" \"Nat\")))])]"
+-- AST []
+--     [ Def
+--         ( ( 3, 1 ), ( 5, 30 ) )
+--         ( Id "fact'" "fact'" ) []
+--         ( Forall
+--             ( ( 3, 9 ), ( 3, 26 ) )
+--             [ ( ( Id "n" "n_0" ), KPromote ( TyCon ( Id "Nat" "Nat" ) ) ) ]
+--         )
+--     ]
+--
+-- >>> pPrintOpt CheckColorTty defaultOutputOptionsDarkBg {outputOptionsCompactParens = True} $ B ( C [A, A] [B A, B (B (B A))] )
+-- B
+--     ( C
+--         [ A
+--         , A ]
+--         [ B A
+--         , B
+--             ( B ( B A ) ) ] )
+--
 -- __Other__
 --
 -- Making sure the spacing after a string is correct.
