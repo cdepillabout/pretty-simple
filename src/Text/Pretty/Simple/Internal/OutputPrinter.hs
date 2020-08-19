@@ -37,7 +37,7 @@ import Data.List (dropWhileEnd)
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Data.Maybe (fromMaybe)
 import Prettyprinter
-  (line', flatAlt, PageWidth(AvailablePerLine), layoutPageWidth, nest, hsep,
+  (line', PageWidth(AvailablePerLine), layoutPageWidth, nest, hsep,
     concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions,
     enclose, hcat, layoutSmart, line, unAnnotateS, pretty)
 import Data.Typeable (Typeable)
@@ -220,7 +220,7 @@ prettyExprs opts = hcat . map subExpr
           nest 2 $ space <> doc
         else
           -- put the expression on a new line, indented (unless grouped)
-          flatAlt (nest (outputOptionsIndentAmount opts) $ line <> doc) (line <> doc)
+          nest (outputOptionsIndentAmount opts) $ line <> doc
 
 -- | Construct a 'Doc' from a single 'Expr'.
 prettyExpr :: OutputOptions -> Expr -> Doc Annotation
