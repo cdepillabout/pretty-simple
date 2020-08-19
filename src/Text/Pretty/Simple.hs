@@ -684,6 +684,13 @@ layoutStringAnsi opts = fmap convertStyle . layoutString opts
 --         , B
 --             ( B ( B A ) ) ] )
 --
+-- __Initial indent__
+-- >>> pPrintOpt CheckColorTty defaultOutputOptionsDarkBg {outputOptionsInitialIndent = 3} $ B ( B ( B ( B A ) ) )
+--    B
+--        ( B
+--            ( B ( B A ) )
+--        )
+--
 -- __Other__
 --
 -- Making sure the spacing after a string is correct.
