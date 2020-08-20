@@ -111,7 +111,7 @@ data Style = Style
   , styleItalic :: Bool
   , styleUnderlined :: Bool
   }
-  deriving (Eq, Show)
+  deriving (Eq, Generic, Show, Typeable)
 
 color :: Intensity -> Color -> Style
 color i c = colorNull {styleColor = Just (c, i)}
