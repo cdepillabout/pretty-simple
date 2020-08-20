@@ -1,0 +1,31 @@
+cradle:
+  cabal:
+    - path: "./src"
+      component: "lib:pretty-simple"
+
+    - path: "./app/Main.hs"
+      component: "pretty-simple:exe:pretty-simple"
+
+    - path: "./example/Example.hs"
+      component: "pretty-simple:exe:pretty-simple-example"
+
+    - path: "./example/Example.Data.hs"
+      component: "pretty-simple:exe:pretty-simple-example"
+
+    - path: "./example/ExampleJSON.hs"
+      component: "pretty-simple:exe:pretty-simple-json-example"
+
+    - path: "./example/Example.Data.hs"
+      component: "pretty-simple:exe:pretty-simple-json-example"
+
+    - path: "./test"
+      component: "pretty-simple:test:pretty-simple-doctest"
+
+    - path: "./bench/Bench.hs"
+      component: "pretty-simple:bench:pretty-simple-bench"
+
+    - path: "./bench/Example.Data.hs"
+      component: "pretty-simple:bench:pretty-simple-bench"
+
+    - path: "web/src/Main.hs"
+      component: "web:exe:web"

@@ -1,0 +1,43 @@
+cabal-version:       2.4
+name:                web
+version:             0.1.0.0
+category:            Web
+build-type:          Simple
+
+executable web
+    main-is: Main.hs
+    hs-source-dirs: src
+    build-depends:
+        base ^>= 4.12 || ^>= 4.13 || ^>= 4.14,
+        containers,
+        generic-lens,
+        microlens,
+        pretty-simple,
+        prettyprinter ^>= 1.7,
+        text,
+    if !impl(ghcjs)
+        build-depends:
+            miso ^>= 1.7,
+            jsaddle,
+            jsaddle-warp,
+            transformers,
+            warp,
+            websockets,
+    else
+        --TODO the URL we have in default.nix seems to point to a mislabelled 1.7 build
+        build-depends:
+            miso ^>= 1.6,
+    ghc-options:
+        -Wall
+    ghcjs-options:
+        -dedupe
+    default-language: Haskell2010
+    default-extensions:
+        DeriveGeneric
+        EmptyCase
+        GADTs
+        LambdaCase
+        OverloadedLabels
+        OverloadedStrings
+        RankNTypes
+        RecordWildCards

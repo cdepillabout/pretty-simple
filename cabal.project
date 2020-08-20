@@ -1,0 +1,5 @@
+packages:
+  ./
+  web/app.cabal
+
+constraints: miso +jsaddle
