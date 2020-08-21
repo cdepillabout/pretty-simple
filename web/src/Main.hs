@@ -12,6 +12,8 @@ import Control.Monad.State
 import Data.Text.Prettyprint.Doc
 import Language.Javascript.JSaddle
 import Lens.Micro
+import Data.List.NonEmpty (NonEmpty((:|)), NonEmpty)
+import qualified Data.List.NonEmpty as NE
 
 #ifndef __GHCJS__
 runApp :: JSM () -> IO ()
@@ -46,26 +48,13 @@ annotateStyle :: Traversable t => t Ann -> t ()
 annotateStyle ds =
     evalState
         (traverse f ds)
-        Tape
-            { tapeLeft = repeat ()
-            , tapeHead = ()
-            }
+         $ () :| repeat ()
   where
     f = \case
-        Open -> modify move *> gets tapeHead
-        Close ->  gets tapeHead
-        Comma -> gets tapeHead
+        Open -> modify move *> gets NE.head
+        Close ->  gets NE.head
+        Comma -> gets NE.head
 
-move :: Tape a -> Tape ()
-move (Tape [] _) = Tape [] ()
-move (Tape (_ : _) _) = Tape [] ()
-
--- | A bidirectional Turing-machine tape:
--- infinite in both directions, with a head pointing to one element.
-data Tape a = Tape
-    { -- | the side of the 'Tape' left of 'tapeHead'
-      tapeLeft :: [a]
-    , -- | the focused element
-      tapeHead :: a
-    }
-    deriving (Show)
+move :: NonEmpty a -> NonEmpty ()
+move = \case
+    _ :| _ -> () :| []
