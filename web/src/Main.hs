@@ -52,7 +52,7 @@ main = runApp $ startApp App {..}
     model =
         Model
             { inputText = example
-            , outputOptions = defaultOutputOptionsLightBg --TODO use dark background
+            , outputOptions = defaultOutputOptionsNoColor
             }
     update = updateModel
     view = viewModel
