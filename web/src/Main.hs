@@ -1,9 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE EmptyCase #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TypeApplications #-}
 
 module Main (main) where
 
