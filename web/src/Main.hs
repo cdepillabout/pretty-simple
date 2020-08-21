@@ -9,11 +9,11 @@ import Network.WebSockets (defaultConnectionOptions)
 #endif
 
 import Control.Monad.State
+import Data.List.NonEmpty (NonEmpty ((:|)))
+import qualified Data.List.NonEmpty as NE
 import Data.Text.Prettyprint.Doc
 import Language.Javascript.JSaddle
 import Lens.Micro
-import Data.List.NonEmpty (NonEmpty((:|)), NonEmpty)
-import qualified Data.List.NonEmpty as NE
 
 #ifndef __GHCJS__
 runApp :: JSM () -> IO ()
@@ -42,19 +42,19 @@ data Ann
     = Open
     | Close
     | Comma
-    deriving Show
+    deriving (Show)
 
 annotateStyle :: Traversable t => t Ann -> t ()
 annotateStyle ds =
     evalState
         (traverse f ds)
-         $ () :| repeat ()
+        $ () :| repeat ()
   where
     f = \case
         Open -> modify move *> gets NE.head
-        Close ->  gets NE.head
+        Close -> gets NE.head
         Comma -> gets NE.head
 
 move :: NonEmpty a -> NonEmpty ()
 move = \case
-    _ :| _ -> () :| []
+    _ :| _ -> pure ()
