@@ -9,7 +9,6 @@ import Network.WebSockets (defaultConnectionOptions)
 #endif
 
 import Control.Monad.State
-import Data.List.NonEmpty (NonEmpty)
 import Data.Text.Prettyprint.Doc
 import Language.Javascript.JSaddle
 import Lens.Micro
@@ -48,9 +47,9 @@ annotateStyle ds =
     evalState
         (traverse f ds)
         Tape
-            { tapeLeft = streamRepeat ()
+            { tapeLeft = repeat ()
             , tapeHead = ()
-            , tapeRight = streamCycle $ pure ()
+            , tapeRight = repeat ()
             }
   where
     f = \case
@@ -62,31 +61,16 @@ annotateStyle ds =
 -- infinite in both directions, with a head pointing to one element.
 data Tape a = Tape
     { -- | the side of the 'Tape' left of 'tapeHead'
-      tapeLeft :: Stream a
+      tapeLeft :: [a]
     , -- | the focused element
       tapeHead :: a
     , -- | the side of the 'Tape' right of 'tapeHead'
-      tapeRight :: Stream a
+      tapeRight :: [a]
     }
     deriving (Show)
 
--- | Move the head left
-moveL :: Tape a -> Tape a
-moveL (Tape (l :.. ls) c rs) = Tape ls l (c :.. rs)
+moveL (Tape [] _ _) = Tape [] () []
+moveL (Tape (l : ls) _ _) = Tape ls l []
 
--- | Move the head right
-moveR :: Tape a -> Tape a
-moveR (Tape ls c (r :.. rs)) = Tape (c :.. ls) r rs
-
--- | An infinite list
-data Stream a = a :.. Stream a deriving (Show)
-
--- | Analogous to 'repeat'
-streamRepeat :: t -> Stream t
-streamRepeat x = x :.. streamRepeat x
-
--- | Analogous to 'cycle'
--- While the inferred signature here is more general,
--- it would diverge on an empty structure
-streamCycle :: NonEmpty a -> Stream a
-streamCycle xs = foldr (:..) (streamCycle xs) xs
+moveR (Tape _ _ []) = Tape [] () []
+moveR (Tape _ _ (r : rs)) = Tape [] r rs
