@@ -34,26 +34,14 @@ main = runApp $ do
             (toJSString string)
 
 string :: String
-string =
-    show . annotateStyle . layoutPretty defaultLayoutOptions $
-        annotate Open "(" <> annotate Comma "," <> annotate Close ")"
+string = show . annotateStyle . layoutPretty defaultLayoutOptions $ annotate False "(" <> annotate True "," <> annotate True ")"
 
-data Ann
-    = Open
-    | Close
-    | Comma
-    deriving (Show)
-
-annotateStyle :: Traversable t => t Ann -> t ()
-annotateStyle ds =
-    evalState
-        (traverse f ds)
-        $ () :| repeat ()
+annotateStyle :: Traversable t => t Bool -> t ()
+annotateStyle ds = evalState (traverse f ds) $ () :| repeat ()
   where
     f = \case
-        Open -> modify move *> gets NE.head
-        Close -> gets NE.head
-        Comma -> gets NE.head
+        False -> modify move *> gets NE.head
+        True -> gets NE.head
 
 move :: NonEmpty a -> NonEmpty ()
 move = \case
