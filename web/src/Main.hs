@@ -73,20 +73,12 @@ viewModel :: Model -> View Action
 viewModel m =
     div_
         []
-        [ textarea_ [onInput TextEntered] [text example]
-        , div_
-              []
-              [ input_ [type_ "checkbox", onChecked $ OptsChanged #outputOptionsCompact . unChecked]
-              , text "compact"
-              ]
-        , div_
-              []
-              [ input_ [type_ "checkbox", onChecked $ OptsChanged #outputOptionsCompactParens . unChecked]
-              , text "compact parens"
-              ]
-        , slider 240 #outputOptionsPageWidth "Page width"
-        , slider 10 #outputOptionsIndentAmount "Indentation"
-        , slider 20 #outputOptionsInitialIndent "Initial indent"
+        [ textArea TextEntered example
+        , checkBox (OptsChanged #outputOptionsCompact) "Compact"
+        , checkBox (OptsChanged #outputOptionsCompactParens) "Compact parentheses"
+        , slider 240 (OptsChanged #outputOptionsPageWidth) "Page width"
+        , slider 10 (OptsChanged #outputOptionsIndentAmount) "Indentation"
+        , slider 20 (OptsChanged #outputOptionsInitialIndent) "Initial indent"
         , selectMenu (OptsChanged #outputOptionsStringStyle) $
               Map.fromList
                   [ ("Literal", Literal)
@@ -95,22 +87,6 @@ viewModel m =
                   ]
         , pPrintStringHtml (outputOptions m) . fromMisoString $ inputText m
         ]
-
-slider :: Int -> (Lens' OutputOptions Int) -> MisoString -> View Action
-slider m l t =
-    div_
-        []
-        [ input_
-              [ type_ "range"
-              , min_ "1"
-              , max_ $ ms m
-              , onInput $ OptsChanged l . fromMisoString
-              ]
-        , text t
-        ]
-
-unChecked :: Checked -> Bool
-unChecked (Checked b) = b
 
 pPrintStringHtml :: OutputOptions -> String -> View act
 pPrintStringHtml opts = renderHtml . fmap renderAnn . treeForm . annotateWithIndentation . layoutString' opts
@@ -151,10 +127,7 @@ renderHtml =
             STConcat contents -> foldMap go contents
      in pre_ [] . go
 
-selectMenu :: (a -> action) -> Map MisoString a -> View action
-selectMenu f m =
-    select_ [onChange $ f . fromMaybe (error "selectMenu: unrecognised value") . (m !?)] $
-        map (option_ [] . pure . text) $ Map.keys m
+{- Example inputs -}
 
 example, example1, example2, example3 :: MisoString
 example = example1
@@ -175,3 +148,36 @@ example1 =
 example2 = "Example 1 (\"text\", [] )"
 -- from https://github.com/cdepillabout/pretty-simple/issues/64
 example3 = ms $ show ("\DC1\205N\237\232s\225\232N\147K\173\RSE\201\EM" :: String)
+
+{- Wrappers around HTML elements -}
+
+checkBox :: (Bool -> action) -> MisoString -> View action
+checkBox f t =
+    div_
+        []
+        [ input_ [type_ "checkbox", onChecked $ f . unChecked]
+        , text t
+        ]
+  where
+    unChecked (Checked b) = b
+
+slider :: Int -> (Int -> action) -> MisoString -> View action
+slider m f t =
+    div_
+        []
+        [ input_
+              [ type_ "range"
+              , min_ "1"
+              , max_ $ ms m
+              , onInput $ f . fromMisoString
+              ]
+        , text t
+        ]
+
+selectMenu :: (a -> action) -> Map MisoString a -> View action
+selectMenu f m =
+    select_ [onChange $ f . fromMaybe (error "selectMenu: unrecognised value") . (m !?)] $
+        map (option_ [] . pure . text) $ Map.keys m
+
+textArea :: (MisoString -> Action) -> MisoString -> View Action
+textArea f t = textarea_ [onInput f] [text t]
