@@ -294,6 +294,7 @@ data Annotation
   | Quote
   | String
   | Num
+  deriving (Eq, Show)
 
 -- | Apply various transformations to clean up the 'Expr's.
 preprocess :: OutputOptions -> [Expr] -> [Expr]

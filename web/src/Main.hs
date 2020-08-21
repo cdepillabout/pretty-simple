@@ -17,8 +17,8 @@ import qualified Data.Text as T
 import GHC.Generics (Generic)
 import Lens.Micro
 import Miso hiding (go, set)
-import Miso.String (MisoString, fromMisoString, ms)
-import Prettyprinter (SimpleDocStream)
+import Miso.String (MisoString, fromMisoString, ms, toLower)
+import qualified Miso.String as Miso
 import Prettyprinter.Render.Util.SimpleDocTree (SimpleDocTree (..), treeForm)
 import Text.Pretty.Simple
 import Text.Pretty.Simple.Internal (Annotation (..), layoutString')
@@ -88,44 +88,25 @@ viewModel m =
         , pPrintStringHtml (outputOptions m) . fromMisoString $ inputText m
         ]
 
+data ParensLevel
+    = Parens0
+    | Parens1
+    | Parens2
+    deriving (Eq, Show, Bounded, Enum)
+
 pPrintStringHtml :: OutputOptions -> String -> View act
-pPrintStringHtml opts = renderHtml . fmap renderAnn . treeForm . annotateWithIndentation . layoutString' opts
-
-annotateWithIndentation :: SimpleDocStream Annotation -> SimpleDocStream (Annotation, Int)
-annotateWithIndentation ds = evalState (traverse (\a -> (a,) <$> f a) ds) 0
+pPrintStringHtml opts = renderHtml . treeForm . annotateWithIndentation . layoutString' opts
   where
-    f = \case
-        Open -> modify succ *> get
-        Close -> get <* modify pred
-        _ -> get
-
-newtype ColorString = ColorString MisoString
-
-renderAnn :: (Annotation, Int) -> ColorString
-renderAnn (a, n) = ColorString $ case a of
-    Open -> col
-    Close -> col
-    Comma -> col
-    Quote -> "black"
-    String -> "blue"
-    Num -> "green"
-  where
-    col = case n `mod` 3 of
-        0 -> "magenta"
-        1 -> "cyan"
-        2 -> "yellow"
-        _ -> error "renderAnn: math error"
-
-renderHtml :: SimpleDocTree ColorString -> View act
-renderHtml =
-    let go = \case
-            STEmpty -> [text ""]
-            STChar c -> [text $ ms $ T.singleton c]
-            STText _ t -> [text $ ms t]
-            STLine i -> [br_ [], text $ ms $ T.replicate i $ T.singleton ' ']
-            STAnn (ColorString c) content -> [span_ [style_ $ Map.singleton "color" c] $ go content]
-            STConcat contents -> foldMap go contents
-     in pre_ [] . go
+    annotateWithIndentation ds = evalState (traverse f ds) $ prev Parens0
+    f ann =
+        (++ [Class "annotation", toClassName @Annotation ann]) <$> case ann of
+            Open -> modify next *> g
+            Close -> g <* modify prev
+            Comma -> g
+            _ -> pure []
+    g = gets (pure . toClassName @ParensLevel)
+    toClassName :: Show a => a -> Class
+    toClassName = Class . toLower . ms . show
 
 {- Example inputs -}
 
@@ -156,7 +137,7 @@ checkBox f t =
     div_
         []
         [ input_ [type_ "checkbox", onChecked $ f . unChecked]
-        , text t
+        , span_ [class_ "label"] [text t]
         ]
   where
     unChecked (Checked b) = b
@@ -171,7 +152,7 @@ slider m f t =
               , max_ $ ms m
               , onInput $ f . fromMisoString
               ]
-        , text t
+        , span_ [class_ "label"] [text t]
         ]
 
 selectMenu :: (a -> action) -> Map MisoString a -> View action
@@ -181,3 +162,27 @@ selectMenu f m =
 
 textArea :: (MisoString -> Action) -> MisoString -> View Action
 textArea f t = textarea_ [onInput f] [text t]
+
+{- Util -}
+
+-- | As in 'relude'
+next, prev :: (Eq a, Bounded a, Enum a) => a -> a
+next e
+    | e == maxBound = minBound
+    | otherwise = succ e
+prev e
+    | e == minBound = maxBound
+    | otherwise = pred e
+
+newtype Class = Class {unClass :: MisoString}
+
+renderHtml :: SimpleDocTree [Class] -> View action
+renderHtml =
+    let go = \case
+            STEmpty -> [text ""]
+            STChar c -> [text $ ms $ T.singleton c]
+            STText _ t -> [text $ ms t]
+            STLine i -> [br_ [], text $ ms $ T.replicate i $ T.singleton ' ']
+            STAnn cs content -> [span_ [class_ $ Miso.unwords $ map unClass cs] $ go content]
+            STConcat contents -> foldMap go contents
+     in pre_ [class_ "output"] . go
