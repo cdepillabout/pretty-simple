@@ -22,8 +22,6 @@ executable web
             websockets,
     ghc-options:
         -Wall
-    ghcjs-options:
-        -dedupe
     default-language: Haskell2010
     default-extensions:
         FlexibleContexts
