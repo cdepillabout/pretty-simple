@@ -34,7 +34,13 @@ main = runApp $ do
             (toJSString string)
 
 string :: String
-string = show . trav . layoutPretty defaultLayoutOptions $ annotate False mempty <> annotate True mempty <> annotate True mempty
+string =
+    show . trav . layoutPretty defaultLayoutOptions $
+        mconcat
+            [ annotate False mempty
+            , annotate True mempty
+            , annotate True mempty
+            ]
 
 trav :: Traversable t => t Bool -> t ()
 trav ds = evalState (traverse f ds) $ pure ()
