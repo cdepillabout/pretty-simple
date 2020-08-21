@@ -9,12 +9,8 @@ executable web
     hs-source-dirs: src
     build-depends:
         base ^>= 4.12 || ^>= 4.13 || ^>= 4.14,
-        containers,
-        generic-lens,
-        lucid,
         microlens,
         mtl,
-        pretty-simple,
         prettyprinter ^>= 1.7,
         text,
     if !impl(ghcjs)
