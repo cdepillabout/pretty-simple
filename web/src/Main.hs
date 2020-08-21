@@ -34,7 +34,7 @@ main = runApp $ do
 string :: String
 string =
     show . annotateStyle . layoutPretty defaultLayoutOptions $
-        annotate Open "(" <> annotate Comma "," <> line <> annotate Close ")"
+        annotate Open "(" <> annotate Comma "," <> annotate Close ")"
 
 data Ann
     = Open
