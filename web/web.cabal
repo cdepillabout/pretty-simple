@@ -9,22 +9,17 @@ executable web
     hs-source-dirs: src
     build-depends:
         base ^>= 4.12 || ^>= 4.13 || ^>= 4.14,
+        jsaddle,
         microlens,
         mtl,
-        prettyprinter ^>= 1.7,
+        prettyprinter,
         text,
     if !impl(ghcjs)
         build-depends:
-            jsaddle,
             jsaddle-warp,
             transformers,
             warp,
             websockets,
-    else
-        --TODO the URL we have in default.nix seems to point to a mislabelled 1.7 build
-        build-depends:
-            jsaddle,
-            miso ^>= 1.6,
     ghc-options:
         -Wall
     ghcjs-options:

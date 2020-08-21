@@ -10,9 +10,9 @@ import Network.WebSockets (defaultConnectionOptions)
 
 import Control.Monad.State
 import Data.List.NonEmpty (NonEmpty)
+import Data.Text.Prettyprint.Doc
 import Language.Javascript.JSaddle
 import Lens.Micro
-import Prettyprinter
 
 #ifndef __GHCJS__
 runApp :: JSM () -> IO ()
@@ -37,12 +37,13 @@ string =
     show . annotateStyle . layoutPretty defaultLayoutOptions $
         annotate Open "(" <> annotate Comma "," <> line <> annotate Close ")"
 
-data Annotation
+data Ann
     = Open
     | Close
     | Comma
+    deriving Show
 
-annotateStyle :: Traversable t => t Annotation -> t ()
+annotateStyle :: Traversable t => t Ann -> t ()
 annotateStyle ds =
     evalState
         (traverse f ds)
