@@ -49,7 +49,6 @@ annotateStyle ds =
         Tape
             { tapeLeft = repeat ()
             , tapeHead = ()
-            , tapeRight = repeat ()
             }
   where
     f = \case
@@ -58,8 +57,8 @@ annotateStyle ds =
         Comma -> gets tapeHead
 
 move :: Tape a -> Tape ()
-move (Tape [] _ _) = Tape [] () []
-move (Tape (_ : _) _ _) = Tape [] () []
+move (Tape [] _) = Tape [] ()
+move (Tape (_ : _) _) = Tape [] ()
 
 -- | A bidirectional Turing-machine tape:
 -- infinite in both directions, with a head pointing to one element.
@@ -68,7 +67,5 @@ data Tape a = Tape
       tapeLeft :: [a]
     , -- | the focused element
       tapeHead :: a
-    , -- | the side of the 'Tape' right of 'tapeHead'
-      tapeRight :: [a]
     }
     deriving (Show)
