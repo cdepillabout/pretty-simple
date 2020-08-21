@@ -19,7 +19,7 @@ import Miso hiding (go, set)
 import Miso.String (MisoString, fromMisoString, ms)
 import Prettyprinter.Render.Util.SimpleDocTree (SimpleDocTree (..), treeForm)
 import Text.Pretty.Simple
-import Text.Pretty.Simple.Internal (layoutString)
+import Text.Pretty.Simple.Internal (Annotation (..), layoutString')
 
 #ifndef __GHCJS__
 runApp :: JSM () -> IO ()
@@ -59,19 +59,14 @@ main = runApp $ startApp App {..}
     mountPoint = Nothing -- Nothing defaults to 'body'
     logLevel = Off
 
---TODO submit GHCJS/Miso bug
-renderStyle :: Style -> View action -> View action
-#ifdef __GHCJS__
-renderStyle s = span_ [style_ $ Map.singleton "color" "blue"] . pure
-#else
-renderStyle Style {..} =
-    --TODO use all fields
-    (if styleBold then b_ [] . pure else id) . case styleColor of
-        Nothing -> id
-        Just (c, i) -> span_ [style_ $ uncurry Map.singleton $ renderColor c i] . pure
-  where
-    renderColor c _i = ("color", ms $ show c) --TODO use intensities (consult ANSI color chart)
-#endif
+renderAnn :: Annotation -> View act -> View act
+renderAnn = \case
+    Open -> b_ [] . pure . span_ [style_ $ Map.singleton "color" "red"] . pure
+    Close -> b_ [] . pure . span_ [style_ $ Map.singleton "color" "red"] . pure
+    Comma -> b_ [] . pure . span_ [style_ $ Map.singleton "color" "red"] . pure
+    Quote -> b_ [] . pure . span_ [style_ $ Map.singleton "color" "black"] . pure
+    String -> b_ [] . pure . span_ [style_ $ Map.singleton "color" "blue"] . pure
+    Num -> b_ [] . pure . span_ [style_ $ Map.singleton "color" "green"] . pure
 
 updateModel :: Action -> Model -> Effect Action Model
 updateModel = \case
@@ -125,7 +120,7 @@ unChecked :: Checked -> Bool
 unChecked (Checked b) = b
 
 pPrintStringHtml :: OutputOptions -> String -> View act
-pPrintStringHtml opts = renderHtml . fmap renderStyle . treeForm . layoutString opts
+pPrintStringHtml opts = renderHtml . fmap renderAnn . treeForm . layoutString' opts
 
 renderHtml :: SimpleDocTree (View act -> View act) -> View act
 renderHtml =

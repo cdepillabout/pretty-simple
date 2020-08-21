@@ -196,9 +196,11 @@ hCheckTTY h options = liftIO $ conv <$> tty
 -- suitable for passing to any /prettyprinter/ backend.
 -- Used by 'Simple.pString' etc.
 layoutString :: OutputOptions -> String -> SimpleDocStream Style
-layoutString opts =
-  annotateStyle opts
-    . layoutSmart defaultLayoutOptions
+layoutString opts = annotateStyle opts . layoutString' opts
+
+layoutString' :: OutputOptions -> String -> SimpleDocStream Annotation
+layoutString' opts =
+    layoutSmart defaultLayoutOptions
       {layoutPageWidth = AvailablePerLine (outputOptionsPageWidth opts) 1}
     . prettyExprs' opts
     . preprocess opts
