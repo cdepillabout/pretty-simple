@@ -12,6 +12,7 @@ executable web
         containers,
         generic-lens,
         microlens,
+        mtl,
         pretty-simple,
         prettyprinter ^>= 1.7,
         text,
@@ -35,9 +36,11 @@ executable web
     default-extensions:
         DeriveGeneric
         EmptyCase
+        FlexibleContexts
         GADTs
         LambdaCase
         OverloadedLabels
         OverloadedStrings
         RankNTypes
         RecordWildCards
+        TupleSections

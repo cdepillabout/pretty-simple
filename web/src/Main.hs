@@ -8,6 +8,7 @@ import qualified Network.Wai.Handler.Warp as Warp
 import Network.WebSockets (defaultConnectionOptions)
 #endif
 
+import Control.Monad.State
 import Data.Generics.Labels ()
 import Data.Map.Strict (Map, (!?))
 import qualified Data.Map.Strict as Map
@@ -17,6 +18,7 @@ import GHC.Generics (Generic)
 import Lens.Micro
 import Miso hiding (go, set)
 import Miso.String (MisoString, fromMisoString, ms)
+import Prettyprinter (SimpleDocStream)
 import Prettyprinter.Render.Util.SimpleDocTree (SimpleDocTree (..), treeForm)
 import Text.Pretty.Simple
 import Text.Pretty.Simple.Internal (Annotation (..), layoutString')
@@ -58,15 +60,6 @@ main = runApp $ startApp App {..}
     subs = []
     mountPoint = Nothing -- Nothing defaults to 'body'
     logLevel = Off
-
-renderAnn :: Annotation -> View act -> View act
-renderAnn = \case
-    Open -> b_ [] . pure . span_ [style_ $ Map.singleton "color" "red"] . pure
-    Close -> b_ [] . pure . span_ [style_ $ Map.singleton "color" "red"] . pure
-    Comma -> b_ [] . pure . span_ [style_ $ Map.singleton "color" "red"] . pure
-    Quote -> b_ [] . pure . span_ [style_ $ Map.singleton "color" "black"] . pure
-    String -> b_ [] . pure . span_ [style_ $ Map.singleton "color" "blue"] . pure
-    Num -> b_ [] . pure . span_ [style_ $ Map.singleton "color" "green"] . pure
 
 updateModel :: Action -> Model -> Effect Action Model
 updateModel = \case
@@ -120,16 +113,41 @@ unChecked :: Checked -> Bool
 unChecked (Checked b) = b
 
 pPrintStringHtml :: OutputOptions -> String -> View act
-pPrintStringHtml opts = renderHtml . fmap renderAnn . treeForm . layoutString' opts
+pPrintStringHtml opts = renderHtml . fmap renderAnn . treeForm . annotateWithIndentation . layoutString' opts
 
-renderHtml :: SimpleDocTree (View act -> View act) -> View act
+annotateWithIndentation :: SimpleDocStream Annotation -> SimpleDocStream (Annotation, Int)
+annotateWithIndentation ds = evalState (traverse (\a -> (a,) <$> f a) ds) 0
+  where
+    f = \case
+        Open -> modify succ *> get
+        Close -> get <* modify pred
+        _ -> get
+
+newtype ColorString = ColorString MisoString
+
+renderAnn :: (Annotation, Int) -> ColorString
+renderAnn (a, n) = ColorString $ case a of
+    Open -> col
+    Close -> col
+    Comma -> col
+    Quote -> "black"
+    String -> "blue"
+    Num -> "green"
+  where
+    col = case n `mod` 3 of
+        0 -> "magenta"
+        1 -> "cyan"
+        2 -> "yellow"
+        _ -> error "renderAnn: math error"
+
+renderHtml :: SimpleDocTree ColorString -> View act
 renderHtml =
     let go = \case
             STEmpty -> [text ""]
             STChar c -> [text $ ms $ T.singleton c]
             STText _ t -> [text $ ms t]
             STLine i -> [br_ [], text $ ms $ T.replicate i $ T.singleton ' ']
-            STAnn ann content -> map ann $ go content
+            STAnn (ColorString c) content -> [span_ [style_ $ Map.singleton "color" c] $ go content]
             STConcat contents -> foldMap go contents
      in pre_ [] . go
 
