@@ -53,9 +53,13 @@ annotateStyle ds =
             }
   where
     f = \case
-        Open -> modify moveR *> gets tapeHead
-        Close -> gets tapeHead <* modify moveL
+        Open -> modify move *> gets tapeHead
+        Close ->  gets tapeHead
         Comma -> gets tapeHead
+
+move :: Tape a -> Tape ()
+move (Tape [] _ _) = Tape [] () []
+move (Tape (_ : _) _ _) = Tape [] () []
 
 -- | A bidirectional Turing-machine tape:
 -- infinite in both directions, with a head pointing to one element.
@@ -68,9 +72,3 @@ data Tape a = Tape
       tapeRight :: [a]
     }
     deriving (Show)
-
-moveL (Tape [] _ _) = Tape [] () []
-moveL (Tape (l : ls) _ _) = Tape ls l []
-
-moveR (Tape _ _ []) = Tape [] () []
-moveR (Tape _ _ (r : rs)) = Tape [] r rs
