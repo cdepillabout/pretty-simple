@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Main (main) where
 
@@ -34,14 +35,12 @@ main = runApp $ do
             (toJSString string)
 
 string :: String
-string = show . annotateStyle . layoutPretty defaultLayoutOptions $ annotate False "(" <> annotate True "," <> annotate True ")"
+string = show . trav . layoutPretty defaultLayoutOptions $ annotate False mempty <> annotate True mempty <> annotate True mempty
 
-annotateStyle :: Traversable t => t Bool -> t ()
-annotateStyle ds = evalState (traverse f ds) $ () :| repeat ()
+trav :: Traversable t => t Bool -> t ()
+trav ds = evalState (traverse f ds) $ pure ()
   where
-    f = \case
-        False -> modify move *> gets NE.head
-        True -> gets NE.head
+    f b = if b then gets NE.head else modify move *> pure ()
 
 move :: NonEmpty a -> NonEmpty ()
 move = \case
