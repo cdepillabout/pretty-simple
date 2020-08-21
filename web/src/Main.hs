@@ -2,12 +2,6 @@
 
 module Main where
 
-#ifndef __GHCJS__
-import Language.Javascript.JSaddle.Warp as JSaddle
-import qualified Network.Wai.Handler.Warp as Warp
-import Network.WebSockets (defaultConnectionOptions)
-#endif
-
 import Control.Monad.State
 import Data.Generics.Labels ()
 import Data.Map.Strict (Map, (!?))
@@ -15,6 +9,7 @@ import qualified Data.Map.Strict as Map
 import Data.Maybe
 import qualified Data.Text as T
 import GHC.Generics (Generic)
+import Language.Javascript.JSaddle.Warp as JSaddle
 import Lens.Micro
 import Miso hiding (go, set)
 import Miso.String (MisoString, fromMisoString, ms)
@@ -22,16 +17,6 @@ import Prettyprinter (SimpleDocStream)
 import Prettyprinter.Render.Util.SimpleDocTree (SimpleDocTree (..), treeForm)
 import Text.Pretty.Simple
 import Text.Pretty.Simple.Internal (Annotation (..), layoutString')
-
-#ifndef __GHCJS__
-runApp :: JSM () -> IO ()
-runApp app =
-    Warp.runSettings (Warp.setPort 8000 $ Warp.setTimeout 3600 Warp.defaultSettings) =<<
-        JSaddle.jsaddleOr defaultConnectionOptions (app >> syncPoint) JSaddle.jsaddleApp
-#else
-runApp :: IO () -> IO ()
-runApp app = app
-#endif
 
 data Model = Model
     { inputText :: MisoString
@@ -46,7 +31,7 @@ data Action where
     OptsChanged :: Lens' OutputOptions a -> a -> Action
 
 main :: IO ()
-main = runApp $ startApp App {..}
+main = run 8000 $ startApp App {..}
   where
     initialAction = NoOp
     model =

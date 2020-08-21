@@ -11,19 +11,18 @@ executable web
         base ^>= 4.12 || ^>= 4.13 || ^>= 4.14,
         containers,
         generic-lens,
+        jsaddle-warp,
+        jsaddle,
         microlens,
         mtl,
         pretty-simple,
         prettyprinter ^>= 1.7,
         text,
+        warp,
+        websockets,
     if !impl(ghcjs)
         build-depends:
             miso ^>= 1.7,
-            jsaddle,
-            jsaddle-warp,
-            transformers,
-            warp,
-            websockets,
     else
         --TODO the URL we have in default.nix seems to point to a mislabelled 1.7 build
         build-depends:
