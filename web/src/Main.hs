@@ -5,6 +5,8 @@ module Main where
 #ifndef __GHCJS__
 import Language.Javascript.JSaddle.Warp as JSaddle
 import qualified Network.Wai.Handler.Warp as Warp
+import qualified Network.Wai as Wai
+import qualified Network.Wai.Application.Static as Wai
 import Network.WebSockets (defaultConnectionOptions)
 #endif
 
@@ -25,9 +27,14 @@ import Text.Pretty.Simple.Internal (Annotation (..), layoutString')
 
 #ifndef __GHCJS__
 runApp :: JSM () -> IO ()
-runApp app =
-    Warp.runSettings (Warp.setPort 8000 $ Warp.setTimeout 3600 Warp.defaultSettings) =<<
-        JSaddle.jsaddleOr defaultConnectionOptions (app >> syncPoint) JSaddle.jsaddleApp
+runApp f =
+    Warp.runSettings (Warp.setPort 8000 $ Warp.setTimeout 3600 Warp.defaultSettings)
+        =<< JSaddle.jsaddleOr defaultConnectionOptions (f >> syncPoint) app
+  where
+    app req =
+        case Wai.pathInfo req of
+            ["style.css"] -> Wai.staticApp (Wai.defaultWebAppSettings ".") req
+            _ -> JSaddle.jsaddleApp req
 #else
 runApp :: IO () -> IO ()
 runApp app = app
@@ -86,6 +93,10 @@ viewModel m =
                   , ("Don't escape non-printable", DoNotEscapeNonPrintable)
                   ]
         , pPrintStringHtml (outputOptions m) . fromMisoString $ inputText m
+        , link_
+              [ rel_ "stylesheet"
+              , href_ "style.css"
+              ]
         ]
 
 data ParensLevel

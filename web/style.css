@@ -1,0 +1,42 @@
+body {
+    background-color: rgb(49, 51, 59);
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+.label {
+    color: white;
+    font-size: x-large;
+}
+
+.output {
+    color: lightgrey;
+    font-size: large;
+}
+
+.annotation {
+    font-weight: bold;
+}
+
+.parens0 {
+    color: magenta;
+}
+
+.parens1 {
+    color: yellow;
+}
+
+.parens2 {
+    color: cyan;
+}
+
+.quote {
+    color: white;
+}
+
+.string {
+    color: dodgerblue;
+}
+
+.num {
+    color: green;
+}

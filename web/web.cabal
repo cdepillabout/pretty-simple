@@ -22,6 +22,8 @@ executable web
             jsaddle,
             jsaddle-warp,
             transformers,
+            wai,
+            wai-app-static,
             warp,
             websockets,
     else
@@ -44,3 +46,4 @@ executable web
         RankNTypes
         RecordWildCards
         TupleSections
+        TypeApplications
