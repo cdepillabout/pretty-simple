@@ -1,13 +1,8 @@
 body {
-    background-color: rgb(49, 51, 59);
+    background-color: #2c2f33;
     font-family: Helvetica, Arial, sans-serif;
     font-size: x-large;
     color: white;
-}
-
-.output {
-    color: lightgrey;
-    font-size: large;
 }
 
 .annotation {
@@ -15,25 +10,25 @@ body {
 }
 
 .parens0 {
-    color: magenta;
+    color: #f15acc
 }
 
 .parens1 {
-    color: yellow;
+    color: #fffb88;
 }
 
 .parens2 {
-    color: cyan;
+    color: #54c7e0;
 }
 
 .quote {
-    color: white;
+    color: #ffffff;
 }
 
 .string {
-    color: dodgerblue;
+    color: #2578bd;
 }
 
 .num {
-    color: green;
+    color: #83e377;
 }
