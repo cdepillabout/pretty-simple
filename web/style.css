@@ -1,11 +1,8 @@
 body {
     background-color: rgb(49, 51, 59);
     font-family: Helvetica, Arial, sans-serif;
-}
-
-.label {
-    color: white;
     font-size: x-large;
+    color: white;
 }
 
 .output {

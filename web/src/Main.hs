@@ -145,25 +145,25 @@ example3 = ms $ show ("\DC1\205N\237\232s\225\232N\147K\173\RSE\201\EM" :: Strin
 
 checkBox :: (Bool -> action) -> MisoString -> View action
 checkBox f t =
-    div_
+    label_
         []
-        [ input_ [type_ "checkbox", onChecked $ f . unChecked]
-        , span_ [class_ "label"] [text t]
+        [ text t
+        , input_ [type_ "checkbox", onChecked $ f . unChecked]
         ]
   where
     unChecked (Checked b) = b
 
 slider :: Int -> (Int -> action) -> MisoString -> View action
 slider m f t =
-    div_
+    label_
         []
-        [ input_
+        [ text t
+        , input_
               [ type_ "range"
               , min_ "1"
               , max_ $ ms m
               , onInput $ f . fromMisoString
               ]
-        , span_ [class_ "label"] [text t]
         ]
 
 selectMenu :: (a -> action) -> Map MisoString a -> View action
@@ -196,4 +196,4 @@ renderHtml =
             STLine i -> [br_ [], text $ ms $ T.replicate i $ T.singleton ' ']
             STAnn cs content -> [span_ [class_ $ Miso.unwords $ map unClass cs] $ go content]
             STConcat contents -> foldMap go contents
-     in pre_ [class_ "output"] . go
+     in pre_ [] . go
