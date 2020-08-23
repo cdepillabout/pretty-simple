@@ -39,7 +39,7 @@ import Data.Maybe (fromMaybe)
 import Prettyprinter
   (indent, line', PageWidth(AvailablePerLine), layoutPageWidth, nest, hsep,
     concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions,
-    enclose, hcat, layoutSmart, line, unAnnotateS, pretty)
+    enclose, hcat, layoutSmart, line, unAnnotateS, pretty, group)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Numeric (showHex)
@@ -52,7 +52,6 @@ import Text.Pretty.Simple.Internal.ExprParser (expressionParse)
 import Text.Pretty.Simple.Internal.Color
        (colorNull, Style, ColorOptions(..), defaultColorOptionsDarkBg,
         defaultColorOptionsLightBg)
-import Prettyprinter (group)
 
 -- $setup
 -- >>> import Text.Pretty.Simple (pPrintString, pPrintStringOpt)
