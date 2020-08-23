@@ -200,6 +200,7 @@ layoutString opts =
   annotateStyle opts
     . layoutSmart defaultLayoutOptions
       {layoutPageWidth = AvailablePerLine (outputOptionsPageWidth opts) 1}
+    . indent (outputOptionsInitialIndent opts)
     . prettyExprs' opts
     . preprocess opts
     . expressionParse
@@ -209,8 +210,7 @@ layoutString opts =
 prettyExprs' :: OutputOptions -> [Expr] -> Doc Annotation
 prettyExprs' opts = \case
   [] -> mempty
-  x : xs -> indent (outputOptionsInitialIndent opts)
-    $ prettyExpr opts x <> prettyExprs opts xs
+  x : xs -> prettyExpr opts x <> prettyExprs opts xs
 
 -- | Construct a 'Doc' from multiple 'Expr's.
 prettyExprs :: OutputOptions -> [Expr] -> Doc Annotation
