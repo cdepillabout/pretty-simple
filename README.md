@@ -43,7 +43,7 @@ more deeply nested.  It would be even more difficult to read.
 
 `pretty-simple` can be easily used from `ghci` when debugging.
 
-When using `stack` to run `ghci`, just append append the `--package` flag to
+When using `stack` to run `ghci`, just append the `--package` flag to
 the command line to load `pretty-simple`.
 
 ```sh

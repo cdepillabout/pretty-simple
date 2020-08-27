@@ -14,4 +14,4 @@ module Text.Pretty.Simple.Internal
 import Text.Pretty.Simple.Internal.Color as X
 import Text.Pretty.Simple.Internal.ExprParser as X
 import Text.Pretty.Simple.Internal.Expr as X
-import Text.Pretty.Simple.Internal.OutputPrinter as X
+import Text.Pretty.Simple.Internal.Printer as X

@@ -9,7 +9,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-|
-Module      : Text.Pretty.Simple.Internal.OutputPrinter
+Module      : Text.Pretty.Simple.Internal.Printer
 Copyright   : (c) Dennis Gosnell, 2016
 License     : BSD-style (see LICENSE file)
 Maintainer  : cdep.illabout@gmail.com
@@ -17,7 +17,7 @@ Stability   : experimental
 Portability : POSIX
 
 -}
-module Text.Pretty.Simple.Internal.OutputPrinter
+module Text.Pretty.Simple.Internal.Printer
   where
 
 -- We don't need these imports for later GHCs as all required functions

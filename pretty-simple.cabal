@@ -36,7 +36,7 @@ library
                      , Text.Pretty.Simple.Internal.Color
                      , Text.Pretty.Simple.Internal.Expr
                      , Text.Pretty.Simple.Internal.ExprParser
-                     , Text.Pretty.Simple.Internal.OutputPrinter
+                     , Text.Pretty.Simple.Internal.Printer
   build-depends:       base >= 4.8 && < 5
                      , containers
                      , mtl >= 2.2
