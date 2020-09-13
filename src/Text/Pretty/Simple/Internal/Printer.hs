@@ -107,7 +107,7 @@ data OutputOptions = OutputOptions
   -- ^ If this is 'Nothing', then don't colorize the output.  If this is
   -- @'Just' colorOptions@, then use @colorOptions@ to colorize the output.
   --
-  , outputOptionsStringStyle :: StringOutputStyle
+  , outputOptionsPostProcess :: [Expr] -> [Expr]
   -- ^ Controls how string literals are output.
   --
   -- By default, the pPrint functions escape non-printable characters, but
@@ -146,7 +146,7 @@ data OutputOptions = OutputOptions
   --
   -- You can see that all the escape characters get output literally, including
   -- newline.
-  } deriving (Eq, Generic, Show, Typeable)
+  } deriving (Generic, Typeable)
 
 -- | Default values for 'OutputOptions' when printing to a console with a dark
 -- background.  'outputOptionsIndentAmount' is 4, and
@@ -176,7 +176,7 @@ defaultOutputOptionsNoColor =
   , outputOptionsCompactParens = False
   , outputOptionsInitialIndent = 0
   , outputOptionsColorOptions = Nothing
-  , outputOptionsStringStyle = EscapeNonPrintable
+  , outputOptionsPostProcess = defaultPostProcess EscapeNonPrintable
   }
 
 -- | Given 'OutputOptions', disable colorful output if the given handle
@@ -201,7 +201,7 @@ layoutString opts =
       {layoutPageWidth = AvailablePerLine (outputOptionsPageWidth opts) 1}
     . indent (outputOptionsInitialIndent opts)
     . prettyExprs' opts
-    . preprocess opts
+    . outputOptionsPostProcess opts
     . expressionParse
 
 -- | Slight adjustment of 'prettyExprs' for the outermost level,
@@ -235,6 +235,7 @@ prettyExpr opts = (if outputOptionsCompact opts then group else id) . \case
   CharLit s -> join enclose (annotate Quote "'") $ annotate String $ pretty s
   Other s -> pretty s
   NumberLit n -> annotate Num $ pretty n
+  CustomExpr style s -> annotate (CustomAnn style) $ pretty s
   where
     list :: Doc Annotation -> Doc Annotation -> CommaSeparated [Expr]
       -> Doc Annotation
@@ -275,6 +276,7 @@ annotateStyle opts ds = case outputOptionsColorOptions opts of
         Quote -> pure colorQuote
         String -> pure colorString
         Num -> pure colorNum
+        CustomAnn s -> pure s
       initialTape = Tape
         { tapeLeft = streamRepeat colorError
         , tapeHead = colorError
@@ -291,26 +293,42 @@ data Annotation
   | Quote
   | String
   | Num
+  | CustomAnn Style
 
--- | Apply various transformations to clean up the 'Expr's.
-preprocess :: OutputOptions -> [Expr] -> [Expr]
-preprocess opts = map processExpr . removeEmptyOthers
+--TODO split up (with each step expressed with makePostProcessor?) so we can pick and choose
+defaultPostProcess :: StringOutputStyle -> [Expr] -> [Expr]
+defaultPostProcess stringStyle = map processExpr . removeEmptyOthers
   where
     processExpr = \case
       Brackets xss -> Brackets $ cs xss
       Braces xss -> Braces $ cs xss
       Parens xss -> Parens $ cs xss
       StringLit s -> StringLit $
-        case outputOptionsStringStyle opts of
+        case stringStyle of
           Literal -> s
           EscapeNonPrintable -> escapeNonPrintable $ readStr s
           DoNotEscapeNonPrintable -> readStr s
       CharLit s -> CharLit s
       Other s -> Other $ shrinkWhitespace $ strip s
       NumberLit n -> NumberLit n
-    cs (CommaSeparated ess) = CommaSeparated $ map (preprocess opts) ess
+      CustomExpr style s -> CustomExpr style s
+    cs (CommaSeparated ess) = CommaSeparated $ map (defaultPostProcess stringStyle) ess
     readStr :: String -> String
     readStr s = fromMaybe s . readMaybe $ '"': s ++ "\""
+
+makePostProcessor :: (Expr -> Expr) -> [Expr] -> [Expr]
+makePostProcessor f = map processExpr . removeEmptyOthers
+  where
+    processExpr = \case
+      Brackets xss -> Brackets $ list xss
+      Braces xss -> Braces $ list xss
+      Parens xss -> Parens $ list xss
+      x@(StringLit _) -> f x
+      x@(CharLit _) -> f x
+      x@(Other _) -> f x
+      x@(NumberLit _) -> f x
+      x@(CustomExpr _ _) -> f x
+    list (CommaSeparated ess) = CommaSeparated $ map (makePostProcessor f) ess
 
 -- | Remove any 'Other' 'Expr's which contain only spaces.
 -- These provide no value, but mess up formatting if left in.

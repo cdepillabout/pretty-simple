@@ -28,6 +28,8 @@ import Data.Data (Data)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 
+import Text.Pretty.Simple.Internal.Color
+
 newtype CommaSeparated a = CommaSeparated { unCommaSeparated :: [a] }
   deriving (Data, Eq, Generic, Show, Typeable)
 
@@ -43,5 +45,6 @@ data Expr
   -- only thing we will be doing with it is turning it /back/ into a string
   -- at some stage, so we might as well cut out the middle man and store it
   -- directly like this.
+  | CustomExpr Style !String
   | Other !String
-  deriving (Data, Eq, Generic, Show, Typeable)
+  deriving (Eq, Generic, Show, Typeable)
