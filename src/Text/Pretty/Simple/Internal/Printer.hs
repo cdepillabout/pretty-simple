@@ -317,17 +317,16 @@ defaultPostProcess stringStyle = map processExpr . removeEmptyOthers
     readStr s = fromMaybe s . readMaybe $ '"': s ++ "\""
 
 makePostProcessor :: (Expr -> Expr) -> [Expr] -> [Expr]
-makePostProcessor f = map processExpr . removeEmptyOthers
+makePostProcessor f = map $ \case
+  Brackets xss -> Brackets $ list xss
+  Braces xss -> Braces $ list xss
+  Parens xss -> Parens $ list xss
+  x@(StringLit _) -> f x
+  x@(CharLit _) -> f x
+  x@(Other _) -> f x
+  x@(NumberLit _) -> f x
+  x@(CustomExpr _ _) -> f x
   where
-    processExpr = \case
-      Brackets xss -> Brackets $ list xss
-      Braces xss -> Braces $ list xss
-      Parens xss -> Parens $ list xss
-      x@(StringLit _) -> f x
-      x@(CharLit _) -> f x
-      x@(Other _) -> f x
-      x@(NumberLit _) -> f x
-      x@(CustomExpr _ _) -> f x
     list (CommaSeparated ess) = CommaSeparated $ map (makePostProcessor f) ess
 
 -- | Remove any 'Other' 'Expr's which contain only spaces.
