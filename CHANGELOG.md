@@ -1,4 +1,22 @@
 
+## 4.0.0.0
+
+*   Expand `OutputOptions`:
+    *   Compactness, including grouping of parentheses.
+        [#72](https://github.com/cdepillabout/pretty-simple/pull/72)
+    *   Page width, affecting when lines are grouped if compact output is enabled.
+        [#72](https://github.com/cdepillabout/pretty-simple/pull/72)
+    *   Indent whole expression. Useful when using `pretty-simple` for one part
+        of a larger output.
+        [#71](https://github.com/cdepillabout/pretty-simple/pull/71)
+    *   Use `Style` type for easier configuration of colour, boldness etc.
+        [#73](https://github.com/cdepillabout/pretty-simple/pull/73)
+*   Significant internal rewrite of printing code, to make use of the [prettyprinter](https://hackage.haskell.org/package/prettyprinter)
+    library. The internal function `layoutString` can be used to integrate with
+    other `prettyprinter` backends, such as [prettyprinter-lucid](https://hackage.haskell.org/package/prettyprinter-lucid)
+    for HTML output.
+    [#67](https://github.com/cdepillabout/pretty-simple/pull/67)
+
 ## 3.3.0.0
 
 *   Add an output option to print escaped and non-printable characters

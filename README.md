@@ -79,8 +79,8 @@ Just
       function.
 - Rainbow Parentheses
     - Easy to understand deeply nested data types.
-- Configurable Indentation
-    - Amount of indentation is configurable with the
+- Configurable
+    - Indentation, compactness, colors and more are configurable with the
       [`pPrintOpt`](https://hackage.haskell.org/package/pretty-simple-1.0.0.6/docs/Text-Pretty-Simple.html#v:pPrintOpt)
       function.
 - Fast
