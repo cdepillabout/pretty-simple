@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -107,7 +108,7 @@ data OutputOptions = OutputOptions
   -- ^ If this is 'Nothing', then don't colorize the output.  If this is
   -- @'Just' colorOptions@, then use @colorOptions@ to colorize the output.
   --
-  , outputOptionsPostProcess :: [Expr] -> [Expr]
+  , outputOptionsPostProcess :: forall a. [Expr a] -> [Expr a]
   -- ^ Controls how string literals are output.
   --
   -- By default, the pPrint functions escape non-printable characters, but
@@ -146,7 +147,7 @@ data OutputOptions = OutputOptions
   --
   -- You can see that all the escape characters get output literally, including
   -- newline.
-  } deriving (Generic, Typeable)
+  } deriving Typeable
 
 -- | Default values for 'OutputOptions' when printing to a console with a dark
 -- background.  'outputOptionsIndentAmount' is 4, and
@@ -206,13 +207,13 @@ layoutString opts =
 
 -- | Slight adjustment of 'prettyExprs' for the outermost level,
 -- to avoid indenting everything.
-prettyExprs' :: OutputOptions -> [Expr] -> Doc Annotation
+prettyExprs' :: OutputOptions -> [Expr a] -> Doc Annotation
 prettyExprs' opts = \case
   [] -> mempty
   x : xs -> prettyExpr opts x <> prettyExprs opts xs
 
 -- | Construct a 'Doc' from multiple 'Expr's.
-prettyExprs :: OutputOptions -> [Expr] -> Doc Annotation
+prettyExprs :: OutputOptions -> [Expr a] -> Doc Annotation
 prettyExprs opts = hcat . map subExpr
   where
     subExpr x =
@@ -226,7 +227,7 @@ prettyExprs opts = hcat . map subExpr
           nest (outputOptionsIndentAmount opts) $ line <> doc
 
 -- | Construct a 'Doc' from a single 'Expr'.
-prettyExpr :: OutputOptions -> Expr -> Doc Annotation
+prettyExpr :: OutputOptions -> Expr a -> Doc Annotation
 prettyExpr opts = (if outputOptionsCompact opts then group else id) . \case
   Brackets xss -> list "[" "]" xss
   Braces xss -> list "{" "}" xss
@@ -237,7 +238,7 @@ prettyExpr opts = (if outputOptionsCompact opts then group else id) . \case
   NumberLit n -> annotate Num $ pretty n
   CustomExpr style s -> annotate (CustomAnn style) $ pretty s
   where
-    list :: Doc Annotation -> Doc Annotation -> CommaSeparated [Expr]
+    list :: Doc Annotation -> Doc Annotation -> CommaSeparated [Expr a]
       -> Doc Annotation
     list open close (CommaSeparated xss) =
       enclose (annotate Open open) (annotate Close close) $ case xss of
@@ -249,7 +250,7 @@ prettyExpr opts = (if outputOptionsCompact opts then group else id) . \case
     lineAndCommaSep x y = x <> line' <> annotate Comma "," <> y
 
 -- | Determine whether this expression should be displayed on a single line.
-isSimple :: Expr -> Bool
+isSimple :: Expr a -> Bool
 isSimple = \case
   Brackets (CommaSeparated xs) -> isListSimple xs
   Braces (CommaSeparated xs) -> isListSimple xs
@@ -296,7 +297,7 @@ data Annotation
   | CustomAnn Style
 
 --TODO split up (with each step expressed with makePostProcessor?) so we can pick and choose
-defaultPostProcess :: StringOutputStyle -> [Expr] -> [Expr]
+defaultPostProcess :: StringOutputStyle -> [Expr a] -> [Expr a]
 defaultPostProcess stringStyle = map processExpr . removeEmptyOthers
   where
     processExpr = \case
@@ -316,7 +317,7 @@ defaultPostProcess stringStyle = map processExpr . removeEmptyOthers
     readStr :: String -> String
     readStr s = fromMaybe s . readMaybe $ '"': s ++ "\""
 
-makePostProcessor :: (Expr -> Expr) -> [Expr] -> [Expr]
+makePostProcessor :: (Expr a -> Expr a) -> [Expr a] -> [Expr a]
 makePostProcessor f = map $ \case
   Brackets xss -> Brackets $ list xss
   Braces xss -> Braces $ list xss
@@ -331,7 +332,7 @@ makePostProcessor f = map $ \case
 
 -- | Remove any 'Other' 'Expr's which contain only spaces.
 -- These provide no value, but mess up formatting if left in.
-removeEmptyOthers :: [Expr] -> [Expr]
+removeEmptyOthers :: [Expr a] -> [Expr a]
 removeEmptyOthers = filter $ \case
   Other s -> not $ all isSpace s
   _ -> True

@@ -1,3 +1,7 @@
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -33,18 +37,22 @@ import Text.Pretty.Simple.Internal.Color
 newtype CommaSeparated a = CommaSeparated { unCommaSeparated :: [a] }
   deriving (Data, Eq, Generic, Show, Typeable)
 
-data Expr
-  = Brackets !(CommaSeparated [Expr])
-  | Braces !(CommaSeparated [Expr])
-  | Parens !(CommaSeparated [Expr])
-  | StringLit !String
-  | CharLit !String
-  | NumberLit !String
-  -- ^ We could store this as a 'Rational', say, instead of a 'String'.
-  -- However, we will never need to use its value for anything. Indeed, the
-  -- only thing we will be doing with it is turning it /back/ into a string
-  -- at some stage, so we might as well cut out the middle man and store it
-  -- directly like this.
-  | CustomExpr Style !String
-  | Other !String
-  deriving (Eq, Generic, Show, Typeable)
+data Stage = Parse | PostProc
+
+data Expr (a :: Stage) where
+  Brackets :: !(CommaSeparated [Expr a]) -> Expr a
+  Braces :: !(CommaSeparated [Expr a]) -> Expr a
+  Parens :: !(CommaSeparated [Expr a]) -> Expr a
+  StringLit :: !String -> Expr a
+  CharLit :: !String -> Expr a
+  NumberLit :: !String -> Expr a
+    -- ^ We could store this as a 'Rational', say, instead of a 'String'.
+    -- However, we will never need to use its value for anything. Indeed, the
+    -- only thing we will be doing with it is turning it /back/ into a string
+    -- at some stage, so we might as well cut out the middle man and store it
+    -- directly like this.
+  Other :: !String -> Expr a
+  CustomExpr :: Style -> !String -> Expr 'PostProc
+  deriving Typeable
+deriving instance Eq (Expr a)
+deriving instance Show (Expr a)

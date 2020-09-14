@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
@@ -18,7 +19,7 @@ Portability : POSIX
 module Text.Pretty.Simple.Internal.ExprParser
   where
 
-import Text.Pretty.Simple.Internal.Expr (CommaSeparated(..), Expr(..))
+import Text.Pretty.Simple.Internal.Expr (Stage(Parse), CommaSeparated(..), Expr(..))
 import Control.Arrow (first)
 import Data.Char (isAlpha, isDigit)
 
@@ -31,10 +32,10 @@ testString1 = "Just [TextInput {textInputClass = Just (Class {unClass = \"class\
 testString2 :: String
 testString2 = "some stuff (hello [\"dia\\x40iahello\", why wh, bye] ) (bye)"
 
-expressionParse :: String -> [Expr]
+expressionParse :: String -> [Expr 'Parse]
 expressionParse = fst . parseExprs
 
-parseExpr :: String -> (Expr, String)
+parseExpr :: String -> (Expr 'Parse, String)
 parseExpr ('(':rest) = first (Parens . CommaSeparated) $ parseCSep ')' rest
 parseExpr ('[':rest) = first (Brackets . CommaSeparated) $ parseCSep ']' rest
 parseExpr ('{':rest) = first (Braces . CommaSeparated) $ parseCSep '}' rest
@@ -54,7 +55,7 @@ parseExpr other      = first Other $ parseOther other
 -- ([Other "Foo ",StringLit "hello \\\"world!"],"")
 -- >>> parseExprs $ "'\\''"
 -- ([CharLit "\\'"],"")
-parseExprs :: String -> ([Expr], String)
+parseExprs :: String -> ([Expr 'Parse], String)
 parseExprs [] = ([], "")
 parseExprs s@(c:_)
   | c `elem` (")]}," :: String) = ([], s)
@@ -62,7 +63,7 @@ parseExprs s@(c:_)
                     (toParse, rest) = parseExprs rest'
                  in (parsed : toParse, rest)
 
-parseCSep :: Char -> String -> ([[Expr]], String)
+parseCSep :: Char -> String -> ([[Expr 'Parse]], String)
 parseCSep _ [] = ([], "")
 parseCSep end s@(c:cs)
   | c == end = ([], cs)
