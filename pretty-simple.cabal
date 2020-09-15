@@ -50,6 +50,7 @@ library
 
 executable pretty-simple
   main-is:             Main.hs
+  other-modules:       Paths_pretty_simple
   hs-source-dirs:      app
   build-depends:       base
                      , pretty-simple

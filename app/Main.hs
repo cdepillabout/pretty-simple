@@ -23,13 +23,15 @@ module Main where
 --   ]
 -- @
 
+import Data.Monoid ((<>))
 import Data.Text (unpack)
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy.IO as LT
+import Data.Version (showVersion)
 import Options.Applicative 
-       ( Parser, ReadM, execParser, fullDesc, help, helper, info, long
-       , option, progDesc, readerError, short, showDefaultWith, str, value, (<**>))
-import Data.Monoid ((<>))
+       ( Parser, ReadM, execParser, fullDesc, help, helper, info, infoOption, long
+       , option, progDesc, readerError, short, showDefaultWith, str, value)
+import Paths_pretty_simple (version)
 import Text.Pretty.Simple 
        ( pStringOpt, OutputOptions
        , defaultOutputOptionsDarkBg
@@ -41,7 +43,9 @@ data Color = DarkBg
            | LightBg
            | NoColor
 
-newtype Args = Args { color :: Color }
+newtype Args = Args
+  { color :: Color
+  }
 
 colorReader :: ReadM Color
 colorReader = do
@@ -62,6 +66,10 @@ args = Args
        <> value DarkBg
         )
 
+versionOption :: Parser (a -> a)
+versionOption =
+  infoOption (showVersion version) (long "version" <> help "Show version")
+
 main :: IO ()
 main = do
   args' <- execParser opts
@@ -70,7 +78,7 @@ main = do
       output = pStringOpt printOpt $ unpack input
   LT.putStr output
   where
-    opts = info (args <**> helper)
+    opts = info (helper <*> versionOption <*> args)
       ( fullDesc
      <> progDesc "Format Haskell data types with indentation and highlighting"
       )
