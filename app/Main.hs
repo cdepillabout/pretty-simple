@@ -68,7 +68,12 @@ args = Args
 
 versionOption :: Parser (a -> a)
 versionOption =
-  infoOption (showVersion version) (long "version" <> help "Show version")
+  infoOption
+    (showVersion version)
+    ( long "version"
+   <> short 'V'
+   <> help "Show version"
+    )
 
 main :: IO ()
 main = do
