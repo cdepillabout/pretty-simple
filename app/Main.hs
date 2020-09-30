@@ -28,11 +28,11 @@ import Data.Text (unpack)
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy.IO as LT
 import Data.Version (showVersion)
-import Options.Applicative 
+import Options.Applicative
        ( Parser, ReadM, execParser, fullDesc, help, helper, info, infoOption, long
        , option, progDesc, readerError, short, showDefaultWith, str, value)
 import Paths_pretty_simple (version)
-import Text.Pretty.Simple 
+import Text.Pretty.Simple
        ( pStringOpt, OutputOptions
        , defaultOutputOptionsDarkBg
        , defaultOutputOptionsLightBg
@@ -62,7 +62,7 @@ args = Args
         ( long "color"
        <> short 'c'
        <> help "Select printing color. Available options: dark-bg (default), light-bg, no-color."
-       <> showDefaultWith (\_ -> "dark-bg")
+       <> showDefaultWith (const "dark-bg")
        <> value DarkBg
         )
 
