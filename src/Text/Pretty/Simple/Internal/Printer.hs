@@ -334,7 +334,7 @@ removeEmptyOthers = filter $ \case
 -- >>> escapeNonPrintable "h\101llo"
 -- "hello"
 escapeNonPrintable :: String -> String
-escapeNonPrintable input = foldr escape "" input
+escapeNonPrintable = foldr escape ""
 
 -- | Replace an unprintable character except a newline
 -- with a hex escape sequence.
