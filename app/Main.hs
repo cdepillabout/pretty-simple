@@ -81,7 +81,7 @@ main = do
   input <- T.getContents
   let printOpt = getPrintOpt $ color args'
       output = pStringOpt printOpt $ unpack input
-  LT.putStr output
+  LT.putStrLn output
   where
     opts = info (helper <*> versionOption <*> args)
       ( fullDesc
