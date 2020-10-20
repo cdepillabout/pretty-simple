@@ -53,7 +53,7 @@ data Action where
     OptsChanged :: Lens' OutputOptions a -> a -> Action
 
 main :: IO ()
-main = runApp $ startApp App {..}
+main = runApp $ startApp App{..}
   where
     initialAction = NoOp
     model =
@@ -87,16 +87,16 @@ viewModel m =
         , slider 10 (OptsChanged #outputOptionsIndentAmount) "Indentation"
         , slider 20 (OptsChanged #outputOptionsInitialIndent) "Initial indent"
         , selectMenu (OptsChanged #outputOptionsStringStyle) $
-              Map.fromList
-                  [ ("Literal", Literal)
-                  , ("Escape non-printable", EscapeNonPrintable)
-                  , ("Don't escape non-printable", DoNotEscapeNonPrintable)
-                  ]
+            Map.fromList
+                [ ("Literal", Literal)
+                , ("Escape non-printable", EscapeNonPrintable)
+                , ("Don't escape non-printable", DoNotEscapeNonPrintable)
+                ]
         , pPrintStringHtml (outputOptions m) . fromMisoString $ inputText m
         , link_
-              [ rel_ "stylesheet"
-              , href_ "style.css"
-              ]
+            [ rel_ "stylesheet"
+            , href_ "style.css"
+            ]
         ]
 
 data ParensLevel
@@ -159,11 +159,11 @@ slider m f t =
         []
         [ text t
         , input_
-              [ type_ "range"
-              , min_ "1"
-              , max_ $ ms m
-              , onInput $ f . fromMisoString
-              ]
+            [ type_ "range"
+            , min_ "1"
+            , max_ $ ms m
+            , onInput $ f . fromMisoString
+            ]
         ]
 
 selectMenu :: (a -> action) -> Map MisoString a -> View action
