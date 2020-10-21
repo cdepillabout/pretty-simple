@@ -80,24 +80,29 @@ viewModel :: Model -> View Action
 viewModel m =
     div_
         []
-        [ textArea TextEntered example
-        , checkBox (OptsChanged #outputOptionsCompact) "Compact"
-        , checkBox (OptsChanged #outputOptionsCompactParens) "Compact parentheses"
-        , slider 240 (OptsChanged #outputOptionsPageWidth) "Page width"
-        , slider 10 (OptsChanged #outputOptionsIndentAmount) "Indentation"
-        , slider 20 (OptsChanged #outputOptionsInitialIndent) "Initial indent"
-        , selectMenu (OptsChanged #outputOptionsStringStyle) $
-            Map.fromList
-                [ ("Literal", Literal)
-                , ("Escape non-printable", EscapeNonPrintable)
-                , ("Don't escape non-printable", DoNotEscapeNonPrintable)
-                ]
-        , pPrintStringHtml (outputOptions m) . fromMisoString $ inputText m
+        [ div_
+            [class_ "input"]
+            [ textArea [class_ "input-text"] TextEntered example
+            , slider [conf, class_ "page-width"] 240 (OptsChanged #outputOptionsPageWidth) "Page width"
+            , slider [conf, class_ "indentation"] 10 (OptsChanged #outputOptionsIndentAmount) "Indentation"
+            , slider [conf, class_ "initial-indent"] 20 (OptsChanged #outputOptionsInitialIndent) "Initial indent"
+            , checkBox [conf, class_ "compact"] (OptsChanged #outputOptionsCompact) "Compact"
+            , checkBox [conf, class_ "compact-parens"] (OptsChanged #outputOptionsCompactParens) "Compact parentheses"
+            , selectMenu [conf, class_ "string-style"] (OptsChanged #outputOptionsStringStyle) $
+                Map.fromList
+                    [ ("Literal", Literal)
+                    , ("Escape non-printable", EscapeNonPrintable)
+                    , ("Don't escape non-printable", DoNotEscapeNonPrintable)
+                    ]
+            ]
+        , pPrintStringHtml [class_ "output-text"] (outputOptions m) . fromMisoString $ inputText m
         , link_
             [ rel_ "stylesheet"
             , href_ "style.css"
             ]
         ]
+  where
+    conf = class_ "config"
 
 data ParensLevel
     = Parens0
@@ -105,8 +110,8 @@ data ParensLevel
     | Parens2
     deriving (Eq, Show, Bounded, Enum)
 
-pPrintStringHtml :: OutputOptions -> String -> View act
-pPrintStringHtml opts = renderHtml . treeForm . annotateWithIndentation . layoutString' opts
+pPrintStringHtml :: [Attribute act] -> OutputOptions -> String -> View act
+pPrintStringHtml as opts = renderHtml as . treeForm . annotateWithIndentation . layoutString' opts
   where
     annotateWithIndentation ds = evalState (traverse f ds) $ prev Parens0
     f ann =
@@ -143,20 +148,20 @@ example3 = ms $ show ("\DC1\205N\237\232s\225\232N\147K\173\RSE\201\EM" :: Strin
 
 {- Wrappers around HTML elements -}
 
-checkBox :: (Bool -> action) -> MisoString -> View action
-checkBox f t =
+checkBox :: [Attribute action] -> (Bool -> action) -> MisoString -> View action
+checkBox as f t =
     label_
-        []
+        as
         [ text t
         , input_ [type_ "checkbox", onChecked $ f . unChecked]
         ]
   where
     unChecked (Checked b) = b
 
-slider :: Int -> (Int -> action) -> MisoString -> View action
-slider m f t =
+slider :: [Attribute action] -> Int -> (Int -> action) -> MisoString -> View action
+slider as m f t =
     label_
-        []
+        as
         [ text t
         , input_
             [ type_ "range"
@@ -166,13 +171,13 @@ slider m f t =
             ]
         ]
 
-selectMenu :: (a -> action) -> Map MisoString a -> View action
-selectMenu f m =
-    select_ [onChange $ f . fromMaybe (error "selectMenu: unrecognised value") . (m !?)] $
+selectMenu :: [Attribute action] -> (a -> action) -> Map MisoString a -> View action
+selectMenu as f m =
+    select_ (onChange (f . fromMaybe (error "selectMenu: unrecognised value") . (m !?)) : as) $
         map (option_ [] . pure . text) $ Map.keys m
 
-textArea :: (MisoString -> Action) -> MisoString -> View Action
-textArea f t = textarea_ [onInput f] [text t]
+textArea :: [Attribute action] -> (MisoString -> action) -> MisoString -> View action
+textArea as f t = textarea_ (onInput f : as) [text t]
 
 {- Util -}
 
@@ -187,8 +192,8 @@ prev e
 
 newtype Class = Class {unClass :: MisoString}
 
-renderHtml :: SimpleDocTree [Class] -> View action
-renderHtml =
+renderHtml :: [Attribute action] -> SimpleDocTree [Class] -> View action
+renderHtml as =
     let go = \case
             STEmpty -> [text ""]
             STChar c -> [text $ ms $ T.singleton c]
@@ -196,4 +201,4 @@ renderHtml =
             STLine i -> [br_ [], text $ ms $ T.replicate i $ T.singleton ' ']
             STAnn cs content -> [span_ [class_ $ Miso.unwords $ map unClass cs] $ go content]
             STConcat contents -> foldMap go contents
-     in pre_ [] . go
+     in pre_ as . go
