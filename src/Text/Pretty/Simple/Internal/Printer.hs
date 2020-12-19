@@ -320,8 +320,9 @@ defaultPostprocess stringStyle = Postprocessor $ map processExpr . removeEmptyOt
     readStr :: String -> String
     readStr s = fromMaybe s . readMaybe $ '"': s ++ "\""
 
-makePostprocessor :: (Expr -> Expr) -> [Expr] -> [Expr]
-makePostprocessor f = map $ \case
+--TODO I don't like this - it completely ignores what 'f' does to the first 3 cases
+makePostprocessor :: (Expr -> Expr) -> Postprocessor
+makePostprocessor f = Postprocessor .  map $ \case
   Brackets xss -> Brackets $ list xss
   Braces xss -> Braces $ list xss
   Parens xss -> Parens $ list xss
@@ -331,7 +332,7 @@ makePostprocessor f = map $ \case
   x@(NumberLit _) -> f x
   x@(CustomExpr _ _) -> f x
   where
-    list (CommaSeparated ess) = CommaSeparated $ map (makePostprocessor f) ess
+    list (CommaSeparated ess) = CommaSeparated $ map (unPostprocessor $ makePostprocessor f) ess
 
 -- | Remove any 'Other' 'Expr's which contain only spaces.
 -- These provide no value, but mess up formatting if left in.
