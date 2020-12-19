@@ -322,7 +322,7 @@ defaultPostprocess stringStyle = Postprocessor $ map processExpr . removeEmptyOt
 
 --TODO I don't like this - it completely ignores what 'f' does to the first 3 cases
 makePostprocessor :: (Expr -> Expr) -> Postprocessor
-makePostprocessor f = Postprocessor .  map $ \case
+makePostprocessor f = Postprocessor . map $ \case
   Brackets xss -> Brackets $ list xss
   Braces xss -> Braces $ list xss
   Parens xss -> Parens $ list xss
