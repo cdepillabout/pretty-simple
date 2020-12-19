@@ -89,6 +89,10 @@ data StringOutputStyle
   -- ^ Output non-printable characters without modification.
   deriving (Eq, Generic, Show, Typeable)
 
+newtype Postprocessor = Postprocessor {unPostprocessor :: [Expr] -> [Expr]}
+instance Show Postprocessor where
+  show = const "_"
+
 -- | Data-type wrapping up all the options available when rendering the list
 -- of 'Output's.
 data OutputOptions = OutputOptions
@@ -107,7 +111,7 @@ data OutputOptions = OutputOptions
   -- ^ If this is 'Nothing', then don't colorize the output.  If this is
   -- @'Just' colorOptions@, then use @colorOptions@ to colorize the output.
   --
-  , outputOptionsPostprocess :: [Expr] -> [Expr]
+  , outputOptionsPostprocess :: Postprocessor
   -- ^ Controls how string literals are output.
   --
   -- By default, the pPrint functions escape non-printable characters, but
@@ -146,7 +150,7 @@ data OutputOptions = OutputOptions
   --
   -- You can see that all the escape characters get output literally, including
   -- newline.
-  } deriving (Generic, Typeable)
+  } deriving (Show, Generic, Typeable)
 
 -- | Default values for 'OutputOptions' when printing to a console with a dark
 -- background.  'outputOptionsIndentAmount' is 4, and
@@ -201,7 +205,7 @@ layoutString opts =
       {layoutPageWidth = AvailablePerLine (outputOptionsPageWidth opts) 1}
     . indent (outputOptionsInitialIndent opts)
     . prettyExprs' opts
-    . outputOptionsPostprocess opts
+    . unPostprocessor (outputOptionsPostprocess opts)
     . expressionParse
 
 -- | Slight adjustment of 'prettyExprs' for the outermost level,
@@ -296,8 +300,8 @@ data Annotation
   | CustomAnn Style
 
 --TODO split up (with each step expressed with makePostprocessor?) so we can pick and choose
-defaultPostprocess :: StringOutputStyle -> [Expr] -> [Expr]
-defaultPostprocess stringStyle = map processExpr . removeEmptyOthers
+defaultPostprocess :: StringOutputStyle -> Postprocessor
+defaultPostprocess stringStyle = Postprocessor $ map processExpr . removeEmptyOthers
   where
     processExpr = \case
       Brackets xss -> Brackets $ cs xss
@@ -312,7 +316,7 @@ defaultPostprocess stringStyle = map processExpr . removeEmptyOthers
       Other s -> Other $ shrinkWhitespace $ strip s
       NumberLit n -> NumberLit n
       CustomExpr style s -> CustomExpr style s
-    cs (CommaSeparated ess) = CommaSeparated $ map (defaultPostprocess stringStyle) ess
+    cs (CommaSeparated ess) = CommaSeparated $ map (unPostprocessor $ defaultPostprocess stringStyle) ess
     readStr :: String -> String
     readStr s = fromMaybe s . readMaybe $ '"': s ++ "\""
 
