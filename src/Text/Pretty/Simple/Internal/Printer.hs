@@ -135,7 +135,7 @@ data OutputOptions = OutputOptions
   -- to 'EscapeNonPrintable', except that non-printable characters get printed
   -- out literally to the screen.
   --
-  -- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsStringStyle = DoNotEscapeNonPrintable } "\"A \\x42 Ä \\xC4 \\n\""
+  -- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsPostprocess = defaultPostprocess DoNotEscapeNonPrintable } "\"A \\x42 Ä \\xC4 \\n\""
   -- "A B Ä Ä
   -- "
   --
@@ -145,7 +145,7 @@ data OutputOptions = OutputOptions
   --
   -- Another output style is 'Literal'.  This just outputs all escape characters.
   --
-  -- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsStringStyle = Literal } "\"A \\x42 Ä \\xC4 \\x1 \\n\""
+  -- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsPostprocess = defaultPostprocess Literal } "\"A \\x42 Ä \\xC4 \\x1 \\n\""
   -- "A \x42 Ä \xC4 \x1 \n"
   --
   -- You can see that all the escape characters get output literally, including
