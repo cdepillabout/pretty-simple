@@ -44,10 +44,16 @@ more deeply nested.  It would be even more difficult to read.
 `pretty-simple` can be easily used from `ghci` when debugging.
 
 When using `stack` to run `ghci`, just append the `--package` flag to
-the command line to load `pretty-simple`.
+the command line to load `pretty-simple`:
 
 ```sh
 $ stack ghci --package pretty-simple
+```
+
+Or, with cabal:
+
+```sh
+$ cabal repl --build-depends pretty-simple
 ```
 
 Once you get a prompt in `ghci`, you can use `import` to get `pretty-simple`'s
@@ -106,10 +112,13 @@ Other pretty-printing packages have some combination of these defects:
 
 The `pPrint` function can be used as the default output function in GHCi.
 
-All you need to do is run GHCi like this:
+All you need to do is run GHCi with a command like one of these:
 
 ```sh
 $ stack ghci --ghci-options "-interactive-print=Text.Pretty.Simple.pPrint" --package pretty-simple
+```
+```sh
+$ cabal repl --repl-options "-interactive-print=Text.Pretty.Simple.pPrint" --build-depends pretty-simple
 ```
 
 Now, whenever you make GHCi evaluate an expression, GHCi will pretty-print the
