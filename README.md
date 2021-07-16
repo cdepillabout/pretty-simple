@@ -53,7 +53,7 @@ $ stack ghci --package pretty-simple
 Or, with cabal:
 
 ```sh
-$ cabal repl -b pretty-simple
+$ cabal repl --build-depends pretty-simple
 ```
 
 Once you get a prompt in `ghci`, you can use `import` to get `pretty-simple`'s
@@ -118,7 +118,7 @@ All you need to do is run GHCi with a command like one of these:
 $ stack ghci --ghci-options "-interactive-print=Text.Pretty.Simple.pPrint" --package pretty-simple
 ```
 ```sh
-$ cabal repl --repl-options "-interactive-print=Text.Pretty.Simple.pPrint" -b pretty-simple
+$ cabal repl --repl-options "-interactive-print=Text.Pretty.Simple.pPrint" --build-depends pretty-simple
 ```
 
 Now, whenever you make GHCi evaluate an expression, GHCi will pretty-print the
