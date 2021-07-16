@@ -89,7 +89,12 @@ data StringOutputStyle
   -- ^ Output non-printable characters without modification.
   deriving (Eq, Generic, Show, Typeable)
 
+--TODO haddocks - make whole section, non-internal?, pointed to by OutputOptions
 newtype Postprocessor = Postprocessor {unPostprocessor :: [Expr] -> [Expr]}
+instance Semigroup Postprocessor where
+  Postprocessor f <> Postprocessor g = Postprocessor $ f . g
+instance Monoid Postprocessor where
+  mempty = Postprocessor id
 instance Show Postprocessor where
   show = const "_"
 
@@ -299,24 +304,23 @@ data Annotation
   | Num
   | CustomAnn Style
 
---TODO split up (with each step expressed with makePostprocessor?) so we can pick and choose
 defaultPostprocess :: StringOutputStyle -> Postprocessor
-defaultPostprocess stringStyle = Postprocessor $ map processExpr . removeEmptyOthers
-  where
-    processExpr = \case
-      Brackets xss -> Brackets $ cs xss
-      Braces xss -> Braces $ cs xss
-      Parens xss -> Parens $ cs xss
-      StringLit s -> StringLit $
-        case stringStyle of
-          Literal -> s
+defaultPostprocess style = removeEmptyOthers <> ppWhites <> ppStrings style
+
+ppWhites :: Postprocessor
+ppWhites = makePostprocessor $ \case
+  Other s -> Other $ shrinkWhitespace $ strip s
+  x -> x
+
+ppStrings :: StringOutputStyle -> Postprocessor
+ppStrings style = makePostprocessor $ \case
+  StringLit s -> StringLit $
+        case style of
+          Literal -> s --TODO this needn't exist - just don't process...
           EscapeNonPrintable -> escapeNonPrintable $ readStr s
           DoNotEscapeNonPrintable -> readStr s
-      CharLit s -> CharLit s
-      Other s -> Other $ shrinkWhitespace $ strip s
-      NumberLit n -> NumberLit n
-      CustomExpr style s -> CustomExpr style s
-    cs (CommaSeparated ess) = CommaSeparated $ map (unPostprocessor $ defaultPostprocess stringStyle) ess
+  x -> x
+  where
     readStr :: String -> String
     readStr s = fromMaybe s . readMaybe $ '"': s ++ "\""
 
@@ -336,10 +340,16 @@ makePostprocessor f = Postprocessor . map $ \case
 
 -- | Remove any 'Other' 'Expr's which contain only spaces.
 -- These provide no value, but mess up formatting if left in.
-removeEmptyOthers :: [Expr] -> [Expr]
-removeEmptyOthers = filter $ \case
-  Other s -> not $ all isSpace s
-  _ -> True
+removeEmptyOthers :: Postprocessor
+removeEmptyOthers = Postprocessor . (. f) . map $ \case
+   (Brackets (CommaSeparated xss)) -> Brackets $ CommaSeparated $ map (f . unPostprocessor removeEmptyOthers) xss
+   (Braces (CommaSeparated xss)) -> Braces $ CommaSeparated $ map (f . unPostprocessor removeEmptyOthers) xss
+   (Parens (CommaSeparated xss)) -> Parens $ CommaSeparated $ map (f . unPostprocessor removeEmptyOthers) xss
+   x -> x
+ where
+  f = filter $ \case
+          Other s -> not $ all isSpace s
+          _ -> True
 
 -- | Replace non-printable characters with hex escape sequences.
 --
