@@ -22,7 +22,7 @@ custom-setup
 
 flag buildexe
   description: Build an small command line program that pretty-print anything from stdin.
-  default:     False
+  default:     True
 
 flag buildexample
   description: Build a small example program showing how to use the pPrint function
