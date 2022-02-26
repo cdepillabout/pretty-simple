@@ -95,6 +95,7 @@ This sequences the output with respect to other IO actions.
 
 @since 2.0.1.0
 -}
+{-# WARNING pTraceIO "'pTraceIO' remains in code" #-}
 pTraceIO :: String -> IO ()
 pTraceIO = pTraceOptIO CheckColorTty defaultOutputOptionsDarkBg
 
@@ -113,6 +114,7 @@ trace message.
 
 @since 2.0.1.0
 -}
+{-# WARNING pTrace "'pTrace' remains in code" #-}
 pTrace :: String -> a -> a
 pTrace = pTraceOpt CheckColorTty defaultOutputOptionsDarkBg
 
@@ -121,6 +123,7 @@ Like 'pTrace' but returns the message instead of a third value.
 
 @since 2.0.1.0
 -}
+{-# WARNING pTraceId "'pTraceId' remains in code" #-}
 pTraceId :: String -> String
 pTraceId = pTraceIdOpt CheckColorTty defaultOutputOptionsDarkBg
 
@@ -139,6 +142,7 @@ variables @x@ and @z@:
 
 @since 2.0.1.0
 -}
+{-# WARNING pTraceShow "'pTraceShow' remains in code" #-}
 pTraceShow :: (Show a) => a -> b -> b
 pTraceShow = pTraceShowOpt CheckColorTty defaultOutputOptionsDarkBg
 
@@ -147,6 +151,7 @@ Like 'pTraceShow' but returns the shown value instead of a third value.
 
 @since 2.0.1.0
 -}
+{-# WARNING pTraceShowId "'pTraceShowId' remains in code" #-}
 pTraceShowId :: (Show a) => a -> a
 pTraceShowId = pTraceShowIdOpt CheckColorTty defaultOutputOptionsDarkBg
 {-|
@@ -168,6 +173,7 @@ and the message would only be printed once.  If your monad is in 'MonadIO',
 
 @since 2.0.1.0
 -}
+{-# WARNING pTraceM "'pTraceM' remains in code" #-}
 #if __GLASGOW_HASKELL__ < 800
 pTraceM :: (Monad f) => String -> f ()
 #else
@@ -185,6 +191,7 @@ Like 'pTraceM', but uses 'show' on the argument to convert it to a 'String'.
 
 @since 2.0.1.0
 -}
+{-# WARNING pTraceShowM "'pTraceShowM' remains in code" #-}
 #if __GLASGOW_HASKELL__ < 800
 pTraceShowM :: (Show a, Monad f) => a -> f ()
 #else
@@ -204,6 +211,7 @@ stack correspond to @SCC@ annotations, so it is a good idea to use
 
 @since 2.0.1.0
 -}
+{-# WARNING pTraceStack "'pTraceStack' remains in code" #-}
 pTraceStack :: String -> a -> a
 pTraceStack = pTraceStackOpt CheckColorTty defaultOutputOptionsDarkBg
 
@@ -221,6 +229,7 @@ that uses 'pTraceEvent'.
 
 @since 2.0.1.0
 -}
+{-# WARNING pTraceEvent "'pTraceEvent' remains in code" #-}
 pTraceEvent :: String -> a -> a
 pTraceEvent = pTraceEventOpt CheckColorTty defaultOutputOptionsDarkBg
 
@@ -233,6 +242,7 @@ other IO actions.
 
 @since 2.0.1.0
 -}
+{-# WARNING pTraceEventIO "'pTraceEventIO' remains in code" #-}
 pTraceEventIO :: String -> IO ()
 pTraceEventIO = pTraceEventOptIO CheckColorTty defaultOutputOptionsDarkBg
 
@@ -249,6 +259,7 @@ pTraceEventIO = pTraceEventOptIO CheckColorTty defaultOutputOptionsDarkBg
 -- that uses 'pTraceMarker'.
 --
 -- @since 2.0.1.0
+{-# WARNING pTraceMarker "'pTraceMarker' remains in code" #-}
 pTraceMarker :: String -> a -> a
 pTraceMarker = pTraceMarkerOpt CheckColorTty defaultOutputOptionsDarkBg
 
@@ -259,12 +270,14 @@ pTraceMarker = pTraceMarkerOpt CheckColorTty defaultOutputOptionsDarkBg
 -- to other IO actions.
 --
 -- @since 2.0.1.0
+{-# WARNING pTraceMarkerIO "'pTraceMarkerIO' remains in code" #-}
 pTraceMarkerIO :: String -> IO ()
 pTraceMarkerIO = pTraceMarkerOptIO CheckColorTty defaultOutputOptionsDarkBg
 
 ------------------------------------------
 -- Helpers
 ------------------------------------------
+{-# WARNING pStringTTYOptIO "'pStringTTYOptIO' remains in code" #-}
 pStringTTYOptIO :: CheckColorTty -> OutputOptions -> String -> IO Text
 pStringTTYOptIO checkColorTty outputOptions v = do
   realOutputOpts <-
@@ -273,14 +286,17 @@ pStringTTYOptIO checkColorTty outputOptions v = do
       NoCheckColorTty -> pure outputOptions
   pure $ pStringOpt realOutputOpts v
 
+{-# WARNING pStringTTYOpt "'pStringTTYOpt' remains in code" #-}
 pStringTTYOpt :: CheckColorTty -> OutputOptions -> String -> Text
 pStringTTYOpt checkColorTty outputOptions =
   unsafePerformIO . pStringTTYOptIO checkColorTty outputOptions
 
+{-# WARNING pShowTTYOptIO "'pShowTTYOptIO' remains in code" #-}
 pShowTTYOptIO :: Show a => CheckColorTty -> OutputOptions -> a -> IO Text
 pShowTTYOptIO checkColorTty outputOptions =
   pStringTTYOptIO checkColorTty outputOptions . show
 
+{-# WARNING pShowTTYOpt "'pShowTTYOpt' remains in code" #-}
 pShowTTYOpt :: Show a => CheckColorTty -> OutputOptions -> a -> Text
 pShowTTYOpt checkColorTty outputOptions =
   unsafePerformIO . pShowTTYOptIO checkColorTty outputOptions
@@ -289,22 +305,27 @@ pShowTTYOpt checkColorTty outputOptions =
 -- Traces forcing color
 ------------------------------------------
 -- | Similar to 'pTrace', but forcing color.
+{-# WARNING pTraceForceColor "'pTraceForceColor' remains in code" #-}
 pTraceForceColor :: String -> a -> a
 pTraceForceColor = pTraceOpt NoCheckColorTty defaultOutputOptionsDarkBg
 
 -- | Similar to 'pTraceId', but forcing color.
+{-# WARNING pTraceIdForceColor "'pTraceIdForceColor' remains in code" #-}
 pTraceIdForceColor :: String -> String
 pTraceIdForceColor = pTraceIdOpt NoCheckColorTty defaultOutputOptionsDarkBg
 
 -- | Similar to 'pTraceShow', but forcing color.
+{-# WARNING pTraceShowForceColor "'pTraceShowForceColor' remains in code" #-}
 pTraceShowForceColor :: (Show a) => a -> b -> b
 pTraceShowForceColor = pTraceShowOpt NoCheckColorTty defaultOutputOptionsDarkBg
 
 -- | Similar to 'pTraceShowId', but forcing color.
+{-# WARNING pTraceShowIdForceColor "'pTraceShowIdForceColor' remains in code" #-}
 pTraceShowIdForceColor :: (Show a) => a -> a
 pTraceShowIdForceColor =
   pTraceShowIdOpt NoCheckColorTty defaultOutputOptionsDarkBg
 -- | Similar to 'pTraceM', but forcing color.
+{-# WARNING pTraceMForceColor "'pTraceMForceColor' remains in code" #-}
 #if __GLASGOW_HASKELL__ < 800
 pTraceMForceColor :: (Monad f) => String -> f ()
 #else
@@ -312,6 +333,7 @@ pTraceMForceColor :: (Applicative f) => String -> f ()
 #endif
 pTraceMForceColor = pTraceOptM NoCheckColorTty defaultOutputOptionsDarkBg
 -- | Similar to 'pTraceShowM', but forcing color.
+{-# WARNING pTraceShowMForceColor "'pTraceShowMForceColor' remains in code" #-}
 #if __GLASGOW_HASKELL__ < 800
 pTraceShowMForceColor :: (Show a, Monad f) => a -> f ()
 #else
@@ -321,31 +343,37 @@ pTraceShowMForceColor =
   pTraceShowOptM NoCheckColorTty defaultOutputOptionsDarkBg
 
 -- | Similar to 'pTraceStack', but forcing color.
+{-# WARNING pTraceStackForceColor "'pTraceStackForceColor' remains in code" #-}
 pTraceStackForceColor :: String -> a -> a
 pTraceStackForceColor =
   pTraceStackOpt NoCheckColorTty defaultOutputOptionsDarkBg
 
 -- | Similar to 'pTraceEvent', but forcing color.
+{-# WARNING pTraceEventForceColor "'pTraceEventForceColor' remains in code" #-}
 pTraceEventForceColor :: String -> a -> a
 pTraceEventForceColor =
   pTraceEventOpt NoCheckColorTty defaultOutputOptionsDarkBg
 
 -- | Similar to 'pTraceEventIO', but forcing color.
+{-# WARNING pTraceEventIOForceColor "'pTraceEventIOForceColor' remains in code" #-}
 pTraceEventIOForceColor :: String -> IO ()
 pTraceEventIOForceColor =
   pTraceEventOptIO NoCheckColorTty defaultOutputOptionsDarkBg
 
 -- | Similar to 'pTraceMarker', but forcing color.
+{-# WARNING pTraceMarkerForceColor "'pTraceMarkerForceColor' remains in code" #-}
 pTraceMarkerForceColor :: String -> a -> a
 pTraceMarkerForceColor =
   pTraceMarkerOpt NoCheckColorTty defaultOutputOptionsDarkBg
 
 -- | Similar to 'pTraceMarkerIO', but forcing color.
+{-# WARNING pTraceMarkerIOForceColor "'pTraceMarkerIOForceColor' remains in code" #-}
 pTraceMarkerIOForceColor :: String -> IO ()
 pTraceMarkerIOForceColor =
   pTraceMarkerOptIO NoCheckColorTty defaultOutputOptionsDarkBg
 
 -- | Similar to 'pTraceIO', but forcing color.
+{-# WARNING pTraceIOForceColor "'pTraceIOForceColor' remains in code" #-}
 pTraceIOForceColor :: String -> IO ()
 pTraceIOForceColor = pTraceOptIO NoCheckColorTty defaultOutputOptionsDarkBg
 
@@ -359,6 +387,7 @@ pTraceIOForceColor = pTraceOptIO NoCheckColorTty defaultOutputOptionsDarkBg
 -- ()
 --
 -- @since 2.0.2.0
+{-# WARNING pTraceNoColor "'pTraceNoColor' remains in code" #-}
 pTraceNoColor :: String -> a -> a
 pTraceNoColor = pTraceOpt NoCheckColorTty defaultOutputOptionsNoColor
 
@@ -372,6 +401,7 @@ pTraceNoColor = pTraceOpt NoCheckColorTty defaultOutputOptionsNoColor
 -- ()
 --
 -- @since 2.0.2.0
+{-# WARNING pTraceIdNoColor "'pTraceIdNoColor' remains in code" #-}
 pTraceIdNoColor :: String -> String
 pTraceIdNoColor = pTraceIdOpt NoCheckColorTty defaultOutputOptionsNoColor
 
@@ -388,6 +418,7 @@ pTraceIdNoColor = pTraceIdOpt NoCheckColorTty defaultOutputOptionsNoColor
 -- ()
 --
 -- @since 2.0.2.0
+{-# WARNING pTraceShowNoColor "'pTraceShowNoColor' remains in code" #-}
 pTraceShowNoColor :: (Show a) => a -> b -> b
 pTraceShowNoColor = pTraceShowOpt NoCheckColorTty defaultOutputOptionsNoColor
 
@@ -404,6 +435,7 @@ pTraceShowNoColor = pTraceShowOpt NoCheckColorTty defaultOutputOptionsNoColor
 -- ()
 --
 -- @since 2.0.2.0
+{-# WARNING pTraceShowIdNoColor "'pTraceShowIdNoColor' remains in code" #-}
 pTraceShowIdNoColor :: (Show a) => a -> a
 pTraceShowIdNoColor =
   pTraceShowIdOpt NoCheckColorTty defaultOutputOptionsNoColor
@@ -413,6 +445,7 @@ pTraceShowIdNoColor =
 -- wow
 --
 -- @since 2.0.2.0
+{-# WARNING pTraceMNoColor "'pTraceMNoColor' remains in code" #-}
 #if __GLASGOW_HASKELL__ < 800
 pTraceMNoColor :: (Monad f) => String -> f ()
 #else
@@ -428,6 +461,7 @@ pTraceMNoColor = pTraceOptM NoCheckColorTty defaultOutputOptionsNoColor
 -- ]
 --
 -- @since 2.0.2.0
+{-# WARNING pTraceShowMNoColor "'pTraceShowMNoColor' remains in code" #-}
 #if __GLASGOW_HASKELL__ < 800
 pTraceShowMNoColor :: (Show a, Monad f) => a -> f ()
 #else
@@ -442,18 +476,21 @@ pTraceShowMNoColor = pTraceShowOptM NoCheckColorTty defaultOutputOptionsNoColor
 -- ()
 --
 -- @since 2.0.2.0
+{-# WARNING pTraceStackNoColor "'pTraceStackNoColor' remains in code" #-}
 pTraceStackNoColor :: String -> a -> a
 pTraceStackNoColor = pTraceStackOpt NoCheckColorTty defaultOutputOptionsNoColor
 
 -- | Similar to 'pTraceEvent', but without color.
 --
 -- @since 2.0.2.0
+{-# WARNING pTraceEventNoColor "'pTraceEventNoColor' remains in code" #-}
 pTraceEventNoColor :: String -> a -> a
 pTraceEventNoColor = pTraceEventOpt NoCheckColorTty defaultOutputOptionsNoColor
 
 -- | Similar to 'pTraceEventIO', but without color.
 --
 -- @since 2.0.2.0
+{-# WARNING pTraceEventIONoColor "'pTraceEventIONoColor' remains in code" #-}
 pTraceEventIONoColor :: String -> IO ()
 pTraceEventIONoColor =
   pTraceEventOptIO NoCheckColorTty defaultOutputOptionsNoColor
@@ -461,6 +498,7 @@ pTraceEventIONoColor =
 -- | Similar to 'pTraceMarker', but without color.
 --
 -- @since 2.0.2.0
+{-# WARNING pTraceMarkerNoColor "'pTraceMarkerNoColor' remains in code" #-}
 pTraceMarkerNoColor :: String -> a -> a
 pTraceMarkerNoColor =
   pTraceMarkerOpt NoCheckColorTty defaultOutputOptionsNoColor
@@ -468,6 +506,7 @@ pTraceMarkerNoColor =
 -- | Similar to 'pTraceMarkerIO', but without color.
 --
 -- @since 2.0.2.0
+{-# WARNING pTraceMarkerIONoColor "'pTraceMarkerIONoColor' remains in code" #-}
 pTraceMarkerIONoColor :: String -> IO ()
 pTraceMarkerIONoColor =
   pTraceMarkerOptIO NoCheckColorTty defaultOutputOptionsNoColor
@@ -481,6 +520,7 @@ pTraceMarkerIONoColor =
 -- )
 --
 -- @since 2.0.2.0
+{-# WARNING pTraceIONoColor "'pTraceIONoColor' remains in code" #-}
 pTraceIONoColor :: String -> IO ()
 pTraceIONoColor = pTraceOptIO NoCheckColorTty defaultOutputOptionsNoColor
 
@@ -490,6 +530,7 @@ pTraceIONoColor = pTraceOptIO NoCheckColorTty defaultOutputOptionsNoColor
 {-|
 Like 'pTrace' but takes OutputOptions.
 -}
+{-# WARNING pTraceOpt "'pTraceOpt' remains in code" #-}
 pTraceOpt :: CheckColorTty -> OutputOptions -> String -> a -> a
 pTraceOpt checkColorTty outputOptions =
   trace . unpack . pStringTTYOpt checkColorTty outputOptions
@@ -497,6 +538,7 @@ pTraceOpt checkColorTty outputOptions =
 {-|
 Like 'pTraceId' but takes OutputOptions.
 -}
+{-# WARNING pTraceIdOpt "'pTraceIdOpt' remains in code" #-}
 pTraceIdOpt :: CheckColorTty -> OutputOptions -> String -> String
 pTraceIdOpt checkColorTty outputOptions a =
   pTraceOpt checkColorTty outputOptions a a
@@ -504,6 +546,7 @@ pTraceIdOpt checkColorTty outputOptions a =
 {-|
 Like 'pTraceShow' but takes OutputOptions.
 -}
+{-# WARNING pTraceShowOpt "'pTraceShowOpt' remains in code" #-}
 pTraceShowOpt :: (Show a) => CheckColorTty -> OutputOptions -> a -> b -> b
 pTraceShowOpt checkColorTty outputOptions =
   trace . unpack . pShowTTYOpt checkColorTty outputOptions
@@ -511,6 +554,7 @@ pTraceShowOpt checkColorTty outputOptions =
 {-|
 Like 'pTraceShowId' but takes OutputOptions.
 -}
+{-# WARNING pTraceShowIdOpt "'pTraceShowIdOpt' remains in code" #-}
 pTraceShowIdOpt :: (Show a) => CheckColorTty -> OutputOptions -> a -> a
 pTraceShowIdOpt checkColorTty outputOptions a =
   trace (unpack $ pShowTTYOpt checkColorTty outputOptions a) a
@@ -518,12 +562,14 @@ pTraceShowIdOpt checkColorTty outputOptions a =
 {-|
 Like 'pTraceIO' but takes OutputOptions.
 -}
+{-# WARNING pTraceOptIO "'pTraceOptIO' remains in code" #-}
 pTraceOptIO :: CheckColorTty -> OutputOptions -> String -> IO ()
 pTraceOptIO checkColorTty outputOptions =
   traceIO . unpack <=< pStringTTYOptIO checkColorTty outputOptions
 {-|
 Like 'pTraceM' but takes OutputOptions.
 -}
+{-# WARNING pTraceOptM "'pTraceOptM' remains in code" #-}
 #if __GLASGOW_HASKELL__ < 800
 pTraceOptM :: (Monad f) => CheckColorTty -> OutputOptions -> String -> f ()
 #else
@@ -535,6 +581,7 @@ pTraceOptM checkColorTty outputOptions string =
 {-|
 Like 'pTraceShowM' but takes OutputOptions.
 -}
+{-# WARNING pTraceShowOptM "'pTraceShowOptM' remains in code" #-}
 #if __GLASGOW_HASKELL__ < 800
 pTraceShowOptM ::
      (Show a, Monad f) => CheckColorTty -> OutputOptions -> a -> f ()
@@ -548,6 +595,7 @@ pTraceShowOptM checkColorTty outputOptions =
 {-|
 Like 'pTraceStack' but takes OutputOptions.
 -}
+{-# WARNING pTraceStackOpt "'pTraceStackOpt' remains in code" #-}
 pTraceStackOpt :: CheckColorTty -> OutputOptions -> String -> a -> a
 pTraceStackOpt checkColorTty outputOptions =
   traceStack . unpack . pStringTTYOpt checkColorTty outputOptions
@@ -555,6 +603,7 @@ pTraceStackOpt checkColorTty outputOptions =
 {-|
 Like 'pTraceEvent' but takes OutputOptions.
 -}
+{-# WARNING pTraceEventOpt "'pTraceEventOpt' remains in code" #-}
 pTraceEventOpt :: CheckColorTty -> OutputOptions -> String -> a -> a
 pTraceEventOpt checkColorTty outputOptions =
   traceEvent . unpack . pStringTTYOpt checkColorTty outputOptions
@@ -562,6 +611,7 @@ pTraceEventOpt checkColorTty outputOptions =
 {-|
 Like 'pTraceEventIO' but takes OutputOptions.
 -}
+{-# WARNING pTraceEventOptIO "'pTraceEventOptIO' remains in code" #-}
 pTraceEventOptIO :: CheckColorTty -> OutputOptions -> String -> IO ()
 pTraceEventOptIO checkColorTty outputOptions =
   traceEventIO . unpack <=< pStringTTYOptIO checkColorTty outputOptions
@@ -569,6 +619,7 @@ pTraceEventOptIO checkColorTty outputOptions =
 {-|
 Like 'pTraceMarker' but takes OutputOptions.
 -}
+{-# WARNING pTraceMarkerOpt "'pTraceMarkerOpt' remains in code" #-}
 pTraceMarkerOpt :: CheckColorTty -> OutputOptions -> String -> a -> a
 pTraceMarkerOpt checkColorTty outputOptions =
   traceMarker . unpack . pStringTTYOpt checkColorTty outputOptions
@@ -576,6 +627,7 @@ pTraceMarkerOpt checkColorTty outputOptions =
 {-|
 Like 'pTraceMarkerIO' but takes OutputOptions.
 -}
+{-# WARNING pTraceMarkerOptIO "'pTraceMarkerOptIO' remains in code" #-}
 pTraceMarkerOptIO :: CheckColorTty -> OutputOptions -> String -> IO ()
 pTraceMarkerOptIO checkColorTty outputOptions =
   traceMarkerIO . unpack <=< pStringTTYOptIO checkColorTty outputOptions
