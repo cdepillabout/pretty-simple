@@ -89,6 +89,15 @@ data StringOutputStyle
   -- ^ Output non-printable characters without modification.
   deriving (Eq, Generic, Show, Typeable)
 
+--TODO haddocks - make whole section, non-internal?, pointed to by OutputOptions
+newtype Postprocessor = Postprocessor {unPostprocessor :: [Expr] -> [Expr]}
+instance Semigroup Postprocessor where
+  Postprocessor f <> Postprocessor g = Postprocessor $ f . g
+instance Monoid Postprocessor where
+  mempty = Postprocessor id
+instance Show Postprocessor where
+  show = const "_"
+
 -- | Data-type wrapping up all the options available when rendering the list
 -- of 'Output's.
 data OutputOptions = OutputOptions
@@ -107,7 +116,7 @@ data OutputOptions = OutputOptions
   -- ^ If this is 'Nothing', then don't colorize the output.  If this is
   -- @'Just' colorOptions@, then use @colorOptions@ to colorize the output.
   --
-  , outputOptionsStringStyle :: StringOutputStyle
+  , outputOptionsPostprocess :: Postprocessor
   -- ^ Controls how string literals are output.
   --
   -- By default, the pPrint functions escape non-printable characters, but
@@ -131,7 +140,7 @@ data OutputOptions = OutputOptions
   -- to 'EscapeNonPrintable', except that non-printable characters get printed
   -- out literally to the screen.
   --
-  -- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsStringStyle = DoNotEscapeNonPrintable } "\"A \\x42 Ä \\xC4 \\n\""
+  -- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsPostprocess = defaultPostprocess DoNotEscapeNonPrintable } "\"A \\x42 Ä \\xC4 \\n\""
   -- "A B Ä Ä
   -- "
   --
@@ -141,12 +150,12 @@ data OutputOptions = OutputOptions
   --
   -- Another output style is 'Literal'.  This just outputs all escape characters.
   --
-  -- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsStringStyle = Literal } "\"A \\x42 Ä \\xC4 \\x1 \\n\""
+  -- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg{ outputOptionsPostprocess = defaultPostprocess Literal } "\"A \\x42 Ä \\xC4 \\x1 \\n\""
   -- "A \x42 Ä \xC4 \x1 \n"
   --
   -- You can see that all the escape characters get output literally, including
   -- newline.
-  } deriving (Eq, Generic, Show, Typeable)
+  } deriving (Show, Generic, Typeable)
 
 -- | Default values for 'OutputOptions' when printing to a console with a dark
 -- background.  'outputOptionsIndentAmount' is 4, and
@@ -176,7 +185,7 @@ defaultOutputOptionsNoColor =
   , outputOptionsCompactParens = False
   , outputOptionsInitialIndent = 0
   , outputOptionsColorOptions = Nothing
-  , outputOptionsStringStyle = EscapeNonPrintable
+  , outputOptionsPostprocess = defaultPostprocess EscapeNonPrintable
   }
 
 -- | Given 'OutputOptions', disable colorful output if the given handle
@@ -201,7 +210,7 @@ layoutString opts =
       {layoutPageWidth = AvailablePerLine (outputOptionsPageWidth opts) 1}
     . indent (outputOptionsInitialIndent opts)
     . prettyExprs' opts
-    . preprocess opts
+    . unPostprocessor (outputOptionsPostprocess opts)
     . expressionParse
 
 -- | Slight adjustment of 'prettyExprs' for the outermost level,
@@ -235,6 +244,7 @@ prettyExpr opts = (if outputOptionsCompact opts then group else id) . \case
   CharLit s -> join enclose (annotate Quote "'") $ annotate String $ pretty s
   Other s -> pretty s
   NumberLit n -> annotate Num $ pretty n
+  CustomExpr style s -> annotate (CustomAnn style) $ pretty s
   where
     list :: Doc Annotation -> Doc Annotation -> CommaSeparated [Expr]
       -> Doc Annotation
@@ -275,6 +285,7 @@ annotateStyle opts ds = case outputOptionsColorOptions opts of
         Quote -> pure colorQuote
         String -> pure colorString
         Num -> pure colorNum
+        CustomAnn s -> pure s
       initialTape = Tape
         { tapeLeft = streamRepeat colorError
         , tapeHead = colorError
@@ -291,33 +302,54 @@ data Annotation
   | Quote
   | String
   | Num
+  | CustomAnn Style
 
--- | Apply various transformations to clean up the 'Expr's.
-preprocess :: OutputOptions -> [Expr] -> [Expr]
-preprocess opts = map processExpr . removeEmptyOthers
-  where
-    processExpr = \case
-      Brackets xss -> Brackets $ cs xss
-      Braces xss -> Braces $ cs xss
-      Parens xss -> Parens $ cs xss
-      StringLit s -> StringLit $
-        case outputOptionsStringStyle opts of
-          Literal -> s
+defaultPostprocess :: StringOutputStyle -> Postprocessor
+defaultPostprocess style = removeEmptyOthers <> ppWhites <> ppStrings style
+
+ppWhites :: Postprocessor
+ppWhites = makePostprocessor $ \case
+  Other s -> Other $ shrinkWhitespace $ strip s
+  x -> x
+
+ppStrings :: StringOutputStyle -> Postprocessor
+ppStrings style = makePostprocessor $ \case
+  StringLit s -> StringLit $
+        case style of
+          Literal -> s --TODO this needn't exist - just don't process...
           EscapeNonPrintable -> escapeNonPrintable $ readStr s
           DoNotEscapeNonPrintable -> readStr s
-      CharLit s -> CharLit s
-      Other s -> Other $ shrinkWhitespace $ strip s
-      NumberLit n -> NumberLit n
-    cs (CommaSeparated ess) = CommaSeparated $ map (preprocess opts) ess
+  x -> x
+  where
     readStr :: String -> String
     readStr s = fromMaybe s . readMaybe $ '"': s ++ "\""
 
+--TODO I don't like this - it completely ignores what 'f' does to the first 3 cases
+makePostprocessor :: (Expr -> Expr) -> Postprocessor
+makePostprocessor f = Postprocessor . map $ \case
+  Brackets xss -> Brackets $ list xss
+  Braces xss -> Braces $ list xss
+  Parens xss -> Parens $ list xss
+  x@(StringLit _) -> f x
+  x@(CharLit _) -> f x
+  x@(Other _) -> f x
+  x@(NumberLit _) -> f x
+  x@(CustomExpr _ _) -> f x
+  where
+    list (CommaSeparated ess) = CommaSeparated $ map (unPostprocessor $ makePostprocessor f) ess
+
 -- | Remove any 'Other' 'Expr's which contain only spaces.
 -- These provide no value, but mess up formatting if left in.
-removeEmptyOthers :: [Expr] -> [Expr]
-removeEmptyOthers = filter $ \case
-  Other s -> not $ all isSpace s
-  _ -> True
+removeEmptyOthers :: Postprocessor
+removeEmptyOthers = Postprocessor . (. f) . map $ \case
+   (Brackets (CommaSeparated xss)) -> Brackets $ CommaSeparated $ map (f . unPostprocessor removeEmptyOthers) xss
+   (Braces (CommaSeparated xss)) -> Braces $ CommaSeparated $ map (f . unPostprocessor removeEmptyOthers) xss
+   (Parens (CommaSeparated xss)) -> Parens $ CommaSeparated $ map (f . unPostprocessor removeEmptyOthers) xss
+   x -> x
+ where
+  f = filter $ \case
+          Other s -> not $ all isSpace s
+          _ -> True
 
 -- | Replace non-printable characters with hex escape sequences.
 --
