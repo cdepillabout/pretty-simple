@@ -280,6 +280,7 @@ pTraceMarkerIO = pTraceMarkerOptIO CheckColorTty defaultOutputOptionsDarkBg
 -- applying @f to @a and returns back @a
 --
 -- @since ?
+{-# WARNING pTraceWith "'pTraceWith' remains in code" #-}
 pTraceWith :: (a -> String) -> a -> a
 pTraceWith f a = pTrace (f a) a
 
@@ -287,6 +288,7 @@ pTraceWith f a = pTrace (f a) a
 -- @f can return any type that implements Show
 --
 -- @since ?
+{-# WARNING pTraceShowWith "'pTraceShowWith' remains in code" #-}
 pTraceShowWith :: Show b => (a -> b) -> a -> a
 pTraceShowWith f = (show . f) >>= pTraceShow
 
