@@ -200,7 +200,6 @@ layoutString opts =
       {layoutPageWidth = AvailablePerLine (outputOptionsPageWidth opts) 1}
     . indent (outputOptionsInitialIndent opts)
     . prettyExprs' opts
-    . preprocess opts
     . expressionParse
 
 -- | Slight adjustment of 'prettyExprs' for the outermost level,
@@ -230,11 +229,17 @@ prettyExpr opts = (if outputOptionsCompact opts then group else id) . \case
   Brackets xss -> list "[" "]" xss
   Braces xss -> list "{" "}" xss
   Parens xss -> list "(" ")" xss
-  StringLit s -> join enclose (annotate Quote "\"") $ annotate String $ pretty s
+  StringLit s -> join enclose (annotate Quote "\"") $ annotate String $ pretty $
+    case outputOptionsStringStyle opts of
+      Literal -> s
+      EscapeNonPrintable -> escapeNonPrintable $ readStr s
+      DoNotEscapeNonPrintable -> readStr s
   CharLit s -> join enclose (annotate Quote "'") $ annotate String $ pretty s
   Other s -> pretty s
   NumberLit n -> annotate Num $ pretty n
   where
+    readStr :: String -> String
+    readStr s = fromMaybe s . readMaybe $ '"' : s ++ "\""
     list :: Doc Annotation -> Doc Annotation -> CommaSeparated [Expr]
       -> Doc Annotation
     list open close (CommaSeparated xss) =
@@ -294,26 +299,6 @@ data Annotation
   | Quote
   | String
   | Num
-
--- | Apply various transformations to clean up the 'Expr's.
-preprocess :: OutputOptions -> [Expr] -> [Expr]
-preprocess opts = map processExpr
-  where
-    processExpr = \case
-      Brackets xss -> Brackets $ cs xss
-      Braces xss -> Braces $ cs xss
-      Parens xss -> Parens $ cs xss
-      StringLit s -> StringLit $
-        case outputOptionsStringStyle opts of
-          Literal -> s
-          EscapeNonPrintable -> escapeNonPrintable $ readStr s
-          DoNotEscapeNonPrintable -> readStr s
-      CharLit s -> CharLit s
-      Other s -> Other s
-      NumberLit n -> NumberLit n
-    cs (CommaSeparated ess) = CommaSeparated $ map (preprocess opts) ess
-    readStr :: String -> String
-    readStr s = fromMaybe s . readMaybe $ '"': s ++ "\""
 
 -- | Replace non-printable characters with hex escape sequences.
 --
