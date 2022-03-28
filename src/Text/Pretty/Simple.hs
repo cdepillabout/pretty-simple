@@ -389,7 +389,7 @@ pHPrintStringNoColor = pHPrintStringOpt NoCheckColorTty defaultOutputOptionsNoCo
 -- | Like 'pShow', but without color.
 --
 -- >>> pShowNoColor [ Nothing, Just (1, "hello") ]
--- "[ Nothing\n, Just\n    ( 1\n    , \"hello\"\n    )\n]"
+-- "[ Nothing\n, Just \n    ( 1\n    , \"hello\"\n    )\n]"
 pShowNoColor :: Show a => a -> Text
 pShowNoColor = pShowOpt defaultOutputOptionsNoColor
 
@@ -687,6 +687,29 @@ layoutStringAnsi opts = fmap convertStyle . layoutString opts
 --        ( B
 --            ( B ( B A ) )
 --        )
+--
+-- __Weird/illegal show instances__
+--
+-- >>> pPrintString "2019-02-18 20:56:24.265489 UTC"
+-- 2019-02-18 20:56:24.265489 UTC
+--
+-- >>> pPrintString "a7ed86f7-7f2c-4be5-a760-46a3950c2abf"
+-- a7ed86f7-7f2c-4be5-a760-46a3950c2abf
+--
+-- >>> pPrintString "192.168.0.1:8000"
+-- 192.168.0.1:8000
+--
+-- >>> pPrintString "A @\"type\" 1"
+-- A @"type" 1
+--
+-- >>> pPrintString "2+2"
+-- 2+2
+--
+-- >>> pPrintString "1.0e-2"
+-- 1.0e-2
+--
+-- >>> pPrintString "0x1b"
+-- 0x1b
 --
 -- __Other__
 --
