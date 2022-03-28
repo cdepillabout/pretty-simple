@@ -38,7 +38,8 @@ import Data.Maybe (fromMaybe)
 import Prettyprinter
   (indent, line', PageWidth(AvailablePerLine), layoutPageWidth, nest,
     concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions,
-    enclose, hcat, layoutSmart, line, unAnnotateS, pretty, group)
+    enclose, hcat, layoutSmart, line, unAnnotateS, pretty, group,
+    removeTrailingWhitespace)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Numeric (showHex)
@@ -196,6 +197,7 @@ hCheckTTY h options = liftIO $ conv <$> tty
 layoutString :: OutputOptions -> String -> SimpleDocStream Style
 layoutString opts =
   annotateStyle opts
+    . removeTrailingWhitespace
     . layoutSmart defaultLayoutOptions
       {layoutPageWidth = AvailablePerLine (outputOptionsPageWidth opts) 1}
     . indent (outputOptionsInitialIndent opts)
