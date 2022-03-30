@@ -32,14 +32,14 @@ import Data.Monoid ((<>))
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad (join)
 import Control.Monad.State (MonadState, evalState, modify, gets)
-import Data.Char (isPrint, isSpace, ord)
-import Data.List (dropWhileEnd)
+import Data.Char (isPrint, ord)
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Data.Maybe (fromMaybe)
 import Prettyprinter
-  (indent, line', PageWidth(AvailablePerLine), layoutPageWidth, nest, hsep,
+  (indent, line', PageWidth(AvailablePerLine), layoutPageWidth, nest,
     concatWith, space, Doc, SimpleDocStream, annotate, defaultLayoutOptions,
-    enclose, hcat, layoutSmart, line, unAnnotateS, pretty, group)
+    enclose, hcat, layoutSmart, line, unAnnotateS, pretty, group,
+    removeTrailingWhitespace)
 import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import Numeric (showHex)
@@ -197,11 +197,11 @@ hCheckTTY h options = liftIO $ conv <$> tty
 layoutString :: OutputOptions -> String -> SimpleDocStream Style
 layoutString opts =
   annotateStyle opts
+    . removeTrailingWhitespace
     . layoutSmart defaultLayoutOptions
       {layoutPageWidth = AvailablePerLine (outputOptionsPageWidth opts) 1}
     . indent (outputOptionsInitialIndent opts)
     . prettyExprs' opts
-    . preprocess opts
     . expressionParse
 
 -- | Slight adjustment of 'prettyExprs' for the outermost level,
@@ -220,10 +220,10 @@ prettyExprs opts = hcat . map subExpr
       in
         if isSimple x then
           -- keep the expression on the current line
-          nest 2 $ space <> doc
+          nest 2 doc
         else
           -- put the expression on a new line, indented (unless grouped)
-          nest (outputOptionsIndentAmount opts) $ line <> doc
+          nest (outputOptionsIndentAmount opts) $ line' <> doc
 
 -- | Construct a 'Doc' from a single 'Expr'.
 prettyExpr :: OutputOptions -> Expr -> Doc Annotation
@@ -231,20 +231,30 @@ prettyExpr opts = (if outputOptionsCompact opts then group else id) . \case
   Brackets xss -> list "[" "]" xss
   Braces xss -> list "{" "}" xss
   Parens xss -> list "(" ")" xss
-  StringLit s -> join enclose (annotate Quote "\"") $ annotate String $ pretty s
+  StringLit s -> join enclose (annotate Quote "\"") $ annotate String $ pretty $
+    case outputOptionsStringStyle opts of
+      Literal -> s
+      EscapeNonPrintable -> escapeNonPrintable $ readStr s
+      DoNotEscapeNonPrintable -> readStr s
   CharLit s -> join enclose (annotate Quote "'") $ annotate String $ pretty s
   Other s -> pretty s
   NumberLit n -> annotate Num $ pretty n
   where
+    readStr :: String -> String
+    readStr s = fromMaybe s . readMaybe $ '"' : s ++ "\""
     list :: Doc Annotation -> Doc Annotation -> CommaSeparated [Expr]
       -> Doc Annotation
     list open close (CommaSeparated xss) =
       enclose (annotate Open open) (annotate Close close) $ case xss of
         [] -> mempty
         [xs] | all isSimple xs ->
-          space <> hsep (map (prettyExpr opts) xs) <> space
-        _ -> concatWith lineAndCommaSep (map (prettyExprs opts) xss)
+          space <> hcat (map (prettyExpr opts) xs) <> space
+        _ -> concatWith lineAndCommaSep (map (\xs -> spaceIfNeeded xs <> prettyExprs opts xs) xss)
           <> if outputOptionsCompactParens opts then space else line
+          where
+            spaceIfNeeded = \case
+              Other (' ' : _) : _ -> mempty
+              _ -> space
     lineAndCommaSep x y = x <> line' <> annotate Comma "," <> y
 
 -- | Determine whether this expression should be displayed on a single line.
@@ -292,33 +302,6 @@ data Annotation
   | String
   | Num
 
--- | Apply various transformations to clean up the 'Expr's.
-preprocess :: OutputOptions -> [Expr] -> [Expr]
-preprocess opts = map processExpr . removeEmptyOthers
-  where
-    processExpr = \case
-      Brackets xss -> Brackets $ cs xss
-      Braces xss -> Braces $ cs xss
-      Parens xss -> Parens $ cs xss
-      StringLit s -> StringLit $
-        case outputOptionsStringStyle opts of
-          Literal -> s
-          EscapeNonPrintable -> escapeNonPrintable $ readStr s
-          DoNotEscapeNonPrintable -> readStr s
-      CharLit s -> CharLit s
-      Other s -> Other $ shrinkWhitespace $ strip s
-      NumberLit n -> NumberLit n
-    cs (CommaSeparated ess) = CommaSeparated $ map (preprocess opts) ess
-    readStr :: String -> String
-    readStr s = fromMaybe s . readMaybe $ '"': s ++ "\""
-
--- | Remove any 'Other' 'Expr's which contain only spaces.
--- These provide no value, but mess up formatting if left in.
-removeEmptyOthers :: [Expr] -> [Expr]
-removeEmptyOthers = filter $ \case
-  Other s -> not $ all isSpace s
-  _ -> True
-
 -- | Replace non-printable characters with hex escape sequences.
 --
 -- >>> escapeNonPrintable "\x1\x2"
@@ -342,22 +325,6 @@ escape :: Char -> ShowS
 escape c
   | isPrint c || c == '\n' = (c:)
   | otherwise = ('\\':) . ('x':) . showHex (ord c)
-
--- | Compress multiple whitespaces to just one whitespace.
---
--- >>> shrinkWhitespace "  hello    there  "
--- " hello there "
-shrinkWhitespace :: String -> String
-shrinkWhitespace (' ':' ':t) = shrinkWhitespace (' ':t)
-shrinkWhitespace (h:t) = h : shrinkWhitespace t
-shrinkWhitespace "" = ""
-
--- | Remove trailing and leading whitespace (see 'Data.Text.strip').
---
--- >>> strip "  hello    there  "
--- "hello    there"
-strip :: String -> String
-strip = dropWhile isSpace . dropWhileEnd isSpace
 
 -- | A bidirectional Turing-machine tape:
 -- infinite in both directions, with a head pointing to one element.
