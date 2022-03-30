@@ -1,4 +1,18 @@
 
+## 4.1.0.0
+
+*   Fix a regression which arose in 4.0, whereby excess spaces would be inserted for unusual strings like dates and IP addresses.
+    [#105](https://github.com/cdepillabout/pretty-simple/pull/105)
+*   Attach warnings to debugging functions, so that they're easy to find and remove.
+    [#103](https://github.com/cdepillabout/pretty-simple/pull/103)
+*   Some minor improvements to the CLI tool:
+    *   Add a `--version`/`-v` flag.
+        [#83](https://github.com/cdepillabout/pretty-simple/pull/83)
+    *   Add a trailing newline.
+        [#87](https://github.com/cdepillabout/pretty-simple/pull/87)
+    *   Install by default, without requiring a flag.
+        [#94](https://github.com/cdepillabout/pretty-simple/pull/94)
+
 ## 4.0.0.0
 
 *   Expand `OutputOptions`:
