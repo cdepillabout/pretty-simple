@@ -186,11 +186,10 @@ file.)
 `pretty-simple` includes a command line executable that can be used to
 pretty-print anything passed in on stdin.
 
-It can be installed to `~/.local/bin/` with the following command. Note that you
-must enable the `buildexe` flag, since it will not be built by default:
+It can be installed to `~/.local/bin/` with the following command.
 
 ```sh
-$ stack install pretty-simple-2.2.0.1 --flag pretty-simple:buildexe
+$ stack install pretty-simple
 ```
 
 When run on the command line, you can paste in the Haskell datatype you want to
