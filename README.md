@@ -37,7 +37,7 @@ more deeply nested.  It would be even more difficult to read.
 
 `pretty-simple` can be used to print `bar` in an easy-to-read format:
 
-![example screenshot](/img/pretty-simple-example-screenshot.png?raw=true "example screenshot")
+![example screenshot](https://raw.githubusercontent.com/cdepillabout/pretty-simple/master/img/pretty-simple-example-screenshot.png)
 
 ## Usage
 
@@ -175,7 +175,7 @@ Just like Haskell's normal `print` output, this is pretty hard to read.
 `pretty-simple` can be used to pretty-print the JSON-encoded `bar` in an
 easy-to-read format:
 
-![json example screenshot](/img/pretty-simple-json-example-screenshot.png?raw=true "json example screenshot")
+![json example screenshot](https://raw.githubusercontent.com/cdepillabout/pretty-simple/master/img/pretty-simple-json-example-screenshot.png)
 
 (You can find the `lazyByteStringToString`, `putLazyByteStringLn`,
 and `putLazyTextLn` in the [`ExampleJSON.hs`](example/ExampleJSON.hs)
@@ -195,7 +195,7 @@ $ stack install pretty-simple
 When run on the command line, you can paste in the Haskell datatype you want to
 be formatted, then hit <kbd>Ctrl</kbd>-<kbd>D</kbd>:
 
-![cli example screenshot](/img/pretty-simple-cli-screenshot.png?raw=true "cli example screenshot")
+![cli example screenshot](https://raw.githubusercontent.com/cdepillabout/pretty-simple/master/img/pretty-simple-cli-screenshot.png)
 
 This is very useful if you accidentally print out a Haskell data type with
 `print` instead of `pPrint`.
