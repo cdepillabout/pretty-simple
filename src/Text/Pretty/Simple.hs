@@ -680,6 +680,15 @@ layoutStringAnsi opts = fmap convertStyle . layoutString opts
 --         , B
 --             ( B ( B A ) ) ] )
 --
+-- >>> pPrintOpt CheckColorTty defaultOutputOptionsDarkBg {outputOptionsCompact = True} $ [("id", 123), ("state", 1), ("pass", 1), ("tested", 100), ("time", 12345)]
+-- [
+--     ( "id", 123 ),
+--     ( "state", 1 ),
+--     ( "pass", 1 ),
+--     ( "tested", 100 ),
+--     ( "time", 12345 )
+-- ]
+--
 -- __Initial indent__
 --
 -- >>> pPrintOpt CheckColorTty defaultOutputOptionsDarkBg {outputOptionsInitialIndent = 3} $ B ( B ( B ( B A ) ) )
