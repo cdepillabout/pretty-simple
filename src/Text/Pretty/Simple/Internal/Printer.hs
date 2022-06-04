@@ -255,10 +255,7 @@ prettyExpr opts = (if outputOptionsCompact opts then group else id) . \case
             spaceIfNeeded = \case
               Other (' ' : _) : _ -> mempty
               _ -> space
-    lineAndCommaSep x y =
-      if outputOptionsCompact opts
-      then x <> annotate Comma "," <> y
-      else x <> line' <> annotate Comma "," <> y
+    lineAndCommaSep x y = x <> (if outputOptionsCompact opts then mempty else line') <> annotate Comma "," <> y
 
 -- | Determine whether this expression should be displayed on a single line.
 isSimple :: Expr -> Bool
