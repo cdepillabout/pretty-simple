@@ -30,6 +30,8 @@ module Debug.Pretty.Simple
   , pTraceEventIO
   , pTraceMarker
   , pTraceMarkerIO
+  , pTraceWith
+  , pTraceShowWith
     -- * Trace forcing color
   , pTraceForceColor
   , pTraceIdForceColor
@@ -273,6 +275,22 @@ pTraceMarker = pTraceMarkerOpt CheckColorTty defaultOutputOptionsDarkBg
 {-# WARNING pTraceMarkerIO "'pTraceMarkerIO' remains in code" #-}
 pTraceMarkerIO :: String -> IO ()
 pTraceMarkerIO = pTraceMarkerOptIO CheckColorTty defaultOutputOptionsDarkBg
+
+-- | The 'pTraceWith' function pretty prints the result of
+-- applying @f to @a and returns back @a
+--
+-- @since ?
+{-# WARNING pTraceWith "'pTraceWith' remains in code" #-}
+pTraceWith :: (a -> String) -> a -> a
+pTraceWith f a = pTrace (f a) a
+
+-- | The 'pTraceShowWith' function similar to 'pTraceWith' except that
+-- @f can return any type that implements Show
+--
+-- @since ?
+{-# WARNING pTraceShowWith "'pTraceShowWith' remains in code" #-}
+pTraceShowWith :: Show b => (a -> b) -> a -> a
+pTraceShowWith f = (show . f) >>= pTraceShow
 
 ------------------------------------------
 -- Helpers
