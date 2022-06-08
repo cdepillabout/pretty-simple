@@ -1,4 +1,18 @@
 
+## 4.1.1.0
+
+*   Make the pretty-printed output with `outputOptionsCompact` enabled a little
+    more compact.
+    [#110](https://github.com/cdepillabout/pretty-simple/pull/110).
+    Thanks [@juhp](https://github.com/juhp)!
+*   Add a `--compact` / `-C` flag to the `pretty-simple` executable that enables
+    `outputOptionsCompact`.
+    [#111](https://github.com/cdepillabout/pretty-simple/pull/111).
+    Thanks again @juhp!
+*   Add `pTraceWith` and `pTraceShowWith` to `Debug.Pretty.Simple`.
+    [#104](https://github.com/cdepillabout/pretty-simple/pull/104).
+    Thanks [@LeviButcher](https://github.com/LeviButcher)!
+
 ## 4.1.0.0
 
 *   Fix a regression which arose in 4.0, whereby excess spaces would be inserted for unusual strings like dates and IP addresses.
