@@ -11,6 +11,7 @@ executable web
         containers,
         generic-lens,
         microlens,
+        miso ^>= 1.8,
         mtl,
         pretty-simple,
         prettyprinter ^>= 1.7,
@@ -18,7 +19,6 @@ executable web
     if !impl(ghcjs)
         build-depends:
             base ^>= 4.16,
-            miso ^>= 1.8,
             jsaddle,
             jsaddle-warp,
             transformers,
@@ -29,7 +29,6 @@ executable web
     else
         build-depends:
             base ^>= 4.12,
-            miso ^>= 1.8,
     ghc-options:
         -Wall
     ghcjs-options:
