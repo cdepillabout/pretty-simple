@@ -7,10 +7,9 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 {-|
-Module      : Text.Pretty.Simple.Internal.OutputPrinter
+Module      : Text.Pretty.Simple.Internal.Color
 Copyright   : (c) Dennis Gosnell, 2016
 License     : BSD-style (see LICENSE file)
 Maintainer  : cdep.illabout@gmail.com

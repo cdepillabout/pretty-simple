@@ -1,5 +1,5 @@
 name:                pretty-simple
-version:             3.3.0.0
+version:             4.1.1.0
 synopsis:            pretty printer for data types with a 'Show' instance.
 description:         Please see <https://github.com/cdepillabout/pretty-simple#readme README.md>.
 homepage:            https://github.com/cdepillabout/pretty-simple
@@ -22,7 +22,7 @@ custom-setup
 
 flag buildexe
   description: Build an small command line program that pretty-print anything from stdin.
-  default:     False
+  default:     True
 
 flag buildexample
   description: Build a small example program showing how to use the pPrint function
@@ -36,7 +36,7 @@ library
                      , Text.Pretty.Simple.Internal.Color
                      , Text.Pretty.Simple.Internal.Expr
                      , Text.Pretty.Simple.Internal.ExprParser
-                     , Text.Pretty.Simple.Internal.OutputPrinter
+                     , Text.Pretty.Simple.Internal.Printer
   build-depends:       base >= 4.8 && < 5
                      , containers
                      , mtl >= 2.2
@@ -50,6 +50,7 @@ library
 
 executable pretty-simple
   main-is:             Main.hs
+  other-modules:       Paths_pretty_simple
   hs-source-dirs:      app
   build-depends:       base
                      , pretty-simple

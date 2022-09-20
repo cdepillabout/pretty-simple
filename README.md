@@ -37,17 +37,23 @@ more deeply nested.  It would be even more difficult to read.
 
 `pretty-simple` can be used to print `bar` in an easy-to-read format:
 
-![example screenshot](/img/pretty-simple-example-screenshot.png?raw=true "example screenshot")
+![example screenshot](https://raw.githubusercontent.com/cdepillabout/pretty-simple/master/img/pretty-simple-example-screenshot.png)
 
 ## Usage
 
 `pretty-simple` can be easily used from `ghci` when debugging.
 
-When using `stack` to run `ghci`, just append append the `--package` flag to
-the command line to load `pretty-simple`.
+When using `stack` to run `ghci`, just append the `--package` flag to
+the command line to load `pretty-simple`:
 
 ```sh
 $ stack ghci --package pretty-simple
+```
+
+Or, with cabal:
+
+```sh
+$ cabal repl --build-depends pretty-simple
 ```
 
 Once you get a prompt in `ghci`, you can use `import` to get `pretty-simple`'s
@@ -79,8 +85,8 @@ Just
       function.
 - Rainbow Parentheses
     - Easy to understand deeply nested data types.
-- Configurable Indentation
-    - Amount of indentation is configurable with the
+- Configurable
+    - Indentation, compactness, colors and more are configurable with the
       [`pPrintOpt`](https://hackage.haskell.org/package/pretty-simple-1.0.0.6/docs/Text-Pretty-Simple.html#v:pPrintOpt)
       function.
 - Fast
@@ -106,10 +112,13 @@ Other pretty-printing packages have some combination of these defects:
 
 The `pPrint` function can be used as the default output function in GHCi.
 
-All you need to do is run GHCi like this:
+All you need to do is run GHCi with a command like one of these:
 
 ```sh
 $ stack ghci --ghci-options "-interactive-print=Text.Pretty.Simple.pPrint" --package pretty-simple
+```
+```sh
+$ cabal repl --repl-options "-interactive-print=Text.Pretty.Simple.pPrint" --build-depends pretty-simple
 ```
 
 Now, whenever you make GHCi evaluate an expression, GHCi will pretty-print the
@@ -166,7 +175,7 @@ Just like Haskell's normal `print` output, this is pretty hard to read.
 `pretty-simple` can be used to pretty-print the JSON-encoded `bar` in an
 easy-to-read format:
 
-![json example screenshot](/img/pretty-simple-json-example-screenshot.png?raw=true "json example screenshot")
+![json example screenshot](https://raw.githubusercontent.com/cdepillabout/pretty-simple/master/img/pretty-simple-json-example-screenshot.png)
 
 (You can find the `lazyByteStringToString`, `putLazyByteStringLn`,
 and `putLazyTextLn` in the [`ExampleJSON.hs`](example/ExampleJSON.hs)
@@ -177,17 +186,16 @@ file.)
 `pretty-simple` includes a command line executable that can be used to
 pretty-print anything passed in on stdin.
 
-It can be installed to `~/.local/bin/` with the following command. Note that you
-must enable the `buildexe` flag, since it will not be built by default:
+It can be installed to `~/.local/bin/` with the following command.
 
 ```sh
-$ stack install pretty-simple-2.2.0.1 --flag pretty-simple:buildexe
+$ stack install pretty-simple
 ```
 
 When run on the command line, you can paste in the Haskell datatype you want to
 be formatted, then hit <kbd>Ctrl</kbd>-<kbd>D</kbd>:
 
-![cli example screenshot](/img/pretty-simple-cli-screenshot.png?raw=true "cli example screenshot")
+![cli example screenshot](https://raw.githubusercontent.com/cdepillabout/pretty-simple/master/img/pretty-simple-cli-screenshot.png)
 
 This is very useful if you accidentally print out a Haskell data type with
 `print` instead of `pPrint`.

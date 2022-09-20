@@ -1,12 +1,8 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 {-|
 Module      : Text.Pretty.Simple
@@ -684,6 +680,15 @@ layoutStringAnsi opts = fmap convertStyle . layoutString opts
 --         , B
 --             ( B ( B A ) ) ] )
 --
+-- >>> pPrintOpt CheckColorTty defaultOutputOptionsDarkBg {outputOptionsCompact = True} $ [("id", 123), ("state", 1), ("pass", 1), ("tested", 100), ("time", 12345)]
+-- [
+--     ( "id", 123 ),
+--     ( "state", 1 ),
+--     ( "pass", 1 ),
+--     ( "tested", 100 ),
+--     ( "time", 12345 )
+-- ]
+--
 -- __Initial indent__
 --
 -- >>> pPrintOpt CheckColorTty defaultOutputOptionsDarkBg {outputOptionsInitialIndent = 3} $ B ( B ( B ( B A ) ) )
@@ -691,6 +696,29 @@ layoutStringAnsi opts = fmap convertStyle . layoutString opts
 --        ( B
 --            ( B ( B A ) )
 --        )
+--
+-- __Weird/illegal show instances__
+--
+-- >>> pPrintString "2019-02-18 20:56:24.265489 UTC"
+-- 2019-02-18 20:56:24.265489 UTC
+--
+-- >>> pPrintString "a7ed86f7-7f2c-4be5-a760-46a3950c2abf"
+-- a7ed86f7-7f2c-4be5-a760-46a3950c2abf
+--
+-- >>> pPrintString "192.168.0.1:8000"
+-- 192.168.0.1:8000
+--
+-- >>> pPrintString "A @\"type\" 1"
+-- A @"type" 1
+--
+-- >>> pPrintString "2+2"
+-- 2+2
+--
+-- >>> pPrintString "1.0e-2"
+-- 1.0e-2
+--
+-- >>> pPrintString "0x1b"
+-- 0x1b
 --
 -- __Other__
 --
