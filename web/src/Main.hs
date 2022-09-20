@@ -75,7 +75,7 @@ updateModel = \case
     TextEntered t -> noEff . set #inputText t
     OptsChanged l x -> noEff . set (#outputOptions . l) x
 
---TODO show initial values, without any flickering...
+-- TODO show initial values, without any flickering...
 viewModel :: Model -> View Action
 viewModel m =
     div_
@@ -173,8 +173,9 @@ slider as m f t =
 
 selectMenu :: [Attribute action] -> (a -> action) -> Map MisoString a -> View action
 selectMenu as f m =
-    select_ (onChange (f . fromMaybe (error "selectMenu: unrecognised value") . (m !?)) : as) $
-        map (option_ [] . pure . text) $ Map.keys m
+    select_ (onChange (f . fromMaybe (error "selectMenu: unrecognised value") . (m !?)) : as)
+        . map (option_ [] . pure . text)
+        $ Map.keys m
 
 textArea :: [Attribute action] -> (MisoString -> action) -> MisoString -> View action
 textArea as f t = textarea_ (onInput f : as) [text t]
