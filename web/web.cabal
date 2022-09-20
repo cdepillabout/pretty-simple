@@ -1,4 +1,4 @@
-cabal-version:       3.0
+cabal-version:       2.4
 name:                web
 version:             0.1.0.0
 category:            Web
@@ -18,7 +18,7 @@ executable web
         text,
     if !impl(ghcjs)
         build-depends:
-            base ^>= {4.14, 4.15, 4.16},
+            base ^>= 4.14 || ^>= 4.15 || ^>= 4.16,
             jsaddle,
             jsaddle-warp,
             transformers,
