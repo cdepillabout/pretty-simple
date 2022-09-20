@@ -1,3 +1,4 @@
+# TODO copy style.css alongside output files
 with (import (builtins.fetchTarball {
   url =
     "https://github.com/dmjio/miso/archive/refs/tags/1.8.3.tar.gz";
