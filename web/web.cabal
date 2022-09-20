@@ -8,7 +8,6 @@ executable web
     main-is: Main.hs
     hs-source-dirs: src
     build-depends:
-        base ^>= 4.16,
         containers,
         generic-lens,
         microlens,
@@ -18,6 +17,7 @@ executable web
         text,
     if !impl(ghcjs)
         build-depends:
+            base ^>= 4.16,
             miso ^>= 1.8,
             jsaddle,
             jsaddle-warp,
@@ -28,6 +28,7 @@ executable web
             websockets,
     else
         build-depends:
+            base ^>= 4.12,
             miso ^>= 1.8,
     ghc-options:
         -Wall
