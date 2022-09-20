@@ -128,7 +128,7 @@ pPrintStringHtml as opts = renderHtml as . treeForm . annotateWithIndentation . 
 {- Example inputs -}
 
 example, example1, example2, example3 :: MisoString
-example = example1
+example = head [example1, example2, example3]
 -- from https://github.com/cdepillabout/pretty-simple/issues/43
 example1 =
     mconcat
