@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 
-module Main where
+module Main (main) where
+
+import Miso hiding (go, set)
 
 #ifndef __GHCJS__
 import Language.Javascript.JSaddle.Warp as JSaddle
@@ -10,19 +12,18 @@ import qualified Network.Wai.Application.Static as Wai
 import Network.WebSockets (defaultConnectionOptions)
 #endif
 
-import Control.Monad.State
+import Control.Monad.State (evalState, gets, modify)
 import Data.Generics.Labels ()
 import Data.Map.Strict (Map, (!?))
 import qualified Data.Map.Strict as Map
-import Data.Maybe
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import GHC.Generics (Generic)
-import Lens.Micro
-import Miso hiding (go, set)
+import Lens.Micro (Lens', set)
 import Miso.String (MisoString, fromMisoString, ms, toLower)
 import qualified Miso.String as Miso
 import Prettyprinter.Render.Util.SimpleDocTree (SimpleDocTree (..), treeForm)
-import Text.Pretty.Simple
+import Text.Pretty.Simple (OutputOptions, StringOutputStyle (..), defaultOutputOptionsNoColor)
 import Text.Pretty.Simple.Internal (Annotation (..), layoutString')
 
 #ifndef __GHCJS__
