@@ -59,7 +59,7 @@ main = runApp $ startApp App{..}
     initialAction = NoOp
     model =
         Model
-            { inputText = example
+            { inputText = ""
             , outputOptions = defaultOutputOptionsNoColor
             }
     update = updateModel
@@ -83,7 +83,7 @@ viewModel m =
         []
         [ div_
             [class_ "input"]
-            [ textArea [class_ "input-text"] TextEntered example
+            [ textArea [class_ "input-text"] TextEntered ""
             , slider [conf, class_ "page-width"] 240 (OptsChanged #outputOptionsPageWidth) "Page width"
             , slider [conf, class_ "indentation"] 10 (OptsChanged #outputOptionsIndentAmount) "Indentation"
             , slider [conf, class_ "initial-indent"] 20 (OptsChanged #outputOptionsInitialIndent) "Initial indent"
@@ -124,28 +124,6 @@ pPrintStringHtml as opts = renderHtml as . treeForm . annotateWithIndentation . 
     g = gets (pure . toClassName @ParensLevel)
     toClassName :: Show a => a -> Class
     toClassName = Class . toLower . ms . show
-
-{- Example inputs -}
-
-example, example1, example2, example3 :: MisoString
-example = head [example1, example2, example3]
--- from https://github.com/cdepillabout/pretty-simple/issues/43
-example1 =
-    mconcat
-        [ "AST [] [Def ((3,1),(5,30)) (Id \"fact'\" \"fact'\") [Equation ((4,1),(4,13)) () [PBox ((4,7),(4,9)) () "
-        , "PConstr ((4,8),(4,8)) () (Id \"Z\" \"Z\") []] (Val ((4,13),(4,13)) () (NumInt 1)),Equation ((5,1),(5,30)) () "
-        , "[PBox ((5,7),(5,11)) () (PConstr ((5,8),(5,10)) () (Id \"S\" \"S\") [PVar ((5,10),(5,10)) () "
-        , "(Id \"m\" \"m_1\")])] (Binop ((5,30),(5,30)) () \"*\" (App ((5,15),(5,27)) () (Val ((5,15),(5,15)) () (Var () "
-        , "(Id \"natToInt\" \"natToInt\"))) (App ((5,25),(5,27)) () (Val ((5,25),(5,25)) () (Constr () (Id \"S\" \"S\") "
-        , "[])) (Val ((5,27),(5,27)) () (Var () (Id \"m\" \"m_1\"))))) (App ((5,32),(5,40)) () (Val ((5,32),(5,32)) () "
-        , "(Var () (Id \"fact'\"\"fact'\"))) (Val ((5,38),(5,40)) () (Promote () (Val ((5,39),(5,39)) () (Var () "
-        , "(Id \"m\" \"m_1\")))))))] (Forall ((3,9),(3,26)) [((Id \"n\" \"n_0\"),KPromote (TyCon (Id \"Nat\" \"Nat\")))] "
-        , "(FunTy (Box (CInterval {lowerBound = CNat 1, upperBound = CVar (Id \"n\" \"n_0\")}) (TyApp (TyCon "
-        , "(Id \"N\" \"N\")) (TyVar (Id \"n\" \"n_0\")))) (TyCon (Id \"Int\" \"Int\"))))]"
-        ]
-example2 = "Example 1 (\"text\", [] )"
--- from https://github.com/cdepillabout/pretty-simple/issues/64
-example3 = ms $ show ("\DC1\205N\237\232s\225\232N\147K\173\RSE\201\EM" :: String)
 
 {- Wrappers around HTML elements -}
 
