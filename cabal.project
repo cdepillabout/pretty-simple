@@ -3,3 +3,10 @@ packages:
   web/web.cabal
 
 constraints: miso +jsaddle
+
+--TODO upstream (although I have seen weird runtime errors in jsaddle...)
+allow-newer:
+  *:aeson,
+  *:base-compat,
+  *:bytestring,
+  *:time,

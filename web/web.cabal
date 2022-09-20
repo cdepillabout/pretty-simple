@@ -8,7 +8,7 @@ executable web
     main-is: Main.hs
     hs-source-dirs: src
     build-depends:
-        base ^>= 4.12 || ^>= 4.13 || ^>= 4.14,
+        base ^>= 4.16,
         containers,
         generic-lens,
         microlens,
@@ -18,7 +18,7 @@ executable web
         text,
     if !impl(ghcjs)
         build-depends:
-            miso ^>= 1.7,
+            miso ^>= 1.8,
             jsaddle,
             jsaddle-warp,
             transformers,
@@ -27,9 +27,8 @@ executable web
             warp,
             websockets,
     else
-        --TODO the URL we have in default.nix seems to point to a mislabelled 1.7 build
         build-depends:
-            miso ^>= 1.6,
+            miso ^>= 1.8,
     ghc-options:
         -Wall
     ghcjs-options:
