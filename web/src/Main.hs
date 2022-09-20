@@ -24,7 +24,7 @@ import Miso.String (MisoString, fromMisoString, ms, toLower)
 import qualified Miso.String as Miso
 import Prettyprinter.Render.Util.SimpleDocTree (SimpleDocTree (..), treeForm)
 import Text.Pretty.Simple (OutputOptions, StringOutputStyle (..), defaultOutputOptionsNoColor)
-import Text.Pretty.Simple.Internal (Annotation (..), layoutString')
+import Text.Pretty.Simple.Internal (Annotation (..), layoutStringAbstract)
 
 #ifndef __GHCJS__
 runApp :: JSM () -> IO ()
@@ -112,7 +112,7 @@ data ParensLevel
     deriving (Eq, Show, Bounded, Enum)
 
 pPrintStringHtml :: [Attribute act] -> OutputOptions -> String -> View act
-pPrintStringHtml as opts = renderHtml as . treeForm . annotateWithIndentation . layoutString' opts
+pPrintStringHtml as opts = renderHtml as . treeForm . annotateWithIndentation . layoutStringAbstract opts
   where
     annotateWithIndentation ds = evalState (traverse f ds) $ prev Parens0
     f ann =
