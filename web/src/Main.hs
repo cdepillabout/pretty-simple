@@ -76,7 +76,6 @@ updateModel = \case
     TextEntered t -> noEff . set #inputText t
     OptsChanged f -> noEff . over #outputOptions f
 
--- TODO show initial values, without any flickering...
 viewModel :: Model -> View Action
 viewModel m =
     div_
