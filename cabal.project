@@ -1,6 +1,6 @@
 packages:
-  ./
-  web/web.cabal
+  .
+  web
 
 constraints: miso +jsaddle
 
