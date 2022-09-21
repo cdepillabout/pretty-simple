@@ -83,12 +83,12 @@ viewModel m =
         [ div_
             [class_ "input"]
             [ textArea [class_ "input-text"] TextEntered ""
-            , slider [conf, class_ "page-width"] 240 (OptsChanged . set #outputOptionsPageWidth) "Page width"
-            , slider [conf, class_ "indentation"] 10 (OptsChanged . set #outputOptionsIndentAmount) "Indentation"
-            , slider [conf, class_ "initial-indent"] 20 (OptsChanged . set #outputOptionsInitialIndent) "Initial indent"
-            , checkBox [conf, class_ "compact"] (OptsChanged . set #outputOptionsCompact) "Compact"
-            , checkBox [conf, class_ "compact-parens"] (OptsChanged . set #outputOptionsCompactParens) "Compact parentheses"
-            , selectMenu [conf, class_ "string-style"] (OptsChanged . set #outputOptionsStringStyle) $
+            , slider [conf, class_ "page-width"] 240 (setOpts #outputOptionsPageWidth) "Page width"
+            , slider [conf, class_ "indentation"] 10 (setOpts #outputOptionsIndentAmount) "Indentation"
+            , slider [conf, class_ "initial-indent"] 20 (setOpts #outputOptionsInitialIndent) "Initial indent"
+            , checkBox [conf, class_ "compact"] (setOpts #outputOptionsCompact) "Compact"
+            , checkBox [conf, class_ "compact-parens"] (setOpts #outputOptionsCompactParens) "Compact parentheses"
+            , selectMenu [conf, class_ "string-style"] (setOpts #outputOptionsStringStyle) $
                 Map.fromList
                     [ ("Literal", Literal)
                     , ("Escape non-printable", EscapeNonPrintable)
@@ -102,6 +102,7 @@ viewModel m =
             ]
         ]
   where
+    setOpts l = OptsChanged . set l
     conf = class_ "config"
 
 data ParensLevel
