@@ -162,7 +162,7 @@ textArea as f t = textarea_ (onInput f : as) [text t]
 
 {- Util -}
 
--- | As in 'relude'
+-- | Safe, wrapping around, as in 'relude'
 next, prev :: (Eq a, Bounded a, Enum a) => a -> a
 next e
     | e == maxBound = minBound
