@@ -19,7 +19,7 @@ import qualified Data.Map.Strict as Map
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import GHC.Generics (Generic)
-import Lens.Micro (Lens', set)
+import Lens.Micro (over, set)
 import Miso.String (MisoString, fromMisoString, ms, toLower)
 import qualified Miso.String as Miso
 import Prettyprinter.Render.Util.SimpleDocTree (SimpleDocTree (..), treeForm)
@@ -47,11 +47,11 @@ data Model = Model
     }
     deriving (Show, Eq, Generic)
 
-data Action where
-    NoOp :: Action
-    Log :: MisoString -> Action
-    TextEntered :: MisoString -> Action
-    OptsChanged :: Lens' OutputOptions a -> a -> Action
+data Action
+    = NoOp
+    | Log MisoString
+    | TextEntered MisoString
+    | OptsChanged (OutputOptions -> OutputOptions)
 
 main :: IO ()
 main = runApp $ startApp App{..}
@@ -74,7 +74,7 @@ updateModel = \case
     NoOp -> noEff
     Log t -> (<# (consoleLog t >> pure NoOp))
     TextEntered t -> noEff . set #inputText t
-    OptsChanged l x -> noEff . set (#outputOptions . l) x
+    OptsChanged f -> noEff . over #outputOptions f
 
 -- TODO show initial values, without any flickering...
 viewModel :: Model -> View Action
@@ -84,12 +84,12 @@ viewModel m =
         [ div_
             [class_ "input"]
             [ textArea [class_ "input-text"] TextEntered ""
-            , slider [conf, class_ "page-width"] 240 (OptsChanged #outputOptionsPageWidth) "Page width"
-            , slider [conf, class_ "indentation"] 10 (OptsChanged #outputOptionsIndentAmount) "Indentation"
-            , slider [conf, class_ "initial-indent"] 20 (OptsChanged #outputOptionsInitialIndent) "Initial indent"
-            , checkBox [conf, class_ "compact"] (OptsChanged #outputOptionsCompact) "Compact"
-            , checkBox [conf, class_ "compact-parens"] (OptsChanged #outputOptionsCompactParens) "Compact parentheses"
-            , selectMenu [conf, class_ "string-style"] (OptsChanged #outputOptionsStringStyle) $
+            , slider [conf, class_ "page-width"] 240 (OptsChanged . set #outputOptionsPageWidth) "Page width"
+            , slider [conf, class_ "indentation"] 10 (OptsChanged . set #outputOptionsIndentAmount) "Indentation"
+            , slider [conf, class_ "initial-indent"] 20 (OptsChanged . set #outputOptionsInitialIndent) "Initial indent"
+            , checkBox [conf, class_ "compact"] (OptsChanged . set #outputOptionsCompact) "Compact"
+            , checkBox [conf, class_ "compact-parens"] (OptsChanged . set #outputOptionsCompactParens) "Compact parentheses"
+            , selectMenu [conf, class_ "string-style"] (OptsChanged . set #outputOptionsStringStyle) $
                 Map.fromList
                     [ ("Literal", Literal)
                     , ("Escape non-printable", EscapeNonPrintable)
