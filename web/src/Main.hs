@@ -16,7 +16,6 @@ import Control.Monad.State (evalState, gets, modify)
 import Data.Generics.Labels ()
 import Data.Map.Strict (Map, (!?))
 import qualified Data.Map.Strict as Map
-import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import GHC.Generics (Generic)
 import Lens.Micro (over, set)
@@ -88,7 +87,7 @@ viewModel m =
             , slider [conf, class_ "initial-indent"] 20 (setOpts #outputOptionsInitialIndent) "Initial indent"
             , checkBox [conf, class_ "compact"] (setOpts #outputOptionsCompact) "Compact"
             , checkBox [conf, class_ "compact-parens"] (setOpts #outputOptionsCompactParens) "Compact parentheses"
-            , selectMenu [conf, class_ "string-style"] (setOpts #outputOptionsStringStyle) $
+            , selectMenu [conf, class_ "string-style"] (setOpts #outputOptionsStringStyle) Log $
                 Map.fromList
                     [ ("Literal", Literal)
                     , ("Escape non-printable", EscapeNonPrintable)
@@ -153,9 +152,9 @@ slider as m f t =
             ]
         ]
 
-selectMenu :: [Attribute action] -> (a -> action) -> Map MisoString a -> View action
-selectMenu as f m =
-    select_ (onChange (f . fromMaybe (error "selectMenu: unrecognised value") . (m !?)) : as)
+selectMenu :: [Attribute action] -> (a -> action) -> (MisoString -> action) -> Map MisoString a -> View action
+selectMenu as f e m =
+    select_ (onChange (maybe (e "selectMenu: unrecognised value") f . (m !?)) : as)
         . map (option_ [] . pure . text)
         $ Map.keys m
 
