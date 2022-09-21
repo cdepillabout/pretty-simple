@@ -66,7 +66,7 @@ main = runApp $ startApp App{..}
     view = viewModel
     events = defaultEvents
     subs = []
-    mountPoint = Nothing -- Nothing defaults to 'body'
+    mountPoint = Nothing -- mount at `body`
     logLevel = Off
 
 updateModel :: Action -> Model -> Effect Action Model
