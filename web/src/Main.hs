@@ -111,6 +111,8 @@ data ParensLevel
     | Parens2
     deriving (Eq, Show, Bounded, Enum)
 
+-- TODO ideally, we'd reuse `layoutString`, and just map over its result, but `annotateStyle` crashes on GHCJS 8.6:
+-- https://github.com/ghcjs/ghcjs/issues/794
 pPrintStringHtml :: [Attribute act] -> OutputOptions -> String -> View act
 pPrintStringHtml as opts = renderHtml as . treeForm . annotateWithIndentation . layoutStringAbstract opts
   where
