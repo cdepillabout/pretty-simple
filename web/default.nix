@@ -1,4 +1,3 @@
-# TODO copy style.css alongside output files
 with (import
   (builtins.fetchTarball {
     url =
@@ -29,4 +28,13 @@ let
     };
   };
 in
-app
+pkgs.buildEnv {
+  name = "pretty-simple-web";
+  paths = [
+    app
+    (pkgs.runCommand "css" { } ''
+      mkdir -p $out/bin/web.jsexe
+      cp ${./style.css} $out/bin/web.jsexe/style.css
+    '')
+  ];
+}
