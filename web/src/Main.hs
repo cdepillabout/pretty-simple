@@ -154,7 +154,7 @@ slider as m f t =
 
 selectMenu :: [Attribute action] -> (a -> action) -> (MisoString -> action) -> Map MisoString a -> View action
 selectMenu as f e m =
-    select_ (onChange (maybe (e "selectMenu: unrecognised value") f . (m !?)) : as)
+    select_ (onChange (\s -> maybe (e $ "selectMenu: unrecognised value: " <> s) f $ m !? s) : as)
         . map (option_ [] . pure . text)
         $ Map.keys m
 
