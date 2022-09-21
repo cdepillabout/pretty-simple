@@ -35,6 +35,7 @@ executable web
         -dedupe
     default-language: Haskell2010
     default-extensions:
+        BlockArguments
         DeriveGeneric
         EmptyCase
         FlexibleContexts

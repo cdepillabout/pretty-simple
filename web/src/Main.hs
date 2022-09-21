@@ -114,16 +114,17 @@ data ParensLevel
 pPrintStringHtml :: [Attribute act] -> OutputOptions -> String -> View act
 pPrintStringHtml as opts = renderHtml as . treeForm . annotateWithIndentation . layoutStringAbstract opts
   where
-    annotateWithIndentation ds = evalState (traverse f ds) $ prev Parens0
-    f ann =
-        (++ [Class "annotation", toClassName @Annotation ann]) <$> case ann of
-            Open -> modify next *> g
-            Close -> g <* modify prev
-            Comma -> g
-            _ -> pure []
-    g = gets (pure . toClassName @ParensLevel)
-    toClassName :: Show a => a -> Class
-    toClassName = Class . toLower . ms . show
+    annotateWithIndentation =
+        flip evalState (prev Parens0) . traverse \ann ->
+            (++ [Class "annotation", toClassName @Annotation ann]) <$> case ann of
+                Open -> modify next *> g
+                Close -> g <* modify prev
+                Comma -> g
+                _ -> pure []
+      where
+        g = gets (pure . toClassName @ParensLevel)
+        toClassName :: Show a => a -> Class
+        toClassName = Class . toLower . ms . show
 
 {- Wrappers around HTML elements -}
 
