@@ -14,7 +14,6 @@ import Network.WebSockets (defaultConnectionOptions)
 
 import Control.Monad.State (evalState, gets, modify)
 import Data.Generics.Labels ()
-import Data.Map.Strict (Map, (!?))
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as T
 import GHC.Generics (Generic)
@@ -78,23 +77,29 @@ updateModel = \case
 viewModel :: Model -> View Action
 viewModel m =
     div_
-        []
-        [ div_
-            [class_ "input"]
-            [ textArea [class_ "input-text"] TextEntered ""
-            , slider [conf, class_ "page-width"] 240 (setOpts #outputOptionsPageWidth) "Page width"
-            , slider [conf, class_ "indentation"] 10 (setOpts #outputOptionsIndentAmount) "Indentation"
-            , slider [conf, class_ "initial-indent"] 20 (setOpts #outputOptionsInitialIndent) "Initial indent"
-            , checkBox [conf, class_ "compact"] (setOpts #outputOptionsCompact) "Compact"
-            , checkBox [conf, class_ "compact-parens"] (setOpts #outputOptionsCompactParens) "Compact parentheses"
-            , selectMenu [conf, class_ "string-style"] (setOpts #outputOptionsStringStyle) Log $
-                Map.fromList
-                    [ ("Literal", Literal)
-                    , ("Escape non-printable", EscapeNonPrintable)
-                    , ("Don't escape non-printable", DoNotEscapeNonPrintable)
+        [class_ "root"]
+        [ textArea [class_ "input"] TextEntered ""
+        , div_
+            [class_ "opts"]
+            [ slider [] 240 (setOpts #outputOptionsPageWidth) "Page width"
+            , slider [] 10 (setOpts #outputOptionsIndentAmount) "Indentation"
+            , slider [] 20 (setOpts #outputOptionsInitialIndent) "Initial indent"
+            , checkBox [] (setOpts #outputOptionsCompact) "Compact"
+            , checkBox [] (setOpts #outputOptionsCompactParens) "Compact parentheses"
+            , div_
+                []
+                [ text "Non-printable characters"
+                , selectMenu
+                    []
+                    (setOpts #outputOptionsStringStyle)
+                    Log
+                    [ ("Escape", EscapeNonPrintable)
+                    , ("Don't escape", DoNotEscapeNonPrintable)
+                    , ("Literal", Literal)
                     ]
+                ]
             ]
-        , pPrintStringHtml [class_ "output-text"] (outputOptions m) . fromMisoString $ inputText m
+        , pPrintStringHtml [class_ "output"] (outputOptions m) . fromMisoString $ inputText m
         , link_
             [ rel_ "stylesheet"
             , href_ "style.css"
@@ -102,7 +107,6 @@ viewModel m =
         ]
   where
     setOpts l = OptsChanged . set l
-    conf = class_ "config"
 
 data ParensLevel
     = Parens0
@@ -152,11 +156,12 @@ slider as m f t =
             ]
         ]
 
-selectMenu :: [Attribute action] -> (a -> action) -> (MisoString -> action) -> Map MisoString a -> View action
-selectMenu as f e m =
-    select_ (onChange (\s -> maybe (e $ "selectMenu: unrecognised value: " <> s) f $ m !? s) : as)
-        . map (option_ [] . pure . text)
-        $ Map.keys m
+selectMenu :: [Attribute action] -> (a -> action) -> (MisoString -> action) -> [(MisoString, a)] -> View action
+selectMenu as f e items =
+    select_ (onChange (\s -> maybe (e $ "selectMenu: unrecognised value: " <> s) f $ Map.lookup s stringToItem) : as) $
+        map (option_ [] . pure . text . fst) items
+  where
+    stringToItem = Map.fromList items
 
 textArea :: [Attribute action] -> (MisoString -> action) -> MisoString -> View action
 textArea as f t = textarea_ (onInput f : as) [text t]
