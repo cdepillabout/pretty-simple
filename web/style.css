@@ -24,13 +24,14 @@ body {
   accent-color: var(--ui-color);
   caret-color: var(--ui-color);
   font-family: Helvetica, Arial, sans-serif;
+  user-select: none;
 }
 
 .root {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .input {
@@ -41,7 +42,6 @@ body {
 }
 
 .opts {
-  user-select: none;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
