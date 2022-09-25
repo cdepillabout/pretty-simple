@@ -83,9 +83,9 @@ viewModel m =
             [class_ "opts"]
             [ checkBox [] (setOpts #outputOptionsCompact) "Compact"
             , checkBox [] (setOpts #outputOptionsCompactParens) "Compact parentheses"
-            , slider [] 10 (setOpts #outputOptionsIndentAmount) "Indentation"
-            , slider [] 20 (setOpts #outputOptionsInitialIndent) "Initial indent"
-            , slider [] 240 (setOpts #outputOptionsPageWidth) "Page width"
+            , slider [] (0, 10) (setOpts #outputOptionsIndentAmount) "Indentation"
+            , slider [] (0, 20) (setOpts #outputOptionsInitialIndent) "Initial indent"
+            , slider [] (1, 240) (setOpts #outputOptionsPageWidth) "Page width"
             , div_
                 []
                 [ text "Non-printable characters"
@@ -143,15 +143,15 @@ checkBox as f t =
   where
     unChecked (Checked b) = b
 
-slider :: [Attribute action] -> Int -> (Int -> action) -> MisoString -> View action
-slider as m f t =
+slider :: [Attribute action] -> (Int, Int) -> (Int -> action) -> MisoString -> View action
+slider as (min', max') f t =
     label_
         as
         [ text t
         , input_
             [ type_ "range"
-            , min_ "1"
-            , max_ $ ms m
+            , min_ $ ms min'
+            , max_ $ ms max'
             , onInput $ f . fromMisoString
             ]
         ]
