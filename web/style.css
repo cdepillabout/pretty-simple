@@ -67,6 +67,8 @@ body {
 
 .output {
   color: white; /* for unannotated text e.g. data constructors */
+  margin-top: 0;
+  margin-bottom: 0;
 }
 .annotation {
   font-weight: bold;
