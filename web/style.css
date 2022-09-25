@@ -6,6 +6,7 @@ textarea, input, button, select, option { /* don't use the OS/browser style */
 }
 input[type='checkbox'] {
   height: 2rem;
+  width: 2rem;
 }
 input[type='range'] {
   width: 7rem;
@@ -60,6 +61,7 @@ body {
   color: var(--ui-color);
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
   text-align: center;
 }
