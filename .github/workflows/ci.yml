@@ -23,8 +23,9 @@ jobs:
           - "8.4.4"
           - "8.6.5"
           - "8.8.4"
-          - "8.10.4"
-          - "9.0.1"
+          - "8.10.7"
+          - "9.0.2"
+          - "9.2.4"
 
     steps:
     - uses: actions/checkout@v2
@@ -46,11 +47,11 @@ jobs:
     - name: Build
       run: |
         cabal update
-        cabal build all --enable-tests --enable-benchmarks --write-ghc-environment-files=always --flags="buildexample"
+        cabal build package:pretty-simple --enable-tests --enable-benchmarks --write-ghc-environment-files=always --flags="buildexample"
 
     - name: Test
       run: |
-        cabal test all --enable-tests
+        cabal test package:pretty-simple --enable-tests
 
   stack:
     name: stack / ubuntu-latest
@@ -83,3 +84,11 @@ jobs:
       run: |
         stack test
 
+  nix-build-web:
+    name: Nix build GHCJS web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: cachix/install-nix-action@v16
+      - name: Build web
+        run: nix-build ./web
