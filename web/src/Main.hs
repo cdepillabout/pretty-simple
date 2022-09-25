@@ -114,6 +114,7 @@ viewModel m =
         , pPrintStringHtml [class_ "output"] (outputOptions m) . fromMisoString $ inputText m
         , link_
             [ rel_ "stylesheet"
+            , type_ "text/css"
             , href_ "style.css"
             ]
         ]
