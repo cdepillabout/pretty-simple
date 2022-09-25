@@ -11,7 +11,8 @@ input[type='range'] {
   width: 7rem;
 }
 select {
-  padding: 0.5rem
+  padding: 0.5rem;
+  width: 10rem;
 }
 
 :root {
@@ -45,10 +46,6 @@ body {
   height: 6rem;
   width: 100%;
   resize: none;
-}
-
-.input-choose {
-  width: 10rem;
 }
 
 .opts {
