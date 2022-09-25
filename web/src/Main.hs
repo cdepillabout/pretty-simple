@@ -17,7 +17,7 @@ import Data.Generics.Labels ()
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as T
 import GHC.Generics (Generic)
-import Lens.Micro (over, set)
+import Lens.Micro (over, set, (^.))
 import Miso.String (MisoString, fromMisoString, ms, toLower)
 import qualified Miso.String as Miso
 import Prettyprinter.Render.Util.SimpleDocTree (SimpleDocTree (..), treeForm)
@@ -83,9 +83,9 @@ viewModel m =
             [class_ "opts"]
             [ checkBox [] (setOpts #outputOptionsCompact) "Compact"
             , checkBox [] (setOpts #outputOptionsCompactParens) "Compact parentheses"
-            , slider [] (0, 10) (setOpts #outputOptionsIndentAmount) "Indentation"
-            , slider [] (0, 20) (setOpts #outputOptionsInitialIndent) "Initial indent"
-            , slider [] (1, 240) (setOpts #outputOptionsPageWidth) "Page width"
+            , slider [] (0, 10) (m ^. #outputOptions . #outputOptionsIndentAmount) (setOpts #outputOptionsIndentAmount) "Indentation"
+            , slider [] (0, 20) (m ^. #outputOptions . #outputOptionsInitialIndent) (setOpts #outputOptionsInitialIndent) "Initial indent"
+            , slider [] (1, 240) (m ^. #outputOptions . #outputOptionsPageWidth) (setOpts #outputOptionsPageWidth) "Page width"
             , div_
                 []
                 [ text "Non-printable characters"
@@ -143,8 +143,8 @@ checkBox as f t =
   where
     unChecked (Checked b) = b
 
-slider :: [Attribute action] -> (Int, Int) -> (Int -> action) -> MisoString -> View action
-slider as (min', max') f t =
+slider :: [Attribute action] -> (Int, Int) -> Int -> (Int -> action) -> MisoString -> View action
+slider as (min', max') v f t =
     label_
         as
         [ text t
@@ -153,6 +153,7 @@ slider as (min', max') f t =
             , min_ $ ms min'
             , max_ $ ms max'
             , onInput $ f . fromMisoString
+            , value_ $ ms v
             ]
         ]
 
