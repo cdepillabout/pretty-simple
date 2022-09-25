@@ -81,11 +81,11 @@ viewModel m =
         [ textArea [class_ "input"] TextEntered ""
         , div_
             [class_ "opts"]
-            [ slider [] 240 (setOpts #outputOptionsPageWidth) "Page width"
+            [ checkBox [] (setOpts #outputOptionsCompact) "Compact"
+            , checkBox [] (setOpts #outputOptionsCompactParens) "Compact parentheses"
             , slider [] 10 (setOpts #outputOptionsIndentAmount) "Indentation"
             , slider [] 20 (setOpts #outputOptionsInitialIndent) "Initial indent"
-            , checkBox [] (setOpts #outputOptionsCompact) "Compact"
-            , checkBox [] (setOpts #outputOptionsCompactParens) "Compact parentheses"
+            , slider [] 240 (setOpts #outputOptionsPageWidth) "Page width"
             , div_
                 []
                 [ text "Non-printable characters"
