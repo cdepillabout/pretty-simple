@@ -47,6 +47,19 @@ jobs:
     - name: Build
       run: |
         cabal update
+        # TODO: We have a problem where cabal is not able to come up with a
+        # build plan on GHC-9.2 because the ./cabal.project file defines both
+        # pretty-simple, and ./web as packages. ./web uses a version of jsaddle
+        # that doesn't seem to work yet on GHC-9.2.  It doesn't seem possible
+        # to tell cabal to just ignore the web package, and only run the solver
+        # for pretty-simple.
+        #
+        # This hacky workaround just deletes the cabal.project file, so that
+        # cabal doesn't realize there is another package in ./web.
+        #
+        # This workaround can likely be removed when we move to a more recent
+        # version of jsaddle.
+        rm ./cabal.project
         cabal build package:pretty-simple --enable-tests --enable-benchmarks --write-ghc-environment-files=always --flags="buildexample"
 
     - name: Test
