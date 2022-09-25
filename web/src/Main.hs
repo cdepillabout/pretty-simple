@@ -78,7 +78,19 @@ viewModel :: Model -> View Action
 viewModel m =
     div_
         [class_ "root"]
-        [ textArea [class_ "input"] TextEntered ""
+        [ div_
+            [class_ "input"]
+            [ textArea [class_ "input-text"] TextEntered ""
+            , selectMenu
+                [class_ "input-choose"]
+                (maybe NoOp TextEntered)
+                Log
+                ( ("Use example...", Nothing)
+                    : map
+                        (\x -> (x, Just x))
+                        examples
+                )
+            ]
         , div_
             [class_ "opts"]
             [ checkBox [] (setOpts #outputOptionsCompact) "Compact"
@@ -130,6 +142,34 @@ pPrintStringHtml as opts = renderHtml as . treeForm . annotateWithIndentation . 
         g = gets (pure . toClassName @ParensLevel)
         toClassName :: Show a => a -> Class
         toClassName = Class . toLower . ms . show
+
+examples :: [MisoString]
+examples =
+    [ "Foo 3 \"hello\" 'a'"
+    , "[1,2,3]"
+    , "[Foo [(),()] \"hello\" 'b']"
+    , "[Foo [\"bar\",\"baz\"] \"hello\" 'a',Foo [] \"bye\" 'b']"
+    , "Bar {barInt = 1, barA = [10,11], barList = [Foo 1.1 \"\" 'a',Foo 2.2 \"hello\" 'b']}"
+    , "Baz {unBaz = [\"hello\",\"bye\"]}"
+    , "B (B A)"
+    , "B (B (B A))"
+    , "B (B (B (B A)))"
+    , "B (C [A,A] [B A,B (B (B A))])"
+    , "Baz {unBaz = [\"\\29483\",\"\\29356\",\"\\12516\\12462\"]}"
+    , "AST [] [Def ((3,1),(5,30)) (Id \"fact'\" \"fact'\") [] (Forall ((3,9),(3,26)) [((Id \"n\" \"n_0\"),KPromote (TyCon (Id \"Nat\" \"Nat\")))])]"
+    , "B (C [A,A] [B A,B (B (B A))])"
+    , "[(\"id\",123),(\"state\",1),(\"pass\",1),(\"tested\",100),(\"time\",12345)]"
+    , "B (B (B (B A)))"
+    , "2019-02-18 20:56:24.265489 UTC"
+    , "a7ed86f7-7f2c-4be5-a760-46a3950c2abf"
+    , "192.168.0.1:8000"
+    , "A @\"type\" 1"
+    , "2+2"
+    , "1.0e-2"
+    , "0x1b"
+    , "Foo'' \"bar\" 0"
+    , "\"this string has non-printable characters: \\b and \\t\""
+    ]
 
 {- Wrappers around HTML elements -}
 

@@ -35,10 +35,21 @@ body {
 }
 
 .input {
-  resize: none;
-  height: 6rem;
+  display: flex;
+  align-items: center;
   padding: 0.5rem;
+  gap: 1.5rem;
   margin: 0.5rem;
+}
+
+.input-text {
+  height: 6rem;
+  width: 100%;
+  resize: none;
+}
+
+.input-choose {
+  width: 10rem;
 }
 
 .opts {
