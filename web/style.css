@@ -24,7 +24,6 @@ body {
   accent-color: var(--ui-color);
   caret-color: var(--ui-color);
   font-family: Helvetica, Arial, sans-serif;
-  user-select: none;
 }
 
 .root {
@@ -53,6 +52,7 @@ body {
 }
 
 .opts {
+  user-select: none;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
