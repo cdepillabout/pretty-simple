@@ -120,7 +120,7 @@ import Prettyprinter (SimpleDocStream)
 import Prettyprinter.Render.Terminal
       (Color (..), Intensity(Vivid,Dull), AnsiStyle,
        renderLazy, renderIO)
-import System.IO (Handle, stdout)
+import System.IO (Handle, stdout, hPutStrLn)
 
 import Text.Pretty.Simple.Internal
        (ColorOptions(..), Style(..), CheckColorTty(..),
@@ -526,7 +526,7 @@ pHPrintStringOpt checkColorTty outputOptions handle str = do
       NoCheckColorTty -> pure outputOptions
   liftIO $ do
     renderIO handle $ layoutStringAnsi realOutputOpts str
-    putStrLn ""
+    hPutStrLn handle ""
 
 -- | Like 'pShow' but takes 'OutputOptions' to change how the
 -- pretty-printing is done.
