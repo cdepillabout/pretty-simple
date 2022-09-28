@@ -15,12 +15,16 @@ jobs:
       - uses: cachix/install-nix-action@v16
         with:
           extra_nix_config: |
-            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= miso-haskell.cachix.org-1:6N2DooyFlZOHUfJtAx1Q09H0P5XXYzoxxQYiwn6W1e8=
-            substituters = https://cache.nixos.org/ https://miso-haskell.cachix.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= miso-haskell.cachix.org-1:6N2DooyFlZOHUfJtAx1Q09H0P5XXYzoxxQYiwn6W1e8= haskell-pretty-simple.cachix.org-1:AWHkzPidwcDzWUIUjKcx/PYgud2OBAa9SNUEoIOsATY=
+            substituters = https://cache.nixos.org/ https://miso-haskell.cachix.org https://haskell-pretty-simple.cachix.org
       - name: Build
         run: |
           nix-build ./web
+          pwd
+          ls
+          tree
+          tree -l
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: web/result/bin/web.jsexe
+          folder: web/result/bin
