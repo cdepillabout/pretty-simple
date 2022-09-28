@@ -26,10 +26,12 @@ import Text.Pretty.Simple.Internal (Annotation (..), layoutStringAbstract)
 
 #ifndef __GHCJS__
 runApp :: JSM () -> IO ()
-runApp f =
+runApp f = do
+    putStrLn "Web server running on 0.0.0.0:8000..."
     Warp.runSettings (Warp.setPort 8000 $ Warp.setTimeout 3600 Warp.defaultSettings)
         =<< JSaddle.jsaddleOr defaultConnectionOptions (f >> syncPoint) app
   where
+    app :: Wai.Application
     app req =
         case Wai.pathInfo req of
             ["style.css"] -> Wai.staticApp (Wai.defaultWebAppSettings ".") req
