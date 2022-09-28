@@ -1,1 +1,2 @@
-/nix/store/y0aw2x73rk2lk0y03lgmrwqm7939r86j-web-0.1.0.0/bin/web.jsexe/runmain.js
+h$main(h$mainZCZCMainzimain);
+

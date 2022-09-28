@@ -1,1 +1,13 @@
-/nix/store/y0aw2x73rk2lk0y03lgmrwqm7939r86j-web-0.1.0.0/bin/web.jsexe/manifest.webapp
+{
+  "name": "GHCJS Web Application",
+  "description": "GHCJS Web Application",
+  "launch_path": "/index.html",
+  "icons": {
+    "16": "/icons/icon16x16.png",
+    "48": "/icons/icon48x48.png",
+    "60": "/icons/icon60x60.png",
+    "128": "/icons/icon128x128.png"
+  },
+  "type": "privileged",
+  "permissions": {}
+}
