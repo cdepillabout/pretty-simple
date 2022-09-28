@@ -20,7 +20,9 @@ jobs:
       - name: Build
         run: |
           nix-build ./web
+          # dereference all symlinks
+          cp -rL result/bin output
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: result/bin
+          folder: output
