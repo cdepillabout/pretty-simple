@@ -20,11 +20,7 @@ jobs:
       - name: Build
         run: |
           nix-build ./web
-          pwd
-          ls
-          tree
-          tree -l
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: web/result/bin
+          folder: result/bin
