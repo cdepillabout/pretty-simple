@@ -20,9 +20,8 @@ jobs:
       - name: Build
         run: |
           nix-build ./web
-          # dereference all symlinks
-          cp -rL result/bin output
+          cp -rL result result-no-symlinks
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: output
+          folder: result-no-symlinks/bin/output/web.jsexe
