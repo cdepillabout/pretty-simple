@@ -24,4 +24,4 @@ jobs:
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: result-no-symlinks/bin/output/web.jsexe
+          folder: result-no-symlinks/bin/web.jsexe
