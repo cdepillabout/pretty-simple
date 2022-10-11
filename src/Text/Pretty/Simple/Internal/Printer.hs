@@ -195,9 +195,11 @@ hCheckTTY h options = liftIO $ conv <$> tty
 -- suitable for passing to any /prettyprinter/ backend.
 -- Used by 'Simple.pString' etc.
 layoutString :: OutputOptions -> String -> SimpleDocStream Style
-layoutString opts =
-  annotateStyle opts
-    . removeTrailingWhitespace
+layoutString opts = annotateStyle opts . layoutStringAbstract opts
+
+layoutStringAbstract :: OutputOptions -> String -> SimpleDocStream Annotation
+layoutStringAbstract opts =
+    removeTrailingWhitespace
     . layoutSmart defaultLayoutOptions
       {layoutPageWidth = AvailablePerLine (outputOptionsPageWidth opts) 1}
     . indent (outputOptionsInitialIndent opts)
@@ -302,6 +304,7 @@ data Annotation
   | Quote
   | String
   | Num
+  deriving (Eq, Show)
 
 -- | Replace non-printable characters with hex escape sequences.
 --

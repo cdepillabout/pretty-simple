@@ -1,10 +1,11 @@
 name: CI
 
 # Trigger the workflow on push or pull request, but only for the master branch
-on:
-  pull_request:
-  push:
-    branches: [master]
+# TODO use this trigger once deploy tested
+# on:
+#   pull_request:
+#   push:
+#     branches: [master]
 
 jobs:
   cabal:
@@ -23,8 +24,9 @@ jobs:
           - "8.4.4"
           - "8.6.5"
           - "8.8.4"
-          - "8.10.4"
-          - "9.0.1"
+          - "8.10.7"
+          - "9.0.2"
+          - "9.2.4"
 
     steps:
     - uses: actions/checkout@v2
@@ -46,11 +48,24 @@ jobs:
     - name: Build
       run: |
         cabal update
-        cabal build all --enable-tests --enable-benchmarks --write-ghc-environment-files=always --flags="buildexample"
+        # TODO: We have a problem where cabal is not able to come up with a
+        # build plan on GHC-9.2 because the ./cabal.project file defines both
+        # pretty-simple, and ./web as packages. ./web uses a version of jsaddle
+        # that doesn't seem to work yet on GHC-9.2.  It doesn't seem possible
+        # to tell cabal to just ignore the web package, and only run the solver
+        # for pretty-simple.
+        #
+        # This hacky workaround just deletes the cabal.project file, so that
+        # cabal doesn't realize there is another package in ./web.
+        #
+        # This workaround can likely be removed when we move to a more recent
+        # version of jsaddle.
+        rm ./cabal.project
+        cabal build package:pretty-simple --enable-tests --enable-benchmarks --write-ghc-environment-files=always --flags="buildexample"
 
     - name: Test
       run: |
-        cabal test all --enable-tests
+        cabal test package:pretty-simple --enable-tests
 
   stack:
     name: stack / ubuntu-latest
@@ -83,3 +98,15 @@ jobs:
       run: |
         stack test
 
+  nix-build-web:
+    name: Nix build GHCJS web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: cachix/install-nix-action@v16
+        with:
+          extra_nix_config: |
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= miso-haskell.cachix.org-1:6N2DooyFlZOHUfJtAx1Q09H0P5XXYzoxxQYiwn6W1e8=
+            substituters = https://cache.nixos.org/ https://miso-haskell.cachix.org
+      - name: Build web
+        run: nix-build ./web

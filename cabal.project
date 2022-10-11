@@ -1,0 +1,12 @@
+packages:
+  .
+  web
+
+constraints: miso +jsaddle
+
+-- https://github.com/ghcjs/jsaddle/pull/133
+source-repository-package
+  type: git
+  location: https://github.com/avanov/jsaddle
+  tag: 838a2133f15085c5b6b75bdd0647ac5033c59380
+  subdir: jsaddle jsaddle-warp
