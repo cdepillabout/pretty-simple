@@ -10,8 +10,8 @@ integer-gmp:             2220
 integer-logarithms-1.0.3-8EbIvyaPt1VK2rKaCK88I2:1272
 jsaddle-0.9.7.0-K7HTtX94YSIf0dlSHLERg:47728
 main:                    55490
-miso-1.8.3.0-HORkd0R3qRL1TCYSuYJgsC:116651
-pretty-simple-4.1.1.0-FKRob47DQjUIjQt3zXrneU:113245
+miso-1.8.3.0-HORkd0R3qRL1TCYSuYJgsC:116637
+pretty-simple-4.1.2.0-FV0TJxEBrDuJgrC8vHXjKB:113216
 prettyprinter-1.7.0-EHgPOhjWctJ7BjsxUsFSrA:10322
 prettyprinter-ansi-terminal-1.1.2-H3J9da6EGBwJVLQYTlQXMQ:1
 primitive-0.6.4.0-Ix68lo67v0n3y1QMYDPFlz:12061
@@ -19,7 +19,7 @@ scientific-0.3.6.2-GYzjCtWA1vQ45VE9CYiZoV:720049
 tagsoup-0.14.8-Ga7WGvMMojPLQkXD6zO6rL:107444
 text-1.2.3.1-2mMWCa8HNEL4R4p8nnvwO2:13272
 unordered-containers-0.2.9.0-FFYvp66GotsBzKKo1KOI6a:658
-vector-0.12.0.3-Ljxp3Ug7QBk3GWhyQE0Ewc:71193
+vector-0.12.0.3-Ljxp3Ug7QBk3GWhyQE0Ewc:71190
 
 
 code size per module:
@@ -144,12 +144,12 @@ miso-1.8.3.0-HORkd0R3qRL1TCYSuYJgsC
     Miso.Html.Event:                    759
     Miso.Html.Property:                 31908
     Miso.Html.Types:                    7138
-    Miso.String:                        24570
+    Miso.String:                        24556
 
-pretty-simple-4.1.1.0-FKRob47DQjUIjQt3zXrneU
+pretty-simple-4.1.2.0-FV0TJxEBrDuJgrC8vHXjKB
     Text.Pretty.Simple.Internal.Color:  1
-    Text.Pretty.Simple.Internal.Expr:   12634
-    Text.Pretty.Simple.Internal.ExprParser:34247
+    Text.Pretty.Simple.Internal.Expr:   12624
+    Text.Pretty.Simple.Internal.ExprParser:34228
     Text.Pretty.Simple.Internal.Printer:66363
 
 prettyprinter-1.7.0-EHgPOhjWctJ7BjsxUsFSrA
@@ -191,9 +191,9 @@ unordered-containers-0.2.9.0-FFYvp66GotsBzKKo1KOI6a
 
 vector-0.12.0.3-Ljxp3Ug7QBk3GWhyQE0Ewc
     Data.Vector:                        498
-    Data.Vector.Mutable:                70695
+    Data.Vector.Mutable:                70692
 
 
 
-packed metadata: 1725595
+packed metadata: 1725492
 
