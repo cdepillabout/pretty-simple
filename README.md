@@ -39,6 +39,9 @@ more deeply nested.  It would be even more difficult to read.
 
 ![example screenshot](https://raw.githubusercontent.com/cdepillabout/pretty-simple/master/img/pretty-simple-example-screenshot.png)
 
+There's a [web app](https://cdepillabout.github.io/pretty-simple) compiled with
+GHCJS where you can play around with `pretty-simple` running in your browser.
+
 ## Usage
 
 `pretty-simple` can be easily used from `ghci` when debugging.

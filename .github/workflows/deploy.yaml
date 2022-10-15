@@ -1,10 +1,7 @@
-# TODO use this trigger once tested
-# on:
-#   push:
-#     branches:
-#       - master
 on:
-  pull_request:
+  push:
+    branches:
+      - master
 
 jobs:
   deploy:
