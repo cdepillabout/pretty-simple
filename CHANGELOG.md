@@ -5,6 +5,10 @@
     outputting a trailing newline to stdout, instead of the
     handle you pass it.
     [#118](https://github.com/cdepillabout/pretty-simple/pull/118)
+*   Add a [web app](https://cdepillabout.github.io/pretty-simple/) where you
+    can play around with `pretty-simple` in your browser.
+    [#116](https://github.com/cdepillabout/pretty-simple/pull/116).
+    This took a lot of hard work by [@georgefst](https://github.com/georgefst)!
 
 ## 4.1.1.0
 
