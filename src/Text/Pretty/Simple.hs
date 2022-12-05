@@ -661,7 +661,7 @@ layoutStringAnsi opts = fmap convertStyle . layoutString opts
 -- __Char__
 --
 -- >>> pPrint 'λ'
--- '\955'
+-- 'λ'
 --
 -- __Compactness options__
 --

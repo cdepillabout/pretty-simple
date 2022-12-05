@@ -233,15 +233,15 @@ prettyExpr opts = (if outputOptionsCompact opts then group else id) . \case
   Brackets xss -> list "[" "]" xss
   Braces xss -> list "{" "}" xss
   Parens xss -> list "(" ")" xss
-  StringLit s -> join enclose (annotate Quote "\"") $ annotate String $ pretty $
-    case outputOptionsStringStyle opts of
-      Literal -> s
-      EscapeNonPrintable -> escapeNonPrintable $ readStr s
-      DoNotEscapeNonPrintable -> readStr s
-  CharLit s -> join enclose (annotate Quote "'") $ annotate String $ pretty s
+  StringLit s -> join enclose (annotate Quote "\"") $ annotate String $ pretty $ escapeString s
+  CharLit s -> join enclose (annotate Quote "'") $ annotate String $ pretty $ escapeString s
   Other s -> pretty s
   NumberLit n -> annotate Num $ pretty n
   where
+    escapeString s = case outputOptionsStringStyle opts of
+      Literal -> s
+      EscapeNonPrintable -> escapeNonPrintable $ readStr s
+      DoNotEscapeNonPrintable -> readStr s
     readStr :: String -> String
     readStr s = fromMaybe s . readMaybe $ '"' : s ++ "\""
     list :: Doc Annotation -> Doc Annotation -> CommaSeparated [Expr]
