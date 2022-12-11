@@ -658,6 +658,11 @@ layoutStringAnsi opts = fmap convertStyle . layoutString opts
 --         ]
 --     }
 --
+-- __Char__
+--
+-- >>> pPrint 'λ'
+-- 'λ'
+--
 -- __Compactness options__
 --
 -- >>> pPrintStringOpt CheckColorTty defaultOutputOptionsDarkBg {outputOptionsCompact = True} "AST [] [Def ((3,1),(5,30)) (Id \"fact'\" \"fact'\") [] (Forall ((3,9),(3,26)) [((Id \"n\" \"n_0\"),KPromote (TyCon (Id \"Nat\" \"Nat\")))])]"
