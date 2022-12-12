@@ -83,6 +83,11 @@ viewModel m =
         [ div_
             [class_ "input"]
             [ textArea [class_ "input-text"] TextEntered ""
+            , div_
+                [class_ "hackage"]
+                [ a_
+                    [href_ "https://hackage.haskell.org/package/pretty-simple"]
+                    [img_ [src_ "https://img.shields.io/hackage/v/pretty-simple.svg"]]
             , selectMenu
                 [class_ "input-choose"]
                 (maybe NoOp TextEntered)
@@ -92,6 +97,7 @@ viewModel m =
                         (\x -> (x, Just x))
                         examples
                 )
+            ]
             ]
         , div_
             [class_ "opts"]
