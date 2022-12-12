@@ -89,7 +89,7 @@ viewModel m =
                     [href_ "https://hackage.haskell.org/package/pretty-simple"]
                     [img_ [src_ "https://img.shields.io/hackage/v/pretty-simple.svg"]]
                 , selectMenu
-                    [class_ "input-choose"]
+                    []
                     (maybe NoOp TextEntered)
                     Log
                     ( ("Use example...", Nothing)
