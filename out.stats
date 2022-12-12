@@ -3,23 +3,23 @@ code size summary per package:
 aeson-1.4.2.0-6oFZmLVQz2fGtrfaZYcFm5:41187
 base:                    405972
 containers-0.6.0.1-BAqcfV1UBBeCIRjPbUYeSG:29879
-ghc-prim:                80278
+ghc-prim:                80389
 ghcjs-base-0.2.0.0-JozYZ7GHc7JEfhDrWZm3NT:42040
 ghcjs-prim-0.1.1.0-EXzjGVHQlAS2XAXcu0iCbS:4080
 integer-gmp:             2220
 integer-logarithms-1.0.3-8EbIvyaPt1VK2rKaCK88I2:1272
 jsaddle-0.9.7.0-K7HTtX94YSIf0dlSHLERg:47728
 main:                    55490
-miso-1.8.3.0-HORkd0R3qRL1TCYSuYJgsC:116637
+miso-1.8.3.0-HORkd0R3qRL1TCYSuYJgsC:117080
 pretty-simple-4.1.2.0-FV0TJxEBrDuJgrC8vHXjKB:113345
 prettyprinter-1.7.0-EHgPOhjWctJ7BjsxUsFSrA:10322
 prettyprinter-ansi-terminal-1.1.2-H3J9da6EGBwJVLQYTlQXMQ:1
 primitive-0.6.4.0-Ix68lo67v0n3y1QMYDPFlz:12061
-scientific-0.3.6.2-GYzjCtWA1vQ45VE9CYiZoV:720049
+scientific-0.3.6.2-GYzjCtWA1vQ45VE9CYiZoV:720050
 tagsoup-0.14.8-Ga7WGvMMojPLQkXD6zO6rL:107444
 text-1.2.3.1-2mMWCa8HNEL4R4p8nnvwO2:13272
 unordered-containers-0.2.9.0-FFYvp66GotsBzKKo1KOI6a:658
-vector-0.12.0.3-Ljxp3Ug7QBk3GWhyQE0Ewc:71065
+vector-0.12.0.3-Ljxp3Ug7QBk3GWhyQE0Ewc:71357
 
 
 code size per module:
@@ -98,7 +98,7 @@ ghc-prim
     GHC.Classes:                        139
     GHC.IntWord64:                      1610
     GHC.Tuple:                          125
-    GHC.Types:                          71985
+    GHC.Types:                          72096
 
 ghcjs-base-0.2.0.0-JozYZ7GHc7JEfhDrWZm3NT
     Data.JSString:                      164
@@ -139,9 +139,9 @@ miso-1.8.3.0-HORkd0R3qRL1TCYSuYJgsC
     Miso.Effect:                        6245
     Miso.Event.Decoder:                 20535
     Miso.Event.Types:                   18638
-    Miso.FFI:                           1360
+    Miso.FFI:                           1652
     Miso.Html.Element:                  332
-    Miso.Html.Event:                    759
+    Miso.Html.Event:                    910
     Miso.Html.Property:                 31908
     Miso.Html.Types:                    7138
     Miso.String:                        24556
@@ -165,7 +165,7 @@ primitive-0.6.4.0-Ix68lo67v0n3y1QMYDPFlz
     Data.Primitive.Array:               12061
 
 scientific-0.3.6.2-GYzjCtWA1vQ45VE9CYiZoV
-    Data.Scientific:                    720049
+    Data.Scientific:                    720050
 
 tagsoup-0.14.8-Ga7WGvMMojPLQkXD6zO6rL
     Text.HTML.TagSoup.Entity:           47539
@@ -191,9 +191,9 @@ unordered-containers-0.2.9.0-FFYvp66GotsBzKKo1KOI6a
 
 vector-0.12.0.3-Ljxp3Ug7QBk3GWhyQE0Ewc
     Data.Vector:                        498
-    Data.Vector.Mutable:                70567
+    Data.Vector.Mutable:                70859
 
 
 
-packed metadata: 1725602
+packed metadata: 1726729
 
