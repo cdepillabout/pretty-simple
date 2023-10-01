@@ -3,24 +3,3 @@ packages:
   web
 
 constraints: miso +jsaddle
-
--- https://github.com/ghcjs/jsaddle/pull/136
-source-repository-package
-    type: git
-    location: https://github.com/avanov/jsaddle
-    tag: 0011573a2bafb0c2c17fe95d1212374f13e1b629
-    subdir: jsaddle
-
-allow-newer:
-    jsaddle:aeson,
-    jsaddle:attoparsec,
-    jsaddle:base-compat,
-    jsaddle:base64-bytestring,
-    jsaddle:bytestring,
-    jsaddle:lens,
-    jsaddle:text,
-    jsaddle:time,
-    jsaddle-warp:aeson,
-    jsaddle-warp:bytestring,
-    jsaddle-warp:jsaddle,
-    jsaddle-warp:text,
