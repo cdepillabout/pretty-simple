@@ -75,7 +75,8 @@ jobs:
 
     - name: Test
       run: |
-        cabal test package:pretty-simple --enable-tests
+        cabal build doctest
+        cabal repl --with-ghc=$(cabal list-bin doctest) --repl-options='-w -Wdefault'
 
   stack:
     name: stack / ubuntu-latest
