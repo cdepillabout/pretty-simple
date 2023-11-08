@@ -2,4 +2,7 @@ packages:
   .
   web
 
+extra-packages:
+  doctest
+
 constraints: miso +jsaddle
