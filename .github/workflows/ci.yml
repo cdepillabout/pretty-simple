@@ -77,9 +77,14 @@ jobs:
         rm ./cabal.project
         cabal build package:pretty-simple --enable-tests --enable-benchmarks --write-ghc-environment-files=always --flags="buildexample"
 
+    - name: Install doctest
+      run: |
+        cabal install --ignore-project doctest --flag cabal-doctest
+        echo "$HOME/.cabal/bin" >> $GITHUB_PATH
+
     - name: Test
       run: |
-        cabal test package:pretty-simple --enable-tests
+        cabal doctest
 
   stack:
     name: stack / ubuntu-latest
@@ -107,10 +112,6 @@ jobs:
     - name: Build
       run: |
         stack build --test --bench --no-run-tests --no-run-benchmarks --flag pretty-simple:buildexample
-
-    - name: Test
-      run: |
-        stack test
 
   nix-build-web:
     name: Nix build GHCJS web

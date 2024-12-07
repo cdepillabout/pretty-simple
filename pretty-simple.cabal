@@ -9,16 +9,11 @@ author:              Dennis Gosnell
 maintainer:          cdep.illabout@gmail.com
 copyright:           2017-2019 Dennis Gosnell
 category:            Text
-build-type:          Custom
+build-type:          Simple
 extra-source-files:  CHANGELOG.md
                    , README.md
                    , img/pretty-simple-example-screenshot.png
 cabal-version:       >=1.10
-
-custom-setup
-  setup-depends:     base
-                   , Cabal >= 1.24
-                   , cabal-doctest >=1.0.2
 
 flag buildexe
   description: Build an small command line program that pretty-print anything from stdin.
@@ -95,18 +90,6 @@ executable pretty-simple-json-example
     buildable:       True
   else
     buildable:       False
-
-test-suite pretty-simple-doctest
-  type:                exitcode-stdio-1.0
-  main-is:             DocTest.hs
-  hs-source-dirs:      test
-  build-depends:       base
-                     , doctest >= 0.13
-                     , Glob
-                     , QuickCheck
-                     , template-haskell
-  default-language:    Haskell2010
-  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
 
 benchmark pretty-simple-bench
   type:                exitcode-stdio-1.0
