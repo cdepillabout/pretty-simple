@@ -27,7 +27,7 @@ jobs:
           # dependencies, so it is probably okay we aren't testing on OSX.
           # - macOS-latest
         cabal:
-          - "latest"
+          - "3.12.1.0"
         ghc:
           - "8.0.2"
           - "8.2.2"
@@ -37,6 +37,10 @@ jobs:
           - "8.10.7"
           - "9.0.2"
           - "9.2.4"
+          - "9.4.8"
+          - "9.6.6"
+          - "9.8.4"
+          - "9.10.1"
 
     steps:
     - uses: actions/checkout@v2
