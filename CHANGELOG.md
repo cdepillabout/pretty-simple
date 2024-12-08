@@ -1,3 +1,9 @@
+## 4.1.3.0
+
+*   Remove custom setup. This makes cross-compiling `pretty-simple` a lot more
+    straightforward. No functionality has been lost from the library, since the
+    custom setup was only used for generating tests.
+    [#107](https://github.com/cdepillabout/pretty-simple/pull/107)
 
 ## 4.1.2.0
 
