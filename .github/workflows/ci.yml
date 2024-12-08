@@ -27,7 +27,7 @@ jobs:
           # dependencies, so it is probably okay we aren't testing on OSX.
           # - macOS-latest
         cabal:
-          - "latest"
+          - "3.12.1.0"
         ghc:
           - "8.0.2"
           - "8.2.2"
@@ -37,6 +37,10 @@ jobs:
           - "8.10.7"
           - "9.0.2"
           - "9.2.4"
+          - "9.4.8"
+          - "9.6.6"
+          - "9.8.4"
+          - "9.10.1"
 
     steps:
     - uses: actions/checkout@v2
@@ -73,9 +77,14 @@ jobs:
         rm ./cabal.project
         cabal build package:pretty-simple --enable-tests --enable-benchmarks --write-ghc-environment-files=always --flags="buildexample"
 
+    - name: Install doctest
+      run: |
+        cabal install --ignore-project doctest --flag cabal-doctest
+        echo "$HOME/.cabal/bin" >> $GITHUB_PATH
+
     - name: Test
       run: |
-        cabal test package:pretty-simple --enable-tests
+        cabal doctest
 
   stack:
     name: stack / ubuntu-latest
@@ -103,10 +112,6 @@ jobs:
     - name: Build
       run: |
         stack build --test --bench --no-run-tests --no-run-benchmarks --flag pretty-simple:buildexample
-
-    - name: Test
-      run: |
-        stack test
 
   nix-build-web:
     name: Nix build GHCJS web

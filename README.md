@@ -215,6 +215,14 @@ Feel free to open an
 [PR](https://github.com/cdepillabout/pretty-simple/pulls) for any
 bugs/problems/suggestions/improvements.
 
+### Testing
+
+To run the test suite locally, one must install the executables `doctest` and
+`cabal-doctest`, e.g. with
+`cabal install --ignore-project doctest --flag cabal-doctest`.
+
+Then run the command `cabal doctest`.
+
 ## Maintainers
 
 - [@cdepillabout](https://github.com/cdepillabout)
