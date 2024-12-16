@@ -1,3 +1,10 @@
+
+## (next)
+
+*   Fix double-quoting issue with `pTraceShowWith`.
+    [#132](https://github.com/cdepillabout/pretty-simple/pull/132)
+    Thanks [@leoslf](https://github.com/leoslf)!
+
 ## 4.1.3.0
 
 *   Remove custom setup. This makes cross-compiling `pretty-simple` a lot more
