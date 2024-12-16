@@ -290,7 +290,7 @@ pTraceWith f a = pTrace (f a) a
 -- @since ?
 {-# WARNING pTraceShowWith "'pTraceShowWith' remains in code" #-}
 pTraceShowWith :: Show b => (a -> b) -> a -> a
-pTraceShowWith f = (show . f) >>= pTraceShow
+pTraceShowWith f = pTraceWith (show . f)
 
 ------------------------------------------
 -- Helpers
