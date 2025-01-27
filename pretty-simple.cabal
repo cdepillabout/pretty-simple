@@ -9,16 +9,11 @@ author:              Dennis Gosnell
 maintainer:          cdep.illabout@gmail.com
 copyright:           2017-2019 Dennis Gosnell
 category:            Text
-build-type:          Custom
+build-type:          Simple
 extra-source-files:  CHANGELOG.md
                    , README.md
                    , img/pretty-simple-example-screenshot.png
 cabal-version:       >=1.10
-
-custom-setup
-  setup-depends:     base
-                   , Cabal >= 1.24
-                   , cabal-doctest >=1.0.2
 
 flag buildexe
   description: Build an small command line program that pretty-print anything from stdin.
