@@ -11,7 +11,7 @@ integer-logarithms-1.0.3-8EbIvyaPt1VK2rKaCK88I2:1272
 jsaddle-0.9.7.0-K7HTtX94YSIf0dlSHLERg:47728
 main:                    55490
 miso-1.8.3.0-HORkd0R3qRL1TCYSuYJgsC:117094
-pretty-simple-4.1.3.0-76d7p0Y1sv82dyUNvTi1Z6:113374
+pretty-simple-4.1.3.0-76d7p0Y1sv82dyUNvTi1Z6:114528
 prettyprinter-1.7.0-EHgPOhjWctJ7BjsxUsFSrA:10322
 prettyprinter-ansi-terminal-1.1.2-H3J9da6EGBwJVLQYTlQXMQ:1
 primitive-0.6.4.0-Ix68lo67v0n3y1QMYDPFlz:12061
@@ -149,7 +149,7 @@ miso-1.8.3.0-HORkd0R3qRL1TCYSuYJgsC
 pretty-simple-4.1.3.0-76d7p0Y1sv82dyUNvTi1Z6
     Text.Pretty.Simple.Internal.Color:  1
     Text.Pretty.Simple.Internal.Expr:   12634
-    Text.Pretty.Simple.Internal.ExprParser:34376
+    Text.Pretty.Simple.Internal.ExprParser:35530
     Text.Pretty.Simple.Internal.Printer:66363
 
 prettyprinter-1.7.0-EHgPOhjWctJ7BjsxUsFSrA
@@ -195,5 +195,5 @@ vector-0.12.0.3-Ljxp3Ug7QBk3GWhyQE0Ewc
 
 
 
-packed metadata: 1726833
+packed metadata: 1726862
 
