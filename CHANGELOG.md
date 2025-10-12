@@ -1,5 +1,4 @@
-
-## (next)
+## 4.1.4.0
 
 *   Fix double-quoting issue with `pTraceShowWith`.
     [#132](https://github.com/cdepillabout/pretty-simple/pull/132)
